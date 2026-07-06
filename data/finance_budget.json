@@ -1,0 +1,12 @@
+{
+  "monthly_income": 0,
+  "fixed_expenses": [],
+  "savings_goals": [],
+  "summary": {
+    "total_fixed_expenses": 0,
+    "total_savings_goals": 0,
+    "remaining_amount": 0,
+    "fixed_expense_ratio": 0.0,
+    "risk_level": "NORMAL"
+  }
+}

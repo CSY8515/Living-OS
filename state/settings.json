@@ -1,0 +1,6 @@
+{
+  "app_name": "Living OS",
+  "version": "v0.2 Core",
+  "default_report_range": "daily",
+  "date_format": "YYYY-MM-DD"
+}
