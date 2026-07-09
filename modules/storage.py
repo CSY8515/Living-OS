@@ -214,7 +214,7 @@ def load_dashboard_data() -> dict[str, Any]:
         "recent_logs": recent_logs,
         "recent_decisions": recent_decisions,
         "decision_count": len(decisions),
-        "reviewable_decision_count": len(reviewable_decisions),
+        "reviewable_decision_count": len(decisions),
         "recent_report": report_files[0].name if report_files else None,
         "report_count": len(report_files),
         "system_status": "NORMAL",
