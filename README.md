@@ -1,6 +1,10 @@
-# Living OS v0.7
+# Living OS v0.8
 
-Living OS v0.7 is a local, single-user Streamlit operating system for daily records, decisions, reports, archives, analytics, and manual review.
+Living OS v0.8 is a local, single-user Streamlit operating system for daily records, decisions, reports, archives, analytics, and manual review.
+
+## v0.8 Core Reliability and Consistency
+
+v0.8 keeps the v0.7 architecture and feature set while correcting dashboard counts, consolidating date-window behavior, improving report discovery resilience, aligning version labels, and adding isolated regression tests. Existing JSON and JSONL schemas are unchanged.
 
 ## v0.7 Review Workspace
 
@@ -21,7 +25,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## v0.7 pages
+## v0.8 pages
 
 - Dashboard
 - Daily Log

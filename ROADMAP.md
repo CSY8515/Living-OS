@@ -1,5 +1,18 @@
 # Living OS Roadmap
 
+## v0.8 Core Reliability and Consistency
+
+Status: Implemented; awaiting approval
+
+Goals:
+
+- Correct dashboard and version-label inconsistencies.
+- Consolidate read-only date handling for Analytics and Review.
+- Improve safe report discovery and preserve malformed-data fallbacks.
+- Add isolated regression tests without changing JSON/JSONL schemas.
+
+Approved scope: `docs/ROADMAP_v0.8.md`
+
 ## v0.7 Review Workspace
 
 상태: 구현 완료

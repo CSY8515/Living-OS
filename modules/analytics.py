@@ -1,51 +1,20 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, timedelta
 from typing import Any
 
 from modules.archive import load_archive_items
 from modules.daily_log import load_daily_logs
 from modules.decision_log import read_decision_logs
+from modules.date_utils import DATE_WINDOWS, filter_records_by_window, parse_date, window_bounds
 from modules.storage import list_report_files
 
 
-DATE_WINDOWS = {
-    "All time": None,
-    "Last 7 days": 6,
-    "Last 30 days": 29,
-    "This month": "month",
-}
-
-
-def parse_date(value: Any) -> date | None:
-    try:
-        return date.fromisoformat(str(value))
-    except (TypeError, ValueError):
-        return None
-
-
-def date_window_bounds(window: str) -> tuple[date | None, date | None]:
-    today = date.today()
-    selected = DATE_WINDOWS.get(window)
-    if selected == "month":
-        return today.replace(day=1), today
-    if isinstance(selected, int):
-        return today - timedelta(days=selected), today
-    return None, None
+date_window_bounds = window_bounds
 
 
 def filter_logs_by_window(logs: list[dict[str, Any]], window: str) -> list[dict[str, Any]]:
-    start, end = date_window_bounds(window)
-    if start is None or end is None:
-        return logs
-
-    filtered: list[dict[str, Any]] = []
-    for item in logs:
-        parsed = parse_date(item.get("date"))
-        if parsed is not None and start <= parsed <= end:
-            filtered.append(item)
-    return filtered
+    return filter_records_by_window(logs, window)
 
 
 def count_tags(records: list[dict[str, Any]]) -> Counter[str]:

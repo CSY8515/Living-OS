@@ -7,7 +7,7 @@ def render_dashboard(data: dict[str, Any]) -> None:
     import streamlit as st
 
     st.title("Living OS")
-    st.caption("v0.2 Core · Daily operating system for real use")
+    st.caption("v0.8 · Daily operating system for real use")
 
     status = data.get("system_status", "NORMAL")
     if status == "NORMAL":

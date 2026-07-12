@@ -25,7 +25,7 @@ DEFAULT_ARCHIVE = {"items": []}
 DEFAULT_REPORT_INDEX = {"reports": []}
 DEFAULT_SETTINGS = {
     "app_name": "Living OS",
-    "version": "v0.7",
+    "version": "v0.8",
     "default_report_range": "daily",
     "date_format": "YYYY-MM-DD",
 }
@@ -169,15 +169,18 @@ def append_jsonl(path: Path, record: dict[str, Any]) -> None:
 def list_report_files() -> list[Path]:
     if not REPORTS_DIR.exists():
         return []
-    return sorted(
-        [
-            path
-            for path in REPORTS_DIR.glob("*.md")
-            if path.name != "living_os_report.md"
-        ],
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
+    files: list[tuple[float, Path]] = []
+    try:
+        for path in REPORTS_DIR.glob("*.md"):
+            if path.name == "living_os_report.md":
+                continue
+            try:
+                files.append((path.stat().st_mtime, path))
+            except OSError:
+                continue
+    except OSError:
+        return []
+    return [path for _, path in sorted(files, key=lambda item: item[0], reverse=True)]
 
 
 def load_dashboard_data() -> dict[str, Any]:
@@ -214,7 +217,7 @@ def load_dashboard_data() -> dict[str, Any]:
         "recent_logs": recent_logs,
         "recent_decisions": recent_decisions,
         "decision_count": len(decisions),
-        "reviewable_decision_count": len(decisions),
+        "reviewable_decision_count": len(reviewable_decisions),
         "recent_report": report_files[0].name if report_files else None,
         "report_count": len(report_files),
         "system_status": "NORMAL",

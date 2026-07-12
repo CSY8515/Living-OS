@@ -12,7 +12,7 @@ from modules.settings import render_settings
 from modules.storage import ensure_data_files, load_dashboard_data
 
 
-VERSION = "v0.7"
+VERSION = "v0.8"
 
 
 st.set_page_config(

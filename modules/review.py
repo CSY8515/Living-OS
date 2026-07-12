@@ -1,70 +1,23 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from modules.archive import load_archive_items
 from modules.daily_log import load_daily_logs
 from modules.decision_log import decision_title, read_decision_logs
+from modules.date_utils import (
+    DATE_WINDOWS,
+    filter_records_by_window,
+    parse_date as parse_record_date,
+    record_date,
+    window_bounds,
+)
 from modules.storage import list_report_files
 
 
-DATE_WINDOWS = {
-    "All time": None,
-    "Last 7 days": 6,
-    "Last 30 days": 29,
-    "This month": "month",
-}
 REVIEWABLE_STATUSES = ("draft", "active", "review")
-
-
-def parse_record_date(value: Any) -> date | None:
-    if value is None:
-        return None
-    text = str(value).strip()
-    if not text:
-        return None
-    try:
-        return datetime.fromisoformat(text.replace("Z", "+00:00")).date()
-    except ValueError:
-        try:
-            return date.fromisoformat(text)
-        except ValueError:
-            return None
-
-
-def window_bounds(window: str, today: date | None = None) -> tuple[date | None, date | None]:
-    current = today or date.today()
-    selected = DATE_WINDOWS.get(window)
-    if selected == "month":
-        return current.replace(day=1), current
-    if isinstance(selected, int):
-        return current - timedelta(days=selected), current
-    return None, None
-
-
-def record_date(record: dict[str, Any]) -> date | None:
-    for field in ("updated_at", "created_at", "date"):
-        parsed = parse_record_date(record.get(field))
-        if parsed is not None:
-            return parsed
-    return None
-
-
-def filter_records_by_window(
-    records: list[dict[str, Any]],
-    window: str,
-    today: date | None = None,
-) -> list[dict[str, Any]]:
-    start, end = window_bounds(window, today)
-    if start is None or end is None:
-        return records
-    return [
-        record
-        for record in records
-        if (parsed := record_date(record)) is not None and start <= parsed <= end
-    ]
 
 
 def report_records(paths: list[Path]) -> list[dict[str, Any]]:

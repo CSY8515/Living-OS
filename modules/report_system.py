@@ -57,7 +57,7 @@ def build_report_text(report_type: str) -> str:
         "",
         f"- Generated At: {generated_at}",
         f"- Range: {start.isoformat()} ~ {end.isoformat()}",
-        f"- Version: v0.7",
+        f"- Version: v0.8",
         "",
         "## Summary",
         "",

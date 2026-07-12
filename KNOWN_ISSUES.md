@@ -1,6 +1,16 @@
 # Known Issues
 
-## Living OS v0.7
+## Living OS v0.8
+
+### Core reliability limitations
+
+- Living OS remains a local, single-user Streamlit application using JSON and JSONL files.
+- Bounded date filters exclude records whose existing date fields are missing or malformed.
+- Report ordering uses each accessible report file's local modification time.
+- Read failures fall back safely in the application but do not repair malformed source files.
+- Existing JSON and JSONL schemas remain unchanged in v0.8.
+
+## Historical v0.7 notes
 
 ### Review Workspace limitations
 
