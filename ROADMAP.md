@@ -1,5 +1,29 @@
 # Living OS Roadmap
 
+## v0.7 Review Workspace
+
+상태: 구현 완료
+
+목표:
+
+- 기존 Living OS 기록을 통합해서 검토하는 읽기 전용 Review Workspace 추가
+- `draft`, `active`, `review` 상태의 Decision 검토 큐 제공
+- 기간 및 상태 필터 제공
+- 기존 JSON/JSONL 스키마와 v0.6 기능의 완전한 호환성 유지
+
+상세 승인 범위: `docs/ROADMAP_v0.7.md`
+
+## v0.6 Analytics
+
+상태: 완료
+
+목표:
+
+- 기존 기록을 기반으로 하는 읽기 전용 Analytics 추가
+- Daily Log, Decision, Archive, Report 요약 제공
+
+---
+
 ## v0.1 MVP
 
 상태: 완료

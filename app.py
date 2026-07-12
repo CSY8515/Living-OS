@@ -7,11 +7,12 @@ from modules.daily_log import render_daily_log
 from modules.decision_log import render_decision_log
 from modules.module_manager import render_module_manager
 from modules.report_system import render_reports
+from modules.review import render_review
 from modules.settings import render_settings
 from modules.storage import ensure_data_files, load_dashboard_data
 
 
-VERSION = "v0.2 Core"
+VERSION = "v0.7"
 
 
 st.set_page_config(
@@ -36,6 +37,7 @@ def main() -> None:
                 "Reports",
                 "Archive",
                 "Analytics",
+                "Review",
                 "Module Manager",
                 "Settings",
             ],
@@ -52,6 +54,8 @@ def main() -> None:
         render_archive()
     elif page == "Analytics":
         render_analytics()
+    elif page == "Review":
+        render_review()
     elif page == "Module Manager":
         render_module_manager()
     elif page == "Settings":

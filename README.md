@@ -1,4 +1,41 @@
-# Living OS v0.2 Core
+# Living OS v0.7
+
+Living OS v0.7 is a local, single-user Streamlit operating system for daily records, decisions, reports, archives, analytics, and manual review.
+
+## v0.7 Review Workspace
+
+The Review Workspace is a read-only view over existing Living OS data. It provides:
+
+- Consolidated counts for Daily Logs, Decisions, Archive items, and Reports
+- A manual review queue for decisions with `draft`, `active`, or `review` status
+- All time, Last 7 days, Last 30 days, and This month filters
+- A combined recent-activity view
+- Safe empty and malformed-date handling
+
+The Review Workspace does not edit records or change existing JSON/JSONL schemas.
+
+## Run
+
+```powershell
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+## v0.7 pages
+
+- Dashboard
+- Daily Log
+- Decision Log
+- Reports
+- Archive
+- Analytics
+- Review
+- Module Manager
+- Settings
+
+---
+
+## Historical v0.2 documentation
 
 Living OS v0.2 Core는 매일 실제로 사용할 수 있는 개인 운영 시스템을 목표로 하는 Python + Streamlit 기반 로컬 앱입니다.
 

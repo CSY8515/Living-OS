@@ -1,5 +1,19 @@
 # Known Issues
 
+## Living OS v0.7
+
+### Review Workspace limitations
+
+- Review is read-only and does not edit source records.
+- Date-range filters exclude records whose existing date fields are missing or malformed.
+- Recent Report ordering and filtering use each report file's local modification time.
+- Decision review is limited to the existing `draft`, `active`, and `review` statuses.
+- No existing JSON or JSONL schema was changed for v0.7.
+
+The local single-user, JSON/JSONL, backup, and intentionally excluded feature limitations documented below remain applicable.
+
+## Historical v0.2 notes
+
 Living OS v0.2 Core의 현재 한계와 의도적으로 제외한 기능을 정리합니다.
 
 ## 현재 한계
