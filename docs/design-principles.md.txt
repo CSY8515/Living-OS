@@ -1,0 +1,145 @@
+# Living OS Design Principles
+
+## 목적
+
+Living OS 개발 시 반드시 따라야 하는 공통 설계 원칙을 정의한다.
+
+모든 기능과 모듈은 본 원칙을 기준으로 설계하고 구현한다.
+
+---
+
+# Core Principles
+
+## 1. Design First
+
+설계를 먼저 완성한다.
+
+설계 없이 구현하지 않는다.
+
+---
+
+## 2. Structure Before Features
+
+기능보다 구조를 우선한다.
+
+확장 가능한 구조를 먼저 설계한다.
+
+---
+
+## 3. Single Source of Truth
+
+GitHub 저장소를 프로젝트의 기준 저장소로 사용한다.
+
+문서와 구현은 항상 동일해야 한다.
+
+---
+
+## 4. Real-world Validation
+
+실사용으로 검증된 데이터만
+
+Living Rule과 핵심 운영체계에 반영한다.
+
+---
+
+## 5. Separation of Data
+
+원본 데이터와
+
+의사결정 데이터를 분리한다.
+
+원본
+
+↓
+
+Decision Report
+
+↓
+
+Living Rule
+
+↓
+
+Core 반영
+
+---
+
+## 6. Modular Architecture
+
+모든 기능은 모듈 단위로 개발한다.
+
+모듈 간 결합도를 최소화한다.
+
+---
+
+## 7. Documentation Driven Development
+
+모든 개발은 문서를 기준으로 진행한다.
+
+Roadmap
+
+↓
+
+Master Blueprint
+
+↓
+
+Architecture
+
+↓
+
+Module Specs
+
+↓
+
+Implementation
+
+---
+
+## 8. Incremental Development
+
+작은 단위로 구현한다.
+
+구현
+
+↓
+
+테스트
+
+↓
+
+검토
+
+↓
+
+Commit
+
+↓
+
+다음 기능
+
+---
+
+## 9. Maintainability
+
+장기 유지보수가 가능한 구조를 유지한다.
+
+중복을 최소화한다.
+
+---
+
+## 10. Safety First
+
+안정성을 기능보다 우선한다.
+
+검증되지 않은 기능은 Release하지 않는다.
+
+---
+
+# Development Rules
+
+- 설계 변경은 승인 후 진행한다.
+- 구현 후 설계를 수정하지 않는다.
+- 문서와 코드의 일관성을 유지한다.
+- CHANGELOG를 지속적으로 관리한다.
+- 실험 기능은 Core가 아닌 Expansion에서 검증한다.
