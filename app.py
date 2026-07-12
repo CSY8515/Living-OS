@@ -10,10 +10,10 @@ from modules.module_manager import render_module_manager
 from modules.report_system import render_reports
 from modules.review import render_review
 from modules.settings import render_settings
-from modules.storage import ensure_data_files, load_dashboard_data
+from modules.storage import APP_VERSION, ensure_data_files, load_dashboard_data
 
 
-VERSION = "v0.9"
+VERSION = APP_VERSION
 
 
 st.set_page_config(

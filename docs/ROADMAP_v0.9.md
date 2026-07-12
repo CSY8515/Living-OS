@@ -5,7 +5,7 @@
 - Target version: Living OS v0.9
 - Baseline: Living OS v0.8 Stable
 - Release theme: First OpenAI API Integration
-- Status: Proposed; awaiting user approval
+- Historical status: Implemented and released as the v1.0 baseline
 
 ## Objectives
 
@@ -254,4 +254,4 @@ Planned file: `modules/ai_analysis.py`
 
 ## Approval Gate
 
-No application code may be changed until the user explicitly approves this v0.9 roadmap. Approval may narrow or revise this proposal; only the final explicitly approved scope may be implemented.
+Historical note: implementation proceeded only after explicit approval. v1.0 Stable preserves this safety and compatibility contract.

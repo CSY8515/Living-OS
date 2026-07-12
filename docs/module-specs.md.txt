@@ -1,111 +1,42 @@
 # Living OS Module Specifications
 
-## 목적
+## Application shell
 
-Living OS를 구성하는 각 모듈의 역할과 책임을 정의한다.
+`app.py` owns Streamlit configuration, startup initialization, version display, and navigation. It does not contain feature persistence logic.
 
-모든 모듈은 독립적으로 관리되며,
-공통 설계 원칙을 따른다.
+## Storage and shared utilities
 
----
+`modules/storage.py` owns file locations, defaults, safe reads, atomic writes, JSONL append behavior, report discovery, and dashboard aggregation. `date_utils.py` and `formatting.py` provide shared deterministic helpers.
 
-# Core Module
+## Record modules
 
-역할
+- `daily_log.py`: loads and explicitly saves Daily Log JSON records.
+- `decision_log.py`: reads and explicitly appends Decision JSONL records.
+- `archive.py`: loads, searches, and explicitly saves Archive JSON records.
+- `report_system.py`: creates deterministic previews, explicitly saves Markdown reports, builds AI draft inputs, and explicitly saves approved AI drafts.
 
-- 시스템 중심 관리
-- 상태 관리
-- 공통 설정
-- 버전 관리
+## Read-only modules
 
----
+- `dashboard.py`: current metrics and recent activity.
+- `analytics.py`: counters over existing records.
+- `review.py`: filtered activity and decision-review queue.
+- `ai_analysis.py`: explicitly requested session-only AI analysis of selected records.
 
-# Decision Module
+## Configuration modules
 
-역할
+- `settings.py`: local settings, explicit credential controls, backup, restore, and storage status.
+- `module_manager.py`: existing module-registry editing; it does not implement expansion modules.
+- `ai_credentials.py`: session, operating-system credential-store, and environment key resolution.
+- `ai_service.py`: bounded foreground OpenAI requests and sanitized errors.
 
-- 의사결정 분석
-- Decision Report 생성
-- Living Rule 관리
+## Compatibility assets
 
----
+`finance.py`, `housing.py`, and their JSON assets remain available for historical compatibility. They are not v1.0 navigation pages and receive no feature expansion.
 
-# Data Module
+## Module rules
 
-역할
-
-- 원본 데이터 저장
-- 프로젝트 데이터 관리
-- 데이터 분리 및 백업
-
----
-
-# Report Module
-
-역할
-
-- 보고서 생성
-- 요약
-- 통계
-- 분석 결과 출력
-
----
-
-# AI Module
-
-역할
-
-- AI 분석
-- 추천
-- 패턴 탐지
-- 자동화 지원
-
----
-
-# Automation Module
-
-역할
-
-- 반복 작업 자동화
-- 알림
-- 일정 관리
-- 데이터 동기화
-
----
-
-# Expansion Modules
-
-후속 버전에서 추가 예정
-
-- Finance
-- Investment
-- Health
-- Learning
-- Vehicle
-- Career
-- Digital OS
-
----
-
-# Module Rules
-
-- 모든 모듈은 독립성을 유지한다.
-- 모듈 간 의존성을 최소화한다.
-- 공통 기능은 Core Module에서 관리한다.
-- 새로운 기능은 Expansion Module에서 검증 후 Core에 반영한다.
-
----
-
-# Version Policy
-
-v0.x
-
-- 구조 구축
-- 인터페이스 정의
-- 역할 분리
-
-v1.0
-
-- 안정화
-- 모듈 완성
-- 장기 운영
+- Preserve existing JSON/JSONL fields and top-level containers.
+- Read-only modules do not write user records.
+- Every persistence action requires a direct user action.
+- AI modules cannot modify records or invoke background work.
+- Cross-module behavior uses existing narrow interfaces; no database or service layer is introduced.

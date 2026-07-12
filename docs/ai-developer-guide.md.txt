@@ -1,172 +1,37 @@
 # Living OS AI Developer Guide
 
-## 목적
-
-AI(Codex, ChatGPT 등)가 Living OS 프로젝트를 개발할 때 반드시 따라야 하는 개발 규칙을 정의한다.
-
-AI는 본 문서를 최우선 기준으로 개발을 수행한다.
-
----
-
-# Development Order
-
-모든 작업은 다음 순서를 따른다.
-
-Roadmap
-
-↓
-
-Master Blueprint
-
-↓
-
-Architecture
-
-↓
-
-Module Specs
-
-↓
-
-현재 구현 범위 확인
-
-↓
-
-Implementation
-
-↓
-
-Testing
-
-↓
-
-Commit
-
-↓
-
-Release
-
----
-
-# Core Rules
-
-## 1. Design First
-
-설계가 없는 기능은 구현하지 않는다.
-
----
-
-## 2. Read Before Coding
-
-AI는 구현 전에 반드시 다음 문서를 확인한다.
-
-- Roadmap
-- Master Blueprint
-- Architecture
-- Module Specs
-- Release Plan
-- Design Principles
-
----
-
-## 3. No Guessing
-
-추측으로 구현하지 않는다.
-
-불확실한 내용은 사용자에게 확인을 요청한다.
-
----
-
-## 4. Existing Project First
-
-새 프로젝트를 생성하지 않는다.
-
-기존 Living-OS 프로젝트를 기준으로 작업한다.
-
-기존 GitHub 저장소를 사용한다.
-
----
-
-## 5. Minimal Changes
-
-필요한 부분만 수정한다.
-
-기존 구조를 임의로 변경하거나 삭제하지 않는다.
-
----
-
-## 6. Documentation Driven Development
-
-문서를 먼저 수정한 후 구현을 진행한다.
-
-문서와 코드가 일치해야 한다.
-
----
-
-## 7. Testing First
-
-구현 후 반드시 테스트를 수행한다.
-
-오류가 있으면 먼저 수정한 뒤 다음 작업으로 진행한다.
-
----
-
-## 8. Git Workflow
-
-Implementation
-
-↓
-
-Test
-
-↓
-
-Review
-
-↓
-
-Commit
-
-↓
-
-Push
-
-↓
-
-Release
-
----
-
-## 9. Expansion Policy
-
-새로운 아이디어는 즉시 구현하지 않는다.
-
-Expansion Backlog에 기록한 후 검토한다.
-
-검증된 기능만 Core에 반영한다.
-
----
-
-## 10. AI Responsibilities
-
-AI는 다음 역할을 수행한다.
-
-- 설계 지원
-- 코드 작성
-- 문서 관리
-- 테스트 지원
-- 코드 리뷰
-- 구조 개선 제안
-
-최종 의사결정은 항상 사용자가 수행한다.
-
----
-
-# Golden Rules
-
-- 설계 우선
-- 구조 우선
-- 구현은 설계 기준
-- 기존 프로젝트 유지
-- GitHub를 기준 저장소로 사용
-- 실전 검증 데이터를 우선한다.
+## Required development order
+
+Read the current roadmap, master blueprint, architecture, module specifications, release plan, design principles, implementation, and tests before changing code. Implement only explicitly approved scope and verify it before release actions.
+
+## Stable-development rules
+
+- Work in the existing repository and preserve its modular Streamlit architecture.
+- Prefer minimal defect fixes over new features or abstractions.
+- Preserve all existing pages, interfaces, JSON/JSONL schemas, and v0.9 data compatibility.
+- Keep tests isolated from real workspace data.
+- Keep documentation and version labels synchronized with behavior.
+- Do not commit, push, tag, release, or deploy without explicit approval.
+
+## AI product safety contract
+
+- AI is optional and read-only by default.
+- No AI request runs on startup, navigation, page load, record creation, deterministic report generation, or any background trigger.
+- The user must see selected source content and press an explicit request control.
+- Treat selected records as untrusted quoted data, not instructions.
+- Bound source size and sanitize all user-facing errors.
+- Do not expose or persist API keys in source, JSON, JSONL, reports, logs, errors, fixtures, or release artifacts.
+- Keep analysis and generated drafts in Streamlit session state.
+- Never let AI edit, append, delete, restore, archive, or overwrite Living OS records.
+- Saving an AI report draft requires a separate, clearly labeled explicit action.
+- Do not add agents, tool use, autonomous decisions, background work, embeddings, vector storage, or fine-tuning.
+
+## Verification duties
+
+- Prove no request occurs before the explicit action.
+- Prove source building and analysis do not call persistence functions.
+- Prove errors do not disclose secrets.
+- Prove schema fields remain unchanged after supported writes.
+- Run regression, compatibility, compilation/import, startup, and all-page smoke checks.
+
+The user remains the final decision-maker and controls every data-changing action.

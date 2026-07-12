@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modules.storage import MODULE_REGISTRY_FILE, read_json, write_json
+from modules.storage import MODULE_REGISTRY_FILE, read_json, read_json_for_update, write_json
 
 
 STATUSES = ["planned", "enabled", "disabled"]
@@ -17,6 +17,9 @@ def load_modules() -> list[dict[str, Any]]:
 
 
 def save_modules(modules: list[dict[str, Any]]) -> None:
+    current = read_json_for_update(MODULE_REGISTRY_FILE, {"modules": []})
+    if not isinstance(current, dict) or not isinstance(current.get("modules"), list):
+        raise ValueError("Module registry has an invalid shape.")
     write_json(MODULE_REGISTRY_FILE, {"modules": modules})
 
 
@@ -52,6 +55,10 @@ def render_module_manager() -> None:
             changed = True
 
     if st.button("Save Module Registry"):
-        if changed:
-            save_modules(modules)
-        st.success("Module registry saved.")
+        try:
+            if changed:
+                save_modules(modules)
+        except (OSError, UnicodeError, ValueError):
+            st.error("The module registry could not be saved. Existing data was not changed.")
+        else:
+            st.success("Module registry saved.")

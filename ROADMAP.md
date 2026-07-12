@@ -1,8 +1,21 @@
 # Living OS Roadmap
 
+## v1.0 Stable
+
+Status: Implemented; verification in progress; awaiting release approval
+
+Goals:
+
+- Stabilize the complete v0.9 feature set without architecture or schema changes.
+- Expand regression, backward-compatibility, error-handling, and AI-safety coverage.
+- Align version labels and release documentation.
+- Verify local Streamlit startup and every existing page.
+
+Approved scope: `docs/ROADMAP_v1.0.md`
+
 ## v0.9 First OpenAI API Integration
 
-Status: Implemented; awaiting approval
+Status: Released as the v1.0 baseline
 
 Goals:
 
@@ -15,7 +28,7 @@ Approved scope: `docs/ROADMAP_v0.9.md`
 
 ## v0.8 Core Reliability and Consistency
 
-Status: Implemented; awaiting approval
+Status: Released as a historical baseline
 
 Goals:
 

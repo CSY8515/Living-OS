@@ -1,111 +1,26 @@
 # Living OS Master Blueprint
 
-## 목적
+## Purpose
 
-Living OS는 개인의 삶을 운영체계(Operating System)처럼 관리하기 위한 프로젝트이다.
+Living OS helps one user record daily activity, document decisions, generate reports, preserve reusable material, review patterns, and optionally request read-only AI assistance while retaining local control of data.
 
-모든 데이터는 기록 → 분석 → 의사결정 → 규칙 → 운영체계의 흐름으로 관리한다.
+## Core workflow
 
----
+Daily records and decisions → deterministic summaries and reports → manual review → optional archive and future rules.
 
-# 핵심 철학
+AI can assist with analysis or drafting only when explicitly requested. It is not a source of truth, does not decide for the user, and has no automatic write path.
 
-- 설계 우선
-- 구현보다 구조 우선
-- 실전 데이터 기반
-- 반복 가능한 시스템 구축
-- 장기 유지보수 가능 구조
+## v1.0 Stable system
 
----
+- Dashboard for current status and recent activity
+- Daily Log and Decision Log for explicit record creation
+- Reports for deterministic output and optionally approved AI drafts
+- Archive for reusable local material
+- Analytics and Review for read-only summaries
+- AI Analysis for selected Daily Log and Decision content
+- Module Manager for the existing future-module registry
+- Settings for local preferences, credentials, backup, and restore
 
-# 개발 원칙
+## Long-term constraints
 
-모든 구현은 다음 순서를 따른다.
-
-Roadmap
-
-↓
-
-Master Blueprint
-
-↓
-
-Architecture
-
-↓
-
-Module Specs
-
-↓
-
-구현
-
-↓
-
-테스트
-
-↓
-
-Release
-
-설계 변경은 반드시 승인 후 진행한다.
-
----
-
-# 프로젝트 구조
-
-Living-OS/
-
-docs/
-
-src/
-
-tests/
-
-assets/
-
-README.md
-
-CHANGELOG.md
-
----
-
-# 데이터 관리
-
-원본 데이터
-
-↓
-
-프로젝트별 관리
-
-↓
-
-Decision Report
-
-↓
-
-Living Rule
-
-↓
-
-핵심 운영체계 반영
-
----
-
-# 운영 원칙
-
-ChatGPT는 운영 및 분석 플랫폼이다.
-
-영구 저장소가 아니다.
-
-GitHub 저장소를 기준으로 프로젝트를 관리한다.
-
----
-
-# 장기 목표
-
-- 개인 운영체계 구축
-- 의사결정 자동화
-- 데이터 기반 생활 관리
-- 모듈형 확장 구조
-- AI 협업 개발 체계
+Maintain modularity, local-first ownership, backward compatibility, explicit user approval for writes, testable deterministic behavior, and documentation-driven releases. Expansion concepts do not enter the stable core without a separately approved roadmap.

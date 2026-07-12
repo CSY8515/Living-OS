@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from modules.storage import APP_VERSION
+
 
 def render_dashboard(data: dict[str, Any]) -> None:
     import streamlit as st
 
     st.title("Living OS")
-    st.caption("v0.9 · Daily operating system for real use")
+    st.caption(f"{APP_VERSION} · Daily operating system for real use")
 
     status = data.get("system_status", "NORMAL")
     if status == "NORMAL":

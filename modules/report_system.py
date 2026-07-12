@@ -9,11 +9,14 @@ from modules.ai_service import AI_MODELS, DEFAULT_AI_MODEL, AIServiceError, gene
 from modules.daily_log import load_daily_logs
 from modules.decision_log import decision_title, read_decision_logs
 from modules.storage import (
+    APP_VERSION,
     REPORTS_DIR,
     REPORT_INDEX_FILE,
     now_iso,
     read_json,
+    list_report_files,
     today_str,
+    write_text_atomic,
     write_json,
 )
 
@@ -59,7 +62,7 @@ def build_report_text(report_type: str) -> str:
         "",
         f"- Generated At: {generated_at}",
         f"- Range: {start.isoformat()} ~ {end.isoformat()}",
-        f"- Version: v0.9",
+        f"- Version: {APP_VERSION}",
         "",
         "## Summary",
         "",
@@ -110,9 +113,9 @@ def build_report_text(report_type: str) -> str:
 
 def save_report(report_type: str, content: str) -> Path:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
     path = REPORTS_DIR / f"{report_type}_report_{timestamp}.md"
-    path.write_text(content, encoding="utf-8")
+    write_text_atomic(path, content)
 
     index = read_json(REPORT_INDEX_FILE, {"reports": []})
     reports = index.get("reports", []) if isinstance(index, dict) else []
@@ -125,7 +128,14 @@ def save_report(report_type: str, content: str) -> Path:
             "created_at": now_iso(),
         }
     )
-    write_json(REPORT_INDEX_FILE, {"reports": reports})
+    try:
+        write_json(REPORT_INDEX_FILE, {"reports": reports})
+    except (OSError, TypeError, ValueError):
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
     return path
 
 
@@ -161,8 +171,12 @@ def render_reports() -> None:
     st.text_area("Report", value=preview, height=420)
 
     if st.button("Save Report"):
-        path = save_report(report_type, preview)
-        st.success(f"Saved {path.name}")
+        try:
+            path = save_report(report_type, preview)
+        except (OSError, TypeError, ValueError):
+            st.error("The report could not be saved. Existing data was not changed.")
+        else:
+            st.success(f"Saved {path.name}")
 
     st.divider()
     st.subheader("Optional AI Report Draft")
@@ -193,12 +207,16 @@ def render_reports() -> None:
             if not edited_draft.strip():
                 st.error("The AI report draft is empty.")
             else:
-                path = save_report(report_type, edited_draft)
-                st.success(f"Saved {path.name}")
+                try:
+                    path = save_report(report_type, edited_draft)
+                except (OSError, TypeError, ValueError):
+                    st.error("The AI draft could not be saved. Existing data was not changed.")
+                else:
+                    st.success(f"Saved {path.name}")
 
     st.divider()
     st.subheader("Recent Report Files")
-    files = sorted(REPORTS_DIR.glob("*.md"), key=lambda item: item.stat().st_mtime, reverse=True)
+    files = list_report_files()
     if not files:
         st.info("No reports yet.")
     for path in files[:20]:

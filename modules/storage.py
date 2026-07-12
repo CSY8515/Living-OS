@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from copy import deepcopy
 from datetime import date, datetime
 from pathlib import Path
@@ -8,6 +9,7 @@ from typing import Any
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+APP_VERSION = "v1.0 Stable"
 
 DAILY_LOG_FILE = BASE_DIR / "data" / "daily_logs.json"
 DECISION_LOG_FILE = BASE_DIR / "logs" / "decision_log.jsonl"
@@ -25,7 +27,7 @@ DEFAULT_ARCHIVE = {"items": []}
 DEFAULT_REPORT_INDEX = {"reports": []}
 DEFAULT_SETTINGS = {
     "app_name": "Living OS",
-    "version": "v0.9",
+    "version": APP_VERSION,
     "default_report_range": "daily",
     "date_format": "YYYY-MM-DD",
 }
@@ -110,10 +112,36 @@ def today_str() -> str:
 
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary_path = path.with_suffix(f"{path.suffix}.tmp")
-    with temporary_path.open("w", encoding="utf-8") as file:
-        json.dump(value, file, ensure_ascii=False, indent=2)
-    temporary_path.replace(path)
+    temporary_path = path.with_suffix(f"{path.suffix}.{os.getpid()}.tmp")
+    try:
+        with temporary_path.open("w", encoding="utf-8") as file:
+            json.dump(value, file, ensure_ascii=False, indent=2)
+            file.flush()
+            os.fsync(file.fileno())
+        temporary_path.replace(path)
+    except (OSError, TypeError, ValueError):
+        try:
+            temporary_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
+
+
+def write_text_atomic(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = path.with_suffix(f"{path.suffix}.{os.getpid()}.tmp")
+    try:
+        with temporary_path.open("w", encoding="utf-8", newline="") as file:
+            file.write(content)
+            file.flush()
+            os.fsync(file.fileno())
+        temporary_path.replace(path)
+    except OSError:
+        try:
+            temporary_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
 
 
 def read_json(path: Path, default: Any) -> Any:
@@ -124,6 +152,14 @@ def read_json(path: Path, default: Any) -> Any:
             return json.load(file)
     except (OSError, UnicodeError, json.JSONDecodeError):
         return deepcopy(default)
+
+
+def read_json_for_update(path: Path, default: Any) -> Any:
+    """Read a JSON source before mutation without hiding malformed existing data."""
+    if not path.exists() or path.stat().st_size == 0:
+        return deepcopy(default)
+    with path.open("r", encoding="utf-8-sig") as file:
+        return json.load(file)
 
 
 def ensure_data_files() -> None:
@@ -164,6 +200,8 @@ def append_jsonl(path: Path, record: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as file:
         file.write(json.dumps(record, ensure_ascii=False) + "\n")
+        file.flush()
+        os.fsync(file.fileno())
 
 
 def list_report_files() -> list[Path]:

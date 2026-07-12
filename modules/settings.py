@@ -22,6 +22,8 @@ from modules.storage import (
     REPORT_INDEX_FILE,
     SETTINGS_FILE,
     read_json,
+    read_json_for_update,
+    write_text_atomic,
     write_json,
 )
 
@@ -42,7 +44,10 @@ def load_settings() -> dict[str, Any]:
 
 
 def save_settings(settings: dict[str, Any]) -> None:
-    write_json(SETTINGS_FILE, settings)
+    current = read_json_for_update(SETTINGS_FILE, {})
+    if not isinstance(current, dict):
+        raise ValueError("Settings storage has an invalid shape.")
+    write_json(SETTINGS_FILE, {**current, **settings})
 
 
 def create_backup() -> Path:
@@ -55,9 +60,9 @@ def create_backup() -> Path:
             backup["files"][str(path.relative_to(path.parent.parent))] = path.read_text(encoding="utf-8")
         except OSError:
             continue
-    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
     backup_path = BACKUPS_DIR / f"living_os_backup_{timestamp}.json"
-    backup_path.write_text(json.dumps(backup, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_text_atomic(backup_path, json.dumps(backup, ensure_ascii=False, indent=2))
     return backup_path
 
 
@@ -67,16 +72,50 @@ def restore_backup(raw_json: str) -> int:
     if not isinstance(files, dict):
         return 0
 
-    restored = 0
-    allowed = {str(path.relative_to(path.parent.parent)): path for path in BACKUP_TARGETS}
+    allowed: dict[str, Path] = {}
+    for path in BACKUP_TARGETS:
+        relative = path.relative_to(path.parent.parent)
+        allowed[str(relative)] = path
+        allowed[relative.as_posix()] = path
+    selected: list[tuple[Path, str]] = []
     for relative_path, content in files.items():
         target = allowed.get(str(relative_path))
         if target is None or not isinstance(content, str):
             continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
-        restored += 1
-    return restored
+        if target == DECISION_LOG_FILE:
+            for line in content.splitlines():
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                if not isinstance(record, dict):
+                    raise ValueError("Decision backup records must be JSON objects.")
+        else:
+            value = json.loads(content)
+            if not isinstance(value, dict):
+                raise ValueError("Backup JSON files must contain objects.")
+        selected.append((target, content))
+
+    if files and not selected:
+        raise ValueError("The backup does not contain recognized Living OS files.")
+
+    originals = {target: target.read_bytes() if target.exists() else None for target, _ in selected}
+    restored: list[Path] = []
+    try:
+        for target, content in selected:
+            write_text_atomic(target, content)
+            restored.append(target)
+    except OSError:
+        for target in reversed(restored):
+            original = originals[target]
+            try:
+                if original is None:
+                    target.unlink(missing_ok=True)
+                else:
+                    target.write_bytes(original)
+            except OSError:
+                pass
+        raise
+    return len(restored)
 
 
 def render_settings() -> None:
@@ -98,8 +137,12 @@ def render_settings() -> None:
         submitted = st.form_submit_button("Save Settings")
 
     if submitted:
-        save_settings(settings)
-        st.success("Settings saved.")
+        try:
+            save_settings(settings)
+        except (OSError, TypeError, ValueError):
+            st.error("Settings could not be saved. Existing settings were not changed.")
+        else:
+            st.success("Settings saved.")
 
     st.divider()
     st.subheader("OpenAI Configuration")
@@ -146,8 +189,12 @@ def render_settings() -> None:
     st.divider()
     st.subheader("Data Management")
     if st.button("Create Backup"):
-        path = create_backup()
-        st.success(f"Backup created: {path.name}")
+        try:
+            path = create_backup()
+        except OSError:
+            st.error("The backup could not be created. Existing data was not changed.")
+        else:
+            st.success(f"Backup created: {path.name}")
 
     st.subheader("Restore")
     raw_json = st.text_area("Paste backup JSON", height=180)
@@ -157,8 +204,10 @@ def render_settings() -> None:
         else:
             try:
                 restored = restore_backup(raw_json)
-            except json.JSONDecodeError:
-                st.error("Invalid backup JSON.")
+            except (json.JSONDecodeError, ValueError):
+                st.error("Invalid backup JSON. No files were restored.")
+            except OSError:
+                st.error("The backup could not be restored safely.")
             else:
                 st.success(f"Restored {restored} file(s).")
 

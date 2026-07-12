@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modules.storage import DAILY_LOG_FILE, now_iso, read_json, today_str, write_json
+from modules.storage import DAILY_LOG_FILE, now_iso, read_json, read_json_for_update, today_str, write_json
 
 
 def load_daily_logs() -> list[dict[str, Any]]:
@@ -15,6 +15,15 @@ def load_daily_logs() -> list[dict[str, Any]]:
 
 def save_daily_logs(logs: list[dict[str, Any]]) -> None:
     write_json(DAILY_LOG_FILE, {"logs": logs})
+
+
+def load_daily_logs_for_update() -> list[dict[str, Any]]:
+    data = read_json_for_update(DAILY_LOG_FILE, {"logs": []})
+    if not isinstance(data, dict) or not isinstance(data.get("logs"), list):
+        raise ValueError("Daily Log storage has an invalid shape.")
+    if not all(isinstance(item, dict) for item in data["logs"]):
+        raise ValueError("Daily Log storage contains an invalid record.")
+    return data["logs"]
 
 
 def next_log_id(logs: list[dict[str, Any]]) -> str:
@@ -40,7 +49,7 @@ def add_daily_log(
     tags: list[str],
     mood: str,
 ) -> dict[str, Any]:
-    logs = load_daily_logs()
+    logs = load_daily_logs_for_update()
     timestamp = now_iso()
     record = {
         "id": next_log_id(logs),
@@ -75,8 +84,12 @@ def render_daily_log() -> None:
         if not content.strip() and not title.strip():
             st.error("Title or daily log content is required.")
         else:
-            record = add_daily_log(log_date, title, content, parse_tags(tags), mood)
-            st.success(f"Saved {record['id']}")
+            try:
+                record = add_daily_log(log_date, title, content, parse_tags(tags), mood)
+            except (OSError, UnicodeError, ValueError):
+                st.error("The Daily Log could not be saved. Existing data was not changed.")
+            else:
+                st.success(f"Saved {record['id']}")
 
     st.divider()
     st.subheader("Recent Daily Logs")

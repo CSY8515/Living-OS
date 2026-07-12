@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from modules.storage import ARCHIVE_FILE, now_iso, read_json, write_json
+from modules.storage import ARCHIVE_FILE, now_iso, read_json, read_json_for_update, write_json
 
 
 def load_archive_items() -> list[dict[str, Any]]:
@@ -15,6 +15,15 @@ def load_archive_items() -> list[dict[str, Any]]:
 
 def save_archive_items(items: list[dict[str, Any]]) -> None:
     write_json(ARCHIVE_FILE, {"items": items})
+
+
+def load_archive_items_for_update() -> list[dict[str, Any]]:
+    data = read_json_for_update(ARCHIVE_FILE, {"items": []})
+    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+        raise ValueError("Archive storage has an invalid shape.")
+    if not all(isinstance(item, dict) for item in data["items"]):
+        raise ValueError("Archive storage contains an invalid record.")
+    return data["items"]
 
 
 def next_archive_id(items: list[dict[str, Any]]) -> str:
@@ -34,7 +43,7 @@ def parse_tags(raw_tags: str) -> list[str]:
 
 
 def add_archive_item(title: str, content: str, source: str, tags: list[str]) -> dict[str, Any]:
-    items = load_archive_items()
+    items = load_archive_items_for_update()
     timestamp = now_iso()
     record = {
         "id": next_archive_id(items),
@@ -81,8 +90,12 @@ def render_archive() -> None:
         if not title.strip() and not content.strip():
             st.error("Title or content is required.")
         else:
-            record = add_archive_item(title, content, source, parse_tags(tags))
-            st.success(f"Saved {record['id']}")
+            try:
+                record = add_archive_item(title, content, source, parse_tags(tags))
+            except (OSError, UnicodeError, ValueError):
+                st.error("The Archive item could not be saved. Existing data was not changed.")
+            else:
+                st.success(f"Saved {record['id']}")
 
     st.divider()
     query = st.text_input("Search Archive")

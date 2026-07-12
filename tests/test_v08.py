@@ -112,13 +112,13 @@ class AnalyticsAndReviewTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
-    def test_report_preview_has_v09_label_without_saving(self) -> None:
+    def test_report_preview_has_v10_label_without_saving(self) -> None:
         with (
             patch("modules.report_system.load_daily_logs", return_value=[]),
             patch("modules.report_system.read_decision_logs", return_value=[]),
         ):
             report = build_report_text("daily")
-        self.assertIn("- Version: v0.9", report)
+        self.assertIn("- Version: v1.0 Stable", report)
 
 
 if __name__ == "__main__":

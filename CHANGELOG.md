@@ -2,6 +2,31 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.0 Stable
+
+### Stabilized
+
+- Centralized runtime version labeling and updated current labels to `v1.0 Stable`.
+- Added atomic, flushed JSON and text writes with temporary-file cleanup on failure.
+- Prevented malformed Daily Log, Archive, Settings, and Module Registry sources from being silently overwritten by later saves.
+- Added collision-resistant report and backup filenames.
+- Made report file creation and report-index updates consistent by removing a newly created report when its index update fails.
+- Reused resilient report discovery on the Reports page.
+- Validated all recognized backup content before restore and added best-effort rollback for write failures.
+- Added safe user-facing errors for core save, report, settings, backup, and restore actions.
+- Verified and preserved the v0.9 GPT-5.6 Luna, Terra, and Sol model identifiers and manual model selection.
+
+### Verification
+
+- Expanded isolated regression and Streamlit smoke coverage from 17 to 31 tests.
+- Added v0.9 backup fixtures, schema-field assertions, version checks, atomic-write tests, malformed-source protection, report consistency checks, and AI non-save tests.
+- Preserved all ten v0.9 pages, storage interfaces, and JSON/JSONL schemas.
+
+### Compatibility
+
+- No data migration is required.
+- No database, authentication, notifications, background automation, autonomous AI writes, agents, embeddings, vector database, or fine-tuning was added.
+
 ## v0.9
 
 ### Added

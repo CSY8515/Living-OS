@@ -93,15 +93,19 @@ def render_decision_log() -> None:
         if not decision.strip():
             st.error("Decision is required.")
         else:
-            record = save_decision(
-                decision,
-                reason,
-                expected_result,
-                actual_result,
-                review_note,
-                status,
-            )
-            st.success(f"Saved {record['id']}")
+            try:
+                record = save_decision(
+                    decision,
+                    reason,
+                    expected_result,
+                    actual_result,
+                    review_note,
+                    status,
+                )
+            except (OSError, UnicodeError, ValueError):
+                st.error("The Decision could not be saved. Existing data was not changed.")
+            else:
+                st.success(f"Saved {record['id']}")
 
     st.divider()
     records = sorted(
