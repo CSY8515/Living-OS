@@ -12,6 +12,19 @@
       "mood": "NORMAL",
       "created_at": "2026-07-07T00:09:40+09:00",
       "updated_at": "2026-07-07T00:09:40+09:00"
+    },
+    {
+      "id": "LOG-00002",
+      "date": "2026-07-12",
+      "title": "v0.5 Test",
+      "content": "",
+      "tags": [
+        "test",
+        "daily"
+      ],
+      "mood": "Daily Log Tag Test",
+      "created_at": "2026-07-12T17:55:17+09:00",
+      "updated_at": "2026-07-12T17:55:17+09:00"
     }
   ]
 }

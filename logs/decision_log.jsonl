@@ -1,0 +1,1 @@
+{"id": "DEC-00001", "decision": "v0.5 Decision Test", "reason": "Decision Log 저장 테스트", "expected_result": "정상 저장", "actual_result": "정상 저장", "review_note": "v0.5 기능 테스트", "status": "done", "created_at": "2026-07-12T17:59:27+09:00", "updated_at": "2026-07-12T17:59:27+09:00"}

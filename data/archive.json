@@ -10,6 +10,18 @@
       ],
       "created_at": "2026-07-12T17:31:44+09:00",
       "updated_at": "2026-07-12T17:31:44+09:00"
+    },
+    {
+      "id": "ARC-00002",
+      "title": "Archive Test",
+      "content": "Archive 검색 테스트",
+      "source": "decision",
+      "tags": [
+        "test",
+        "archive"
+      ],
+      "created_at": "2026-07-12T18:00:17+09:00",
+      "updated_at": "2026-07-12T18:00:17+09:00"
     }
   ]
 }
