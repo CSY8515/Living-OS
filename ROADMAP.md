@@ -1,5 +1,18 @@
 # Living OS Roadmap
 
+## v0.9 First OpenAI API Integration
+
+Status: Implemented; awaiting approval
+
+Goals:
+
+- Add secure local OpenAI API configuration and a manual connection test.
+- Add explicitly requested, read-only Daily Log and Decision analysis.
+- Add AI report drafts with a separate explicit save approval.
+- Preserve all existing pages, schemas, local behavior, and deterministic reports.
+
+Approved scope: `docs/ROADMAP_v0.9.md`
+
 ## v0.8 Core Reliability and Consistency
 
 Status: Implemented; awaiting approval

@@ -1,5 +1,16 @@
 # Known Issues
 
+## Living OS v0.9
+
+### OpenAI integration limitations
+
+- AI features require an OpenAI API key, network access, model access, and available API quota.
+- API use may incur OpenAI charges and sends only the user-selected displayed content to OpenAI.
+- Operating-system credential storage availability depends on the local platform configuration.
+- AI output may be inaccurate and remains an untrusted, read-only suggestion until the user manually uses it.
+- AI report drafts exist only in the current Streamlit session unless separately saved with explicit approval.
+- No AI request runs automatically, and AI cannot modify Living OS records.
+
 ## Living OS v0.8
 
 ### Core reliability limitations

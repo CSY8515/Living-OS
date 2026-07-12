@@ -2,6 +2,21 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v0.9
+
+### Added
+
+- Secure session, environment, and operating-system credential-store OpenAI API-key configuration.
+- Manual OpenAI connection testing with sanitized errors.
+- Read-only AI Analysis page for explicitly selected Daily Logs and Decisions.
+- Optional AI report-draft generation with a separate explicit save action.
+
+### Compatibility
+
+- All v0.8 pages, features, deterministic reports, and storage interfaces are preserved.
+- Existing JSON and JSONL schemas are unchanged.
+- No authentication, notifications, background tasks, automation, or autonomous AI actions were added.
+
 ## v0.8
 
 ### Added

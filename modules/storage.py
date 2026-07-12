@@ -25,7 +25,7 @@ DEFAULT_ARCHIVE = {"items": []}
 DEFAULT_REPORT_INDEX = {"reports": []}
 DEFAULT_SETTINGS = {
     "app_name": "Living OS",
-    "version": "v0.8",
+    "version": "v0.9",
     "default_report_range": "daily",
     "date_format": "YYYY-MM-DD",
 }

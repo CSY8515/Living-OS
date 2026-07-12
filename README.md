@@ -1,6 +1,10 @@
-# Living OS v0.8
+# Living OS v0.9
 
-Living OS v0.8 is a local, single-user Streamlit operating system for daily records, decisions, reports, archives, analytics, and manual review.
+Living OS v0.9 is a local, single-user Streamlit operating system for daily records, decisions, reports, archives, analytics, manual review, and explicitly requested read-only OpenAI assistance.
+
+## v0.9 OpenAI Assistant
+
+v0.9 adds optional secure local OpenAI configuration, a manual connection test, read-only Daily Log and Decision analysis, and explicitly approved AI report-draft saving. API keys are not stored in Living OS JSON/JSONL files, AI requests never run automatically, and AI output never changes user records.
 
 ## v0.8 Core Reliability and Consistency
 
@@ -25,7 +29,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## v0.8 pages
+## v0.9 pages
 
 - Dashboard
 - Daily Log
@@ -34,6 +38,7 @@ streamlit run app.py
 - Archive
 - Analytics
 - Review
+- AI Analysis
 - Module Manager
 - Settings
 

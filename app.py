@@ -1,5 +1,6 @@
 import streamlit as st
 
+from modules.ai_analysis import render_ai_analysis
 from modules.analytics import render_analytics
 from modules.archive import render_archive
 from modules.dashboard import render_dashboard
@@ -12,7 +13,7 @@ from modules.settings import render_settings
 from modules.storage import ensure_data_files, load_dashboard_data
 
 
-VERSION = "v0.8"
+VERSION = "v0.9"
 
 
 st.set_page_config(
@@ -38,6 +39,7 @@ def main() -> None:
                 "Archive",
                 "Analytics",
                 "Review",
+                "AI Analysis",
                 "Module Manager",
                 "Settings",
             ],
@@ -56,6 +58,8 @@ def main() -> None:
         render_analytics()
     elif page == "Review":
         render_review()
+    elif page == "AI Analysis":
+        render_ai_analysis()
     elif page == "Module Manager":
         render_module_manager()
     elif page == "Settings":

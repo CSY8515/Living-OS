@@ -5,6 +5,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from modules.ai_credentials import (
+    CredentialError,
+    credential_status,
+    remove_saved_api_key,
+    resolve_api_key,
+    save_api_key,
+)
+from modules.ai_service import AI_MODELS, DEFAULT_AI_MODEL, test_connection
 from modules.storage import (
     ARCHIVE_FILE,
     BACKUPS_DIR,
@@ -92,6 +100,48 @@ def render_settings() -> None:
     if submitted:
         save_settings(settings)
         st.success("Settings saved.")
+
+    st.divider()
+    st.subheader("OpenAI Configuration")
+    st.caption("The API key is never stored in Living OS JSON/JSONL files. AI requests run only when you press an AI action button.")
+    if "ai_model" not in st.session_state or st.session_state.ai_model not in AI_MODELS:
+        st.session_state.ai_model = DEFAULT_AI_MODEL
+    st.selectbox("OpenAI Model", AI_MODELS, key="ai_model")
+    session_key = st.text_input(
+        "OpenAI API Key",
+        value=str(st.session_state.get("ai_session_api_key", "")),
+        type="password",
+        placeholder="Session-only unless explicitly saved below",
+    )
+    st.session_state.ai_session_api_key = session_key.strip()
+    status = credential_status(st.session_state.ai_session_api_key)
+    if status.configured:
+        st.success(f"Configured from {status.source}: {status.masked}")
+    else:
+        st.info("No API key configured. You may also set OPENAI_API_KEY in the local environment.")
+
+    credential_col, remove_col, test_col = st.columns(3)
+    if credential_col.button("Save Key to OS Credential Store"):
+        try:
+            save_api_key(st.session_state.ai_session_api_key)
+        except CredentialError as exc:
+            st.error(str(exc))
+        else:
+            st.success("API key saved to the operating-system credential store.")
+    if remove_col.button("Remove Saved Key"):
+        try:
+            remove_saved_api_key()
+        except CredentialError as exc:
+            st.error(str(exc))
+        else:
+            st.success("Saved API key removed. Session and environment keys were not changed.")
+    if test_col.button("Test OpenAI Connection"):
+        api_key, _ = resolve_api_key(st.session_state.ai_session_api_key)
+        result = test_connection(api_key, st.session_state.ai_model)
+        if result.ok:
+            st.success(result.message)
+        else:
+            st.error(result.message)
 
     st.divider()
     st.subheader("Data Management")
