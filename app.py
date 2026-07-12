@@ -1,5 +1,6 @@
 import streamlit as st
 
+from modules.analytics import render_analytics
 from modules.archive import render_archive
 from modules.dashboard import render_dashboard
 from modules.daily_log import render_daily_log
@@ -34,6 +35,7 @@ def main() -> None:
                 "Decision Log",
                 "Reports",
                 "Archive",
+                "Analytics",
                 "Module Manager",
                 "Settings",
             ],
@@ -48,6 +50,8 @@ def main() -> None:
         render_reports()
     elif page == "Archive":
         render_archive()
+    elif page == "Analytics":
+        render_analytics()
     elif page == "Module Manager":
         render_module_manager()
     elif page == "Settings":
