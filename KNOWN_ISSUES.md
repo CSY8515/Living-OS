@@ -1,45 +1,24 @@
-# Known Issues
+# Living OS v2.0 Known Issues
 
-## Living OS v1.0 Stable
+## Release-review candidate
 
-### Local storage
+- Owner data is not migrated automatically. The Hub remains in v1 compatibility mode until the owner reviews a dry run and explicitly approves migration.
+- Remote access requires TLS termination from the deployment environment; Living OS provides owner authentication and device pairing but does not deploy a reverse proxy or certificate service.
+- The Hub is single-owner and uses one canonical SQLite store. Multi-user operation and offline concurrent editing are not supported.
+- A lost owner passphrase has no automated recovery workflow in the current scope. Keep verified backups and retain local access controls.
+- Operating-system credential-store availability for optional OpenAI use remains platform-dependent.
+- AI requires network access, a valid key, model access, and quota; output may be inaccurate.
+- Streamlit is the current responsive shell. Native desktop and mobile shells are not included.
+- Existing valid v1 text is preserved byte-for-byte during migration, including pre-existing mojibake. Invalid files or records are quarantined rather than repaired automatically.
+- Legacy Finance and Housing data is preserved as compatibility input only. Their v2 domain expansions are future roadmap items.
+- Calendar, Routine, Notification, Inventory, Assets, Vehicle, Health, Food, Ultra Brain, and Neural Ecosystem runtime features are not implemented.
 
-- Living OS remains a local, single-user Streamlit application using JSON and JSONL files.
-- Concurrent writers are not supported, and performance is not designed for very large datasets.
-- Read paths fail safely for missing or malformed content, but Living OS does not automatically repair source files.
-- A save against malformed Daily Log, Archive, Settings, or Module Registry JSON is rejected to protect the existing file.
-- Decision JSONL readers skip malformed or non-object lines; source content is not rewritten automatically.
+## Storage and recovery
 
-### Dates and reports
+- The canonical store supports transactional writes and optimistic concurrency, but only one Hub authority should own it.
+- Backup restore is locally atomic with best-effort rollback for operating-system failures. Severe external storage failure can still prevent rollback.
+- Documents are content-addressed and integrity checked; deletion and retention-policy execution are not part of the v2.0 Documents foundation.
 
-- Bounded date filters exclude records whose existing date fields are missing or malformed.
-- Report ordering uses each accessible report file's local modification time.
-- A report file that becomes inaccessible or disappears during discovery is ignored.
+## Historical compatibility
 
-### Backup and restore
-
-- Backups cover configured Living OS data targets, not a full filesystem snapshot or arbitrary attachments.
-- Restore accepts recognized targets only and validates their JSON/JSONL content before writing.
-- Rollback after an operating-system write failure is best effort; external filesystem failure can prevent restoration of an original file.
-
-### Optional OpenAI integration
-
-- AI requires a user-provided API key, network access, access to a configured model, and available quota; API use may incur charges.
-- Only user-selected displayed content is sent after an explicit action.
-- AI output may be inaccurate and remains untrusted.
-- Daily Log and Decision analysis is session-only. AI report drafts remain session-only unless saved through a separate explicit save action.
-- Operating-system credential storage availability depends on local platform configuration.
-- Model availability may vary by OpenAI account and can change independently of Living OS.
-
-### Intentionally excluded
-
-- Database storage and multi-user access
-- Authentication, accounts, roles, and permissions
-- Notifications, reminders, scheduling, and background automation
-- Autonomous AI writes or decisions
-- Agents, embeddings, vector databases, and fine-tuning
-- Automatic data repair and expansion-module implementation
-
-## Historical compatibility notes
-
-v1.0 preserves the v0.9 optional OpenAI workflow, the v0.8 reliability improvements, the v0.7 Review Workspace, and all earlier local JSON/JSONL data shapes. Finance and Housing source assets remain available for backward compatibility but are not current navigation pages.
+The original v1 JSON/JSONL schemas, deterministic reports, read-only AI behavior, and ten v1 pages remain available in compatibility mode. Runtime v1 files retain v1.0 metadata until explicit migration.

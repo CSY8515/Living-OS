@@ -1,14 +1,7 @@
-# Living OS Design Principles
+# Legacy Design Principles
 
-1. Design before implementation. Approved roadmap and architecture boundaries define the work.
-2. Stability before features. A stable release favors verification, compatibility, and clear failures over expansion.
-3. Local first. User records remain in local JSON/JSONL files under the user's control.
-4. Backward compatibility. Existing pages, fields, containers, and supported workflows remain readable without migration.
-5. Explicit writes. Saving, restoring, credential changes, and report persistence require clear user actions.
-6. AI is read-only by default. AI is optional, user-triggered, untrusted, foreground-only, and unable to modify records.
-7. Safe failure. Missing or malformed reads fail safely; mutations must not silently replace unreadable existing data.
-8. Modular architecture. Feature modules stay independent and share narrow storage/date/formatting utilities.
-9. Documentation and code agree. Current version, behavior, safety boundaries, and limitations are documented together.
-10. Test before release. Regression, compatibility, compilation, startup, and all-page smoke checks must pass.
+This filename is retained for historical links.
 
-No database, authentication, notifications, background automation, autonomous AI writes, agents, embeddings, vector databases, or fine-tuning belong in v1.0 Stable.
+The permanent Living OS philosophy and design principles are governed by `../MASTER_DESIGN.md`. The implementation and release sequence is governed by `../ROADMAP.md`.
+
+This legacy file is not an independent design authority.

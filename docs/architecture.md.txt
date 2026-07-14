@@ -1,38 +1,11 @@
-# Living OS Architecture
+# Legacy Architecture Document
 
-## Purpose
+This filename is retained for historical links.
 
-Living OS is a local-first, single-user Streamlit application. v1.0 Stable preserves the established module-per-feature structure and JSON/JSONL persistence model.
+The current Living OS v2.0 architecture is governed by:
 
-## Runtime structure
+- `../MASTER_DESIGN.md` — architectural source of truth
+- `../ARCHITECTURE.md` — official architecture view
+- `../STRUCTURE.md` — official repository structure
 
-- `app.py`: Streamlit shell, navigation, and startup data-file checks
-- `modules/`: independent feature and shared-support modules
-- `data/`: JSON user records and compatibility assets
-- `logs/`: append-only Decision JSONL records
-- `reports/`: generated Markdown reports and JSON report index
-- `state/`: local application settings
-- `config/`: module registry
-- `backups/`: user-created local backups, excluded from release artifacts
-- `tests/`: isolated regression and compatibility tests
-
-## Data flow
-
-Existing local record files are loaded through module/storage interfaces, displayed or summarized by feature modules, and written only after explicit user actions. JSON writes use an atomic temporary-file replacement. Decision records remain append-only JSONL. No migration or schema translation layer exists or is required.
-
-## AI boundary
-
-OpenAI support is optional. Requests run only in the foreground after an explicit user action and include only the selected content displayed in the UI. Analysis output remains in Streamlit session state. AI cannot edit, delete, restore, archive, or save user records. A report draft crosses the persistence boundary only after a separate explicit save action.
-
-## Stable architecture constraints
-
-- Preserve all current pages and public module behavior.
-- Preserve existing JSON/JSONL containers and fields.
-- Keep local filesystem storage; no database.
-- No authentication, notifications, scheduler, worker, or background automation.
-- No autonomous AI action, agent, embedding, vector database, or fine-tuning.
-- Keep Finance and Housing assets available for backward compatibility.
-
-## Development flow
-
-Roadmap → design and architecture review → minimal implementation → isolated regression tests → Streamlit smoke verification → documentation review → explicit release approval.
+Living OS v1.0 remains the compatibility baseline for unmigrated records. This legacy file is not an independent architecture specification.

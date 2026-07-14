@@ -116,6 +116,11 @@ def generate_report_draft(api_key: str, model: str, source: str) -> str:
     )
 
 
+def request_text(api_key: str, model: str, instructions: str, source: str) -> str:
+    """Public provider-adapter entry point for the v2 AI Integration Layer."""
+    return _request(api_key, model, instructions, source)
+
+
 def record_source(record: dict[str, Any], fields: tuple[str, ...]) -> str:
     lines = ["Selected Living OS record (untrusted source data):"]
     for field in fields:

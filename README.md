@@ -1,90 +1,84 @@
-# Living OS v1.0 Stable
+# Living OS v2.0 Implementation Candidate
 
-Living OS is a local-first, single-user Streamlit application for daily records, decisions, reports, archives, analytics, review, module planning, backups, and optional user-triggered OpenAI assistance.
+Living OS is a single-owner modular personal operating Hub. The approved v2.0 Stable scope provides one canonical Core, explicit audited commands, module-owned domains, verified migration and backup, responsive connected-device access, and full Living OS v1 compatibility.
 
-## Stable-release guarantees
+Status: implementation complete; release review pending. No release or deployment has occurred.
 
-- All v0.9 pages and JSON/JSONL schemas are preserved.
-- Existing v0.9 data loads without migration.
-- AI is optional, foreground-only, and read-only by default.
-- AI requests occur only after the user selects displayed content and presses an action button.
-- AI output never changes records. Saving an AI report draft requires a separate explicit action.
-- There is no database, authentication, notification service, background automation, or autonomous AI action.
+## Implemented scope
 
-## Pages
+- Transactional SQLite Hub store behind a Core storage port
+- Stable record references, versioned schemas, optimistic concurrency, domain events, audit, and typed relationships
+- Dry-run-first v1 migration with checksums, quarantine reporting, verified backup, and no source rewriting
+- Verified v2 backup, restore, pre-restore safety backup, integrity checking, and rollback
+- Canonical Journal, Decision, Reports, Knowledge, Settings, Dashboard, Analytics, and Review
+- Documents foundation with SHA-256 integrity and privacy classification
+- Real Module Manager lifecycle and health states
+- Provider-neutral, explicit-approval, draft-only AI Integration Layer
+- Single-owner passphrase security and revocable device pairing
+- Responsive Streamlit Hub shell for desktop, notebook, tablet, and mobile browsers
+- v1 compatibility mode until the owner explicitly approves migration
 
-- Dashboard
-- Daily Log
-- Decision Log
-- Reports
-- Archive
-- Analytics
-- Review
-- AI Analysis
-- Module Manager
-- Settings
-
-The historical Finance and Housing source modules and data assets remain available for backward compatibility but are not navigation pages.
+Future roadmap modules are not implemented. See `ROADMAP.md`.
 
 ## Requirements
 
 - Python 3.11 or newer
-- A local environment able to install `requirements.txt`
-- Optional AI use: network access, an OpenAI API key, access to a configured model, and available quota
+- Dependencies from `requirements.txt`
+- A writable local repository directory
+- Optional AI: network access, an API key, model access, and quota
+- Remote access: a deployment profile that terminates TLS
 
-## Install and run
+## Run
 
 ```powershell
 python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-Living OS reads and writes within the repository's `data`, `logs`, `reports`, `state`, `config`, and `backups` directories. Run it from a location where the current user has write access.
+For a remotely reachable Hub, set `LIVING_OS_REMOTE_ACCESS=1`. Living OS then requires owner-security setup before opening. TLS must still be supplied by the deployment environment.
 
-## Data and compatibility
+## Compatibility and migration
 
-- Daily Logs: `data/daily_logs.json`
-- Decisions: `logs/decision_log.jsonl`
-- Archive: `data/archive.json`
-- Report index and Markdown reports: `reports/`
-- Settings: `state/settings.json`
-- Module registry: `config/module_registry.json`
-- Backups: `backups/`
+The Hub starts in v1 compatibility mode when migration has not been approved. Existing JSON, JSONL, Markdown reports, settings, module registry, Finance data, and Housing data remain untouched.
 
-Do not edit malformed data through the application. v1.0 refuses affected saves rather than silently replacing unreadable existing JSON. Use a verified backup or repair the source manually outside Living OS.
+Settings provides:
 
-## Optional OpenAI configuration
+1. A read-only migration dry run.
+2. Source checksums, accepted counts, canonical count, and quarantine reasons.
+3. Explicit approval.
+4. A verified pre-migration backup.
+5. Transactional canonical import.
 
-OpenAI credentials are resolved in this order:
+Migration is never triggered by startup, navigation, or page load.
 
-1. Session-only key entered in Settings
-2. Operating-system credential store
-3. `OPENAI_API_KEY` environment variable
+## Data
 
-API keys are never stored in Living OS JSON/JSONL files. Settings provides explicit controls to save or remove a credential and to test the connection manually. Selected record fields are shown before they are sent.
+- Canonical Hub: `data/hub/living_os.sqlite3` (ignored by Git)
+- Canonical documents: `data/hub/documents/` (ignored by Git)
+- Backups: `backups/v2/` (ignored by Git)
+- v1 compatibility sources: existing `data/`, `logs/`, `reports/`, `state/`, and `config/` files
 
-AI output is untrusted and may be inaccurate. Daily Log and Decision analysis remains session-only. An AI report draft can be edited and saved only through the separately labeled explicit save control.
+Private runtime data, secrets, documents, and backups must not enter release artifacts.
 
-## Backup and restore
+## AI safety
 
-Settings can create a JSON backup of the configured Living OS data targets. Restore validates all recognized JSON/JSONL content before writing. Invalid input is rejected before any target is changed. Backups are not full filesystem snapshots and do not include arbitrary attachments.
+AI requests require an explicit action and use a visible selected context. The provider is isolated behind the AI gateway. Output is untrusted and draft-only. AI cannot directly change canonical records; saving an AI report draft is a separate audited command.
 
 ## Verification
 
 ```powershell
+python -m compileall -q app.py app core modules shared tests
 python -m unittest discover -s tests -v
-python -m compileall -q app.py modules tests
 ```
 
-Before release, also start Streamlit headlessly and smoke-test every page. Tests use temporary files and mocks rather than real user data.
+Release review additionally requires headless startup, every-page smoke verification, documentation review, artifact inspection, and explicit user approval.
 
-## Known limitations
+## Documentation
 
-- Local, single-user operation only
-- No support for concurrent writers or very large datasets
-- Invalid dates are excluded from bounded date filters
-- Malformed data is not repaired automatically
-- Credential-store availability depends on the operating system
-- OpenAI use can incur charges and sends only explicitly selected displayed content to OpenAI
-
-See `KNOWN_ISSUES.md`, `CHANGELOG.md`, and `docs/ROADMAP_v1.0.md` for release details.
+- `MASTER_DESIGN.md` — architectural authority
+- `ARCHITECTURE.md` — architecture and dependency direction
+- `STRUCTURE.md` — repository ownership
+- `ROADMAP.md` — release and future-module sequence
+- `VERSION.md` — lifecycle status
+- `RELEASE_NOTES_v2.0.md` — release-review draft
+- `KNOWN_ISSUES.md` — current limitations

@@ -1,154 +1,143 @@
-# Living OS Roadmap
+# Living OS v2.0 Official Roadmap
 
-## v1.0 Stable
+## Document authority
 
-Status: Implemented; verification in progress; awaiting release approval
+This document owns implementation sequence, version planning, module delivery order, release gates, and long-term direction. Architecture is governed by `MASTER_DESIGN.md` and `ARCHITECTURE.md`. Current lifecycle status is governed by `VERSION.md`.
 
-Goals:
+## Vision
 
-- Stabilize the complete v0.9 feature set without architecture or schema changes.
-- Expand regression, backward-compatibility, error-handling, and AI-safety coverage.
-- Align version labels and release documentation.
-- Verify local Streamlit startup and every existing page.
+Living OS is the single-owner, modular personal operating hub for managing, organizing, connecting, analyzing, and recommending across personal operating data.
 
-Approved scope: `docs/ROADMAP_v1.0.md`
+The permanent direction is one stable Core, one canonical Hub, module-owned domains, typed relationships, explicit commands, rebuildable projections, and no hidden authority. Desktop, notebook, tablet, and mobile use the same Hub capabilities; only presentation and device adapters differ.
 
-## v0.9 First OpenAI API Integration
+## Development phases
 
-Status: Released as the v1.0 baseline
+Implementation status: Phases 0–4 for the approved v2.0 Stable scope are complete and awaiting release review. Phases 5–8 remain future roadmap items and are not implemented.
 
-Goals:
+### Phase 0 — Documentation and approval
 
-- Add secure local OpenAI API configuration and a manual connection test.
-- Add explicitly requested, read-only Daily Log and Decision analysis.
-- Add AI report drafts with a separate explicit save approval.
-- Preserve all existing pages, schemas, local behavior, and deterministic reports.
+- Synchronize the approved v2.0 Master Design.
+- Reconcile repository terminology and document authority.
+- Obtain explicit approval before implementation.
 
-Approved scope: `docs/ROADMAP_v0.9.md`
+### Phase 1 — Repository truth and compatibility baseline
 
-## v0.8 Core Reliability and Consistency
+- Reconcile v1.0 release state, tags, encoding, and tracked-data classification.
+- Inventory every v1 schema, command, query, report, and safety boundary.
+- Freeze representative v1 compatibility fixtures.
 
-Status: Released as a historical baseline
+### Phase 2 — Permanent Core
 
-Goals:
+- Define stable identity, schema, command, query, event, relationship, policy, audit, and module contracts.
+- Establish transactional persistence behind a storage port.
+- Establish migration, backup, import, export, and rollback governance.
+- Establish owner security and device-pairing boundaries.
 
-- Correct dashboard and version-label inconsistencies.
-- Consolidate read-only date handling for Analytics and Review.
-- Improve safe report discovery and preserve malformed-data fallbacks.
-- Add isolated regression tests without changing JSON/JSONL schemas.
+### Phase 3 — v1 parity migration
 
-Approved scope: `docs/ROADMAP_v0.8.md`
+- Daily Log becomes Journal.
+- Decision Log becomes versioned Decision.
+- Archive becomes Knowledge and Casebook.
+- Reports become canonical versioned artifacts.
+- Dashboard, Analytics, Review, Settings, and approved AI safety behavior are preserved.
+- Every accepted v1 record is imported, quarantined with a reason, or explicitly rejected.
 
-## v0.7 Review Workspace
+### Phase 4 — Hub and cross-platform experience
 
-상태: 구현 완료
+- Deliver a responsive Hub shell.
+- Replace fixed navigation with validated module contributions.
+- Validate the same domain commands and data behavior across desktop, notebook, tablet, and mobile.
+- Complete security, recovery, and cross-device release matrices.
 
-목표:
+### Phase 5 — Operational modules
 
-- 기존 Living OS 기록을 통합해서 검토하는 읽기 전용 Review Workspace 추가
-- `draft`, `active`, `review` 상태의 Decision 검토 큐 제공
-- 기간 및 상태 필터 제공
-- 기존 JSON/JSONL 스키마와 v0.6 기능의 완전한 호환성 유지
-
-상세 승인 범위: `docs/ROADMAP_v0.7.md`
-
-## v0.6 Analytics
-
-상태: 완료
-
-목표:
-
-- 기존 기록을 기반으로 하는 읽기 전용 Analytics 추가
-- Daily Log, Decision, Archive, Report 요약 제공
-
----
-
-## v0.1 MVP
-
-상태: 완료
-
-목표:
-
-- Streamlit 기반 MVP 생성
-- Dashboard, Finance, Housing, Decision Log 구현
-- Dummy Data Generator 구현
-- Report System 구현
-- JSON / JSONL 저장 구조 검증
-
-## v0.2 Core
-
-상태: 구현 중
-
-목표:
-
-- 실제 매일 사용할 수 있는 Core OS 완성
-- Daily Log 중심 운영 구조 도입
-- Decision Log 단순화
-- Report System을 일일/주간/월간 보고서로 정리
-- Archive 검색/조회 구조 추가
-- Module Manager 구조 추가
-- Settings, Backup, Restore 추가
-- Dummy/Test 기능 제거
-
-핵심 기능:
-
-- Dashboard
-- Daily Log
-- Decision Log
-- Reports
-- Archive
-- Module Manager
-- Settings
-
-## v0.3 Module Foundation
-
-상태: 예정
-
-목표:
-
-- Module Manager를 기반으로 실제 모듈 추가 준비
-- 각 모듈의 데이터 경계 정의
-- Core와 Module 간 연결 규칙 정의
-
-후보 모듈:
-
-- Vehicle OS
-- Food OS
-- Finance OS
-- Health OS
-- Housing OS
-- Learning OS
-
-## v0.4 Finance / Housing Migration
-
-상태: 예정
-
-목표:
-
-- v0.1에서 구현된 Finance / Housing 기능을 v0.2 Core 구조에 맞게 정식 모듈로 승격
-- Core와 확장 모듈의 역할 분리
-
-## v0.5 Data Reliability
-
-상태: 예정
-
-목표:
-
-- 백업/복원 개선
-- 데이터 검증
-- JSON 스키마 정리
-- 향후 SQLite 전환 가능성 검토
-
-## 이후 버전 후보
-
-이번 버전에서는 제외하지만 이후 검토할 기능:
-
-- AI Recommendation
-- AI Decision Engine
-- Automation
-- Habit
+- Documents
+- Calendar
 - Routine
 - Notification
-- Expansion Pack
-- Streamlit Cloud 배포
-- GitHub Release 자동화
+- Inventory
+- Assets
+
+### Phase 6 — Domain expansion
+
+- Finance
+- Housing
+- Vehicle
+- Health, after high-sensitivity policy approval
+
+### Phase 7 — Intelligence
+
+- Provider-neutral AI Integration Layer
+- Source-attributed AI Briefing
+- Explicit promotion of approved drafts into decisions, reports, cases, rules, or commands
+
+### Phase 8 — Ecosystem compatibility
+
+- Versioned Ecosystem Gateway
+- Ultra Brain compatibility validation
+- Neural Ecosystem compatibility validation
+
+## Version roadmap
+
+| Version | Scope |
+|---|---|
+| v2.0 Alpha 1 | Repository truth audit, v1 compatibility baseline, Core contracts |
+| v2.0 Alpha 2 | Transactional Core, schemas, audit, migrations, backup, owner security |
+| v2.0 Beta 1 | Journal, Decision, Reports, Knowledge, and Settings parity |
+| v2.0 Beta 2 | Dashboard, Analytics, Review, Documents, and real Module Manager lifecycle |
+| v2.0 RC | Responsive Hub, cross-device matrix, security review, migration rehearsal |
+| v2.0 Stable | Permanent Hub foundation with complete v1 parity; no mandatory expansion module |
+| v2.1 | Calendar, Routine, and Notification |
+| v2.2 | Inventory, Assets, Documents, and Knowledge expansion |
+| v2.3 | Finance, Housing, and Vehicle |
+| v2.4 | Health and high-sensitivity policy profile |
+| v2.5 | Governed AI Briefing and recommendation workflows |
+| v3.x candidate | Ultra Brain and Neural Ecosystem integration through the Ecosystem Gateway |
+
+## Module roadmap and dependency order
+
+1. Core contracts, persistence, migration, audit, policy, security, and module runtime.
+2. Journal, Decision, Reports, Knowledge, Settings, and v1 compatibility.
+3. Dashboard, Analytics, Review, and Documents.
+4. Responsive Hub shell and connected-device parity.
+5. Calendar, followed by Routine, followed by Notification.
+6. Inventory and Assets.
+7. Finance, followed by Housing and Vehicle.
+8. Health after privacy and retention controls are approved.
+9. AI Integration Layer, followed by AI Briefing after mature projections exist.
+10. Ecosystem Gateway after Core and module contracts are stable.
+
+Food remains a future candidate. Learning OS is represented by Knowledge plus later learning expansions.
+
+## Release strategy
+
+Every release requires:
+
+1. Approved roadmap and decision record.
+2. Exact schema and compatibility declaration.
+3. Migration dry run against representative fixtures.
+4. Verified backup and rollback path.
+5. Module boundary review.
+6. Security and privacy review.
+7. Cross-device capability review.
+8. Deterministic behavior and failure-path verification.
+9. AI and automation safety verification where applicable.
+10. Documentation, version, tag, and release-state reconciliation.
+11. Dependency lock and release-artifact review.
+12. Explicit user approval before commit, push, tag, release, or deployment.
+
+Release channels are Alpha, Beta, Release Candidate, Stable, and independently versioned Expansion releases. No stable release may require AI or an external integration for basic Core operation.
+
+## Long-term direction
+
+- Preserve a stable modular Core rather than dividing Living OS into microservices.
+- Keep each domain authoritative over its own records.
+- Expand through versioned manifests and public contracts.
+- Treat dashboards, analytics, reviews, and AI contexts as rebuildable projections.
+- Keep AI and automation bounded, attributable, revocable, and human-approved.
+- Support future native clients without changing domain behavior.
+- Permit Ultra Brain and Neural Ecosystem communication only through the policy-governed Ecosystem Gateway.
+
+## Approval gate
+
+The approved v2.0 Stable implementation is complete. No commit, push, tag, release, or deployment may occur without ChatGPT review and explicit user approval.

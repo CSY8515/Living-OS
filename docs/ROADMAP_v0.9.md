@@ -1,5 +1,7 @@
 # Living OS v0.9 Roadmap
 
+> Historical roadmap. The current roadmap is `../ROADMAP.md`; current status is defined by `../VERSION.md`.
+
 ## Version
 
 - Target version: Living OS v0.9

@@ -1,11 +1,13 @@
 # Living OS v1.0 Stable Roadmap
 
+> Historical roadmap for the implemented v1.0 runtime baseline. The current roadmap is `../ROADMAP.md`; current status is defined by `../VERSION.md`.
+
 ## Release Definition
 
 - Target: Living OS v1.0 Stable
 - Baseline: Living OS v0.9 Stable
 - Milestone type: stabilization, verification, documentation, and release readiness
-- Status: Implemented and verified; awaiting explicit release/Git approval
+- Status: Implemented and released as Living OS v1.0 Stable
 - Compatibility contract: preserve every v0.9 page, feature, module boundary, JSON/JSONL field, and local-first workflow
 
 ## Final Stabilization
@@ -87,7 +89,7 @@
 - [x] README, roadmap, changelog, known issues, and governing docs agree.
 - [x] Release artifact review finds no credentials, caches, backups, or private user data.
 - [x] Final diff contains no broad feature, architecture, or schema changes.
-- [ ] User separately approves any commit, push, tag, release, or deployment action.
+- [x] Historical v1.0 commit and tag completed after approval.
 
 ## Known Limitations
 

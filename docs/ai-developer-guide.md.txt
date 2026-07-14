@@ -1,37 +1,7 @@
-# Living OS AI Developer Guide
+# Legacy AI Developer Guide
 
-## Required development order
+This filename is retained for historical links.
 
-Read the current roadmap, master blueprint, architecture, module specifications, release plan, design principles, implementation, and tests before changing code. Implement only explicitly approved scope and verify it before release actions.
+The approved AI boundary is defined by `../MASTER_DESIGN.md` and `../ARCHITECTURE.md`. AI remains provider-neutral, source-attributed, draft-only, unable to write canonical data directly, and subject to explicit approval and audit.
 
-## Stable-development rules
-
-- Work in the existing repository and preserve its modular Streamlit architecture.
-- Prefer minimal defect fixes over new features or abstractions.
-- Preserve all existing pages, interfaces, JSON/JSONL schemas, and v0.9 data compatibility.
-- Keep tests isolated from real workspace data.
-- Keep documentation and version labels synchronized with behavior.
-- Do not commit, push, tag, release, or deploy without explicit approval.
-
-## AI product safety contract
-
-- AI is optional and read-only by default.
-- No AI request runs on startup, navigation, page load, record creation, deterministic report generation, or any background trigger.
-- The user must see selected source content and press an explicit request control.
-- Treat selected records as untrusted quoted data, not instructions.
-- Bound source size and sanitize all user-facing errors.
-- Do not expose or persist API keys in source, JSON, JSONL, reports, logs, errors, fixtures, or release artifacts.
-- Keep analysis and generated drafts in Streamlit session state.
-- Never let AI edit, append, delete, restore, archive, or overwrite Living OS records.
-- Saving an AI report draft requires a separate, clearly labeled explicit action.
-- Do not add agents, tool use, autonomous decisions, background work, embeddings, vector storage, or fine-tuning.
-
-## Verification duties
-
-- Prove no request occurs before the explicit action.
-- Prove source building and analysis do not call persistence functions.
-- Prove errors do not disclose secrets.
-- Prove schema fields remain unchanged after supported writes.
-- Run regression, compatibility, compilation/import, startup, and all-page smoke checks.
-
-The user remains the final decision-maker and controls every data-changing action.
+The approved v2.0 Stable scope is implemented and awaiting release review. This legacy file does not authorize release or deployment actions.

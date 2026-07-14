@@ -2,6 +2,43 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0 Implementation Candidate
+
+### Implemented
+
+- Added the permanent domain-neutral Core with transactional canonical storage, schemas, version checks, commands, events, audit, relationships, and module lifecycle.
+- Added a single-owner Hub composition root and responsive application shell.
+- Added explicit dry-run-first v1 migration with checksums, quarantine reporting, verified backup, Markdown report import, and transactional adoption.
+- Added verified v2 backup, restore, safety-backup, integrity-check, and rollback workflows.
+- Added canonical Journal, Decision, Reports, Knowledge, Settings, Dashboard, Analytics, and Review behavior while preserving v1 compatibility mode.
+- Added Documents content integrity and privacy classification.
+- Added owner passphrase hashing, device pairing, validation, and revocation.
+- Added a provider-neutral AI gateway with explicit approval, audit, and draft-only output.
+- Added real module lifecycle states and navigation contributions without enabling future roadmap modules.
+- Added responsive desktop, notebook, tablet, and mobile browser layouts.
+
+### Verification
+
+- Added v2 Core, migration, backup/restore, module, security, AI gateway, architecture-boundary, and canonical page coverage.
+- Preserved the complete v0.8–v1.0 regression suite and v1 compatibility schemas.
+
+### Status
+
+- Implementation complete for the approved v2.0 Stable scope.
+- Release review pending.
+- No commit, push, tag, release, or deployment performed.
+
+### Documentation
+
+- Approved the Living OS v2.0 Master Design as the architectural source of truth.
+- Defined Living OS as a single-owner modular Hub with one canonical state authority.
+- Defined permanent Core, module, expansion, projection, integration, security, and ecosystem boundaries.
+- Defined the target repository structure and current-to-target ownership mapping.
+- Defined the cross-platform connected-Hub strategy for desktop, notebook, tablet, and mobile.
+- Defined the v1 compatibility, migration, backup, quarantine, reconciliation, and rollback contract.
+- Defined the official development phases, version roadmap, module order, and release gates.
+- Prepared the initial v2.0 Release Notes draft.
+
 ## v1.0 Stable
 
 ### Stabilized

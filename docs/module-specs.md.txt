@@ -1,42 +1,7 @@
-# Living OS Module Specifications
+# Legacy Module Specifications
 
-## Application shell
+This filename is retained for historical links.
 
-`app.py` owns Streamlit configuration, startup initialization, version display, and navigation. It does not contain feature persistence logic.
+Current module ownership, boundaries, lifecycle, dependency rules, and responsibilities are defined by `../MASTER_DESIGN.md`, `../ARCHITECTURE.md`, and `../STRUCTURE.md`.
 
-## Storage and shared utilities
-
-`modules/storage.py` owns file locations, defaults, safe reads, atomic writes, JSONL append behavior, report discovery, and dashboard aggregation. `date_utils.py` and `formatting.py` provide shared deterministic helpers.
-
-## Record modules
-
-- `daily_log.py`: loads and explicitly saves Daily Log JSON records.
-- `decision_log.py`: reads and explicitly appends Decision JSONL records.
-- `archive.py`: loads, searches, and explicitly saves Archive JSON records.
-- `report_system.py`: creates deterministic previews, explicitly saves Markdown reports, builds AI draft inputs, and explicitly saves approved AI drafts.
-
-## Read-only modules
-
-- `dashboard.py`: current metrics and recent activity.
-- `analytics.py`: counters over existing records.
-- `review.py`: filtered activity and decision-review queue.
-- `ai_analysis.py`: explicitly requested session-only AI analysis of selected records.
-
-## Configuration modules
-
-- `settings.py`: local settings, explicit credential controls, backup, restore, and storage status.
-- `module_manager.py`: existing module-registry editing; it does not implement expansion modules.
-- `ai_credentials.py`: session, operating-system credential-store, and environment key resolution.
-- `ai_service.py`: bounded foreground OpenAI requests and sanitized errors.
-
-## Compatibility assets
-
-`finance.py`, `housing.py`, and their JSON assets remain available for historical compatibility. They are not v1.0 navigation pages and receive no feature expansion.
-
-## Module rules
-
-- Preserve existing JSON/JSONL fields and top-level containers.
-- Read-only modules do not write user records.
-- Every persistence action requires a direct user action.
-- AI modules cannot modify records or invoke background work.
-- Cross-module behavior uses existing narrow interfaces; no database or service layer is introduced.
+This legacy file is not an independent module contract.

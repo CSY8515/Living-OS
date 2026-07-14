@@ -1,26 +1,7 @@
-# Living OS Master Blueprint
+# Legacy Master Blueprint
 
-## Purpose
+This filename is retained for historical links.
 
-Living OS helps one user record daily activity, document decisions, generate reports, preserve reusable material, review patterns, and optionally request read-only AI assistance while retaining local control of data.
+The approved Living OS v2.0 blueprint is now `../MASTER_DESIGN.md`. Current lifecycle status is defined by `../VERSION.md`.
 
-## Core workflow
-
-Daily records and decisions → deterministic summaries and reports → manual review → optional archive and future rules.
-
-AI can assist with analysis or drafting only when explicitly requested. It is not a source of truth, does not decide for the user, and has no automatic write path.
-
-## v1.0 Stable system
-
-- Dashboard for current status and recent activity
-- Daily Log and Decision Log for explicit record creation
-- Reports for deterministic output and optionally approved AI drafts
-- Archive for reusable local material
-- Analytics and Review for read-only summaries
-- AI Analysis for selected Daily Log and Decision content
-- Module Manager for the existing future-module registry
-- Settings for local preferences, credentials, backup, and restore
-
-## Long-term constraints
-
-Maintain modularity, local-first ownership, backward compatibility, explicit user approval for writes, testable deterministic behavior, and documentation-driven releases. Expansion concepts do not enter the stable core without a separately approved roadmap.
+This legacy file is not an independent source of product or architecture decisions.

@@ -27,6 +27,7 @@ PAGES = [
     "Analytics",
     "Review",
     "AI Analysis",
+    "Documents",
     "Module Manager",
     "Settings",
 ]
@@ -44,7 +45,7 @@ class StreamlitPageSmokeTests(unittest.TestCase):
     def test_every_page_renders_without_errors_or_page_load_writes(self) -> None:
         before = fingerprints()
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
-        self.assertEqual(app.sidebar.caption[0].value, "v1.0 Stable")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0 Implementation")
         self.assertFalse(app.exception)
 
         for page in PAGES:
