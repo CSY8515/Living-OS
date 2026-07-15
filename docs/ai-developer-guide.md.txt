@@ -4,4 +4,4 @@ This filename is retained for historical links.
 
 The approved AI boundary is defined by `../MASTER_DESIGN.md` and `../ARCHITECTURE.md`. AI remains provider-neutral, source-attributed, draft-only, unable to write canonical data directly, and subject to explicit approval and audit.
 
-The approved v2.0 Stable scope is implemented and awaiting release review. This legacy file does not authorize release or deployment actions.
+The approved v1.2 Stable scope is implemented and awaiting release review. This legacy file does not authorize release or deployment actions.

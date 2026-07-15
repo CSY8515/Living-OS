@@ -1,8 +1,6 @@
-from __future__ import annotations
+"""Compatibility alias for a relocated Living OS v1.2 engine."""
 
-from datetime import datetime, timezone
+from importlib import import_module as _import_module
+import sys as _sys
 
-
-def utc_now_iso() -> str:
-    """Return a stable UTC timestamp for persisted Core records."""
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+_sys.modules[__name__] = _import_module('subsystems.foundation.engines.time')

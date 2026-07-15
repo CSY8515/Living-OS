@@ -8,3 +8,4 @@ __pycache__/
 backups/
 data/hub/
 *.tmp
+data/finance/

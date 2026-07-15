@@ -10,7 +10,7 @@ from pathlib import Path
 from core.contracts import CommandEnvelope, ModuleManifest, RecordRef
 from core.errors import CommandRejected, ConcurrencyError, MigrationError
 from core.hub import LivingHub
-from modules.catalog import V2_STABLE_MANIFESTS
+from modules.catalog import V12_STABLE_MANIFESTS
 from modules.decision import DecisionService
 from modules.journal import JournalService
 
@@ -20,7 +20,7 @@ class HubCoreTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
         self.hub = LivingHub(self.root)
-        self.hub.bootstrap(V2_STABLE_MANIFESTS)
+        self.hub.bootstrap(V12_STABLE_MANIFESTS)
 
     def tearDown(self) -> None:
         self.temporary.cleanup()

@@ -1,24 +1,16 @@
-# Living OS v2.0 Known Issues
+# Living OS v1.2 Known Issues
 
-## Release-review candidate
+- `app/`, `core/`, `modules/`, and `shared/` remain compatibility aliases; removing them would be a breaking change.
+- Canonical Hub and flat-file workflows coexist; startup does not migrate data.
+- Pre-existing encoding damage is preserved rather than guessed.
+- Remote access depends on deployment-provided TLS.
+- The Hub is single-owner; offline concurrent editing is unsupported.
+- Credential-store and optional AI availability are environment-dependent; AI stays draft-only.
+- Streamlit remains the application shell.
+- Streamlit Community Cloud's local filesystem is ephemeral and should not be treated as durable finance storage.
 
-- Owner data is not migrated automatically. The Hub remains in v1 compatibility mode until the owner reviews a dry run and explicitly approves migration.
-- Remote access requires TLS termination from the deployment environment; Living OS provides owner authentication and device pairing but does not deploy a reverse proxy or certificate service.
-- The Hub is single-owner and uses one canonical SQLite store. Multi-user operation and offline concurrent editing are not supported.
-- A lost owner passphrase has no automated recovery workflow in the current scope. Keep verified backups and retain local access controls.
-- Operating-system credential-store availability for optional OpenAI use remains platform-dependent.
-- AI requires network access, a valid key, model access, and quota; output may be inaccurate.
-- Streamlit is the current responsive shell. Native desktop and mobile shells are not included.
-- Existing valid v1 text is preserved byte-for-byte during migration, including pre-existing mojibake. Invalid files or records are quarantined rather than repaired automatically.
-- Legacy Finance and Housing data is preserved as compatibility input only. Their v2 domain expansions are future roadmap items.
-- Calendar, Routine, Notification, Inventory, Assets, Vehicle, Health, Food, Ultra Brain, and Neural Ecosystem runtime features are not implemented.
+## Finance Subsystem v1.0
 
-## Storage and recovery
-
-- The canonical store supports transactional writes and optimistic concurrency, but only one Hub authority should own it.
-- Backup restore is locally atomic with best-effort rollback for operating-system failures. Severe external storage failure can still prevent rollback.
-- Documents are content-addressed and integrity checked; deletion and retention-policy execution are not part of the v2.0 Documents foundation.
-
-## Historical compatibility
-
-The original v1 JSON/JSONL schemas, deterministic reports, read-only AI behavior, and ten v1 pages remain available in compatibility mode. Runtime v1 files retain v1.0 metadata until explicit migration.
+- Maturity projections use simple day-count interest before tax; actual bank compounding, fees, tax, and product-specific rules may differ.
+- Monthly closings are immutable; corrections are made through later ledger records rather than editing a closed snapshot.
+- Legacy Finance migration is explicit and is never run automatically.

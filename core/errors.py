@@ -1,14 +1,6 @@
-class CoreError(RuntimeError):
-    """Base error for safe Living OS Core failures."""
+"""Compatibility alias for a relocated Living OS v1.2 engine."""
 
+from importlib import import_module as _import_module
+import sys as _sys
 
-class ConcurrencyError(CoreError):
-    """The requested record version is no longer current."""
-
-
-class CommandRejected(CoreError):
-    """A command failed validation or policy checks."""
-
-
-class MigrationError(CoreError):
-    """A compatibility migration could not be completed safely."""
+_sys.modules[__name__] = _import_module('subsystems.foundation.engines.errors')

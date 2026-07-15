@@ -118,7 +118,7 @@ class ReportTests(unittest.TestCase):
             patch("modules.report_system.read_decision_logs", return_value=[]),
         ):
             report = build_report_text("daily")
-        self.assertIn("- Version: v1.0 Stable", report)
+        self.assertIn("- Version: v1.2 Stable", report)
 
 
 if __name__ == "__main__":

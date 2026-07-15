@@ -13,9 +13,9 @@ from modules.storage import APP_VERSION, DEFAULT_SETTINGS, read_json, write_json
 
 
 class VersionConsistencyTests(unittest.TestCase):
-    def test_v2_shell_preserves_v1_compatibility_version(self) -> None:
-        self.assertEqual(APP_VERSION, "v1.0 Stable")
-        self.assertEqual(app.VERSION, "v2.0 Implementation")
+    def test_v12_shell_reports_release_version(self) -> None:
+        self.assertEqual(APP_VERSION, "v1.2 Stable")
+        self.assertEqual(app.VERSION, "v1.2 Stable")
         self.assertEqual(DEFAULT_SETTINGS["version"], APP_VERSION)
 
     def test_generated_report_uses_v10_stable(self) -> None:
@@ -24,7 +24,7 @@ class VersionConsistencyTests(unittest.TestCase):
             patch("modules.report_system.read_decision_logs", return_value=[]),
         ):
             text = report_system.build_report_text("daily")
-        self.assertIn("- Version: v1.0 Stable", text)
+        self.assertIn("- Version: v1.2 Stable", text)
 
 
 class StorageSafetyTests(unittest.TestCase):

@@ -1,17 +1,11 @@
 # Living OS Documentation Index
 
-## Canonical documents
+Canonical documents are `../MASTER_DESIGN.md`, `../ARCHITECTURE.md`, `../STRUCTURE.md`, `../ROADMAP.md`, `../VERSION.md`, `../CHANGELOG.md`, and `../RELEASE_NOTES_v1.2.md`.
 
-- `../MASTER_DESIGN.md` — product and architecture source of truth
-- `../ARCHITECTURE.md` — official architecture view
-- `../STRUCTURE.md` — target repository structure
-- `../ROADMAP.md` — development, version, module, and release roadmap
-- `../VERSION.md` — current lifecycle status
-- `../CHANGELOG.md` — historical changes
-- `../RELEASE_NOTES_v2.0.md` — initial v2.0 release-notes draft
+v1.2 evidence lives under `docs/v1.2/`: `ARCHITECTURE_REVIEW.md`, `MIGRATION_PLAN.md`, `REFACTORING_RESULT.md`, `COMPATIBILITY_REPORT.md`, `REGRESSION_REPORT.md`, and `CHANGED_FILES.md`.
 
-## Historical documents
+The final release audit is `docs/releases/v1.2/RELEASE_REVIEW.md`.
 
-Versioned roadmaps under `docs/ROADMAP_v*.md` record earlier approved scopes. They do not override the canonical v2.0 documents.
+Versioned `ROADMAP_v*.md` and legacy `.md.txt` files are historical only.
 
-Legacy `.md.txt` filenames are retained as compatibility pointers only. They are not independent sources of truth.
+Finance Subsystem v1.0 evidence is under `finance-subsystem-v1.0/`: `ARCHITECTURE_REVIEW.md`, `STRUCTURE.md`, `IMPLEMENTATION.md`, `MIGRATION_RESULT.md`, and `REGRESSION_RESULT.md`. Its release notes are `../RELEASE_NOTES_FINANCE_SUBSYSTEM_v1.0.md`.

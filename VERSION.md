@@ -1,27 +1,15 @@
 # Living OS Version
 
-## Current version
+Current version: Living OS v1.2 Stable
 
-Living OS v2.0 Implementation Candidate
+Release date: 2026-07-15
 
-## Status
+Status: production release. The repository is ready for the v1.2 tag, GitHub Release, and Streamlit Community Cloud deployment.
 
-Implementation Complete — Release Review Pending
+Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
 
-## Implementation state
+All public behavior and data contracts on the v1.1 stable baseline are retained. Code, docs, compilation, unit, integration, architecture, and Streamlit smoke verification are complete.
 
-Complete for the approved v2.0 Stable scope
+## Installed official subsystem
 
-## Release state
-
-Not released
-
-## Baseline
-
-Living OS v1.0 Stable remains the compatibility baseline for unmigrated data and legacy workflows. The v2.0 Hub shell is the current implementation candidate.
-
-## Next gate
-
-ChatGPT review and explicit user approval are required before any release action.
-
-This file is the canonical source for current project lifecycle status. Unmigrated JSON/JSONL files retain v1.0 compatibility metadata until their owner explicitly approves migration.
+Finance Subsystem v1.0.0 is enabled and compatible with Living OS `>=1.2,<2.0`. Implementation and regression verification are complete. Legacy data migration remains an explicit operator action and never runs automatically.

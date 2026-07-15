@@ -2,6 +2,6 @@
 
 This filename is retained for historical links.
 
-The approved Living OS v2.0 blueprint is now `../MASTER_DESIGN.md`. Current lifecycle status is defined by `../VERSION.md`.
+The approved Living OS v1.2 blueprint is now `../MASTER_DESIGN.md`. Current lifecycle status is defined by `../VERSION.md`.
 
 This legacy file is not an independent source of product or architecture decisions.

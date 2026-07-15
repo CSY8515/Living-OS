@@ -71,7 +71,7 @@ class SecurityAndIntegrationTests(unittest.TestCase):
         self.assertEqual(first["_version"], 1)
         second = service.update("Living OS", "monthly", 1)
         self.assertEqual(second["_version"], 2)
-        self.assertEqual(second["version"], "v2.0")
+        self.assertEqual(second["version"], "v1.2")
 
 
 if __name__ == "__main__":

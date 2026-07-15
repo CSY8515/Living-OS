@@ -2,7 +2,7 @@
 
 This filename is retained for historical links.
 
-The current Living OS v2.0 architecture is governed by:
+The current Living OS v1.2 architecture is governed by:
 
 - `../MASTER_DESIGN.md` — architectural source of truth
 - `../ARCHITECTURE.md` — official architecture view
