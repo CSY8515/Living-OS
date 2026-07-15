@@ -33,6 +33,8 @@ It provides Ledger, Budget, Cash Flow, Savings, Report, and explicit legacy Migr
 
 ## Production deployment
 
+Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
+
 Streamlit Community Cloud coordinates:
 
 - Repository: `CSY8515/Living-OS`

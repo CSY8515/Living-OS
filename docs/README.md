@@ -9,3 +9,5 @@ The final release audit is `docs/releases/v1.2/RELEASE_REVIEW.md`.
 Versioned `ROADMAP_v*.md` and legacy `.md.txt` files are historical only.
 
 Finance Subsystem v1.0 evidence is under `finance-subsystem-v1.0/`: `ARCHITECTURE_REVIEW.md`, `STRUCTURE.md`, `IMPLEMENTATION.md`, `MIGRATION_RESULT.md`, and `REGRESSION_RESULT.md`. Its release notes are `../RELEASE_NOTES_FINANCE_SUBSYSTEM_v1.0.md`.
+
+Production deployment evidence: docs/releases/v1.2/DEPLOYMENT_REPORT.md.

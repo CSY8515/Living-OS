@@ -66,6 +66,8 @@ The application never auto-migrates user data on startup.
 
 ## Deployment
 
+Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
+
 - Repository: `CSY8515/Living-OS`
 - Branch/tag: `main` / `v1.2`
 - Entrypoint: `app.py`

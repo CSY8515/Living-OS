@@ -4,7 +4,9 @@ Current version: Living OS v1.2 Stable
 
 Release date: 2026-07-15
 
-Status: production release. The repository is ready for the v1.2 tag, GitHub Release, and Streamlit Community Cloud deployment.
+Status: production release. GitHub Release and Streamlit Community Cloud deployment are complete.
+
+Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
 

@@ -29,6 +29,12 @@ Canonical runtime ownership is under `subsystems/<subsystem>/engines/<engine>/`.
 - Import identity and forbidden-dependency boundaries: pass.
 - Tracked-data safety review: pass.
 
+## Deployment status
+
+Status: deployed and verified on 2026-07-15.
+
+Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
+
 ## Deployment coordinates
 
 - GitHub repository: `CSY8515/Living-OS`
