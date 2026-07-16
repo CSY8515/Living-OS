@@ -2,6 +2,19 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.5 Stable - Vehicle Subsystem v1.0
+
+### Added
+
+- Added the independently mountable `VehicleSubsystem` facade and private Vehicle, Odometer, Maintenance, Schedule, Energy, Report, Storage, and Validation engines.
+- Added profile lifecycle, monotonic kilometer history, maintenance records/due schedules, fuel/charging costs, deterministic reports, lazy SQLite storage, and the Vehicle page.
+- Added the v1.5 manifest, seven isolated Vehicle tests, architecture enforcement, and release-readiness documentation.
+
+### Compatibility and release control
+
+- Preserved v1.4 manifests, imports, behavior, paths, schemas, owner data, and safety contracts.
+- Compilation and the complete 81-test suite pass. No Vehicle migration exists or ran. Commit, GitHub Release, and deployment remain unapproved; production stays v1.4.
+
 ## v1.4 Stable - Housing Subsystem v1.0
 
 ### Added

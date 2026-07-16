@@ -1,4 +1,4 @@
-# Living OS v1.4 Architecture
+# Living OS v1.5 Architecture
 
 ## Official placement
 
@@ -39,3 +39,9 @@ Health depends only on Health. Experience may call the public facade; Health nev
 Housing is an independently mountable sensitive-data subsystem whose only supported boundary is `HousingSubsystem`. Candidate, Scoring, Comparison, Housing Report, Migration, Storage, and Validation engines are private.
 
 Housing depends only on Housing. Experience may call the public facade; Housing never imports Finance, Health, Compatibility, or another domain subsystem. Default state is isolated below `data/housing/`, reads are lazy, writes are transactional, and legacy JSON migration is explicit and dry-run-first.
+
+## Vehicle Subsystem v1.0
+
+Vehicle is an independently mountable sensitive-data subsystem whose only supported boundary is `VehicleSubsystem`. Vehicle, Odometer, Maintenance, Schedule, Energy, Report, Storage, and Validation engines are private.
+
+Vehicle depends only on Vehicle and the Python standard library. Experience may call its facade; no subsystem may import Vehicle engines. Default state is isolated below `data/vehicle/`, reads are lazy, and writes transactional. No legacy Vehicle source exists, so v1.5 includes no migration.

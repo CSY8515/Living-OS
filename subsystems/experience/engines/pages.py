@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import date
 from pathlib import Path
 import tempfile
 from typing import Any
@@ -8,6 +9,7 @@ from typing import Any
 from subsystems.finance import FinanceSubsystem
 from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
+from subsystems.vehicle import VehicleSubsystem
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -824,3 +826,168 @@ def render_housing(housing: HousingSubsystem) -> None:
             else:
                 st.json(result)
                 st.success("Reviewed Housing migration completed.")
+
+
+def render_vehicle(vehicle: VehicleSubsystem) -> None:
+    import streamlit as st
+
+    st.title("Vehicle")
+    st.caption("Vehicle Subsystem v1.0 · Sensitive owner data · Deterministic maintenance and cost records")
+    vehicles_tab, records_tab, report_tab = st.tabs(["Vehicles", "Records", "Status report"])
+
+    with vehicles_tab:
+        with st.form("vehicle_v15_profile_form", clear_on_submit=True):
+            display_name = st.text_input("Vehicle name")
+            manufacturer = st.text_input("Manufacturer")
+            model = st.text_input("Model")
+            model_year = st.number_input(
+                "Model year", min_value=1886, max_value=date.today().year + 1,
+                value=date.today().year, step=1,
+            )
+            powertrain = st.selectbox(
+                "Powertrain", ["gasoline", "diesel", "hybrid", "electric", "other"]
+            )
+            create_submitted = st.form_submit_button("Add vehicle", type="primary")
+        if create_submitted:
+            try:
+                vehicle.create_vehicle(display_name, manufacturer, model, model_year, powertrain)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Vehicle added.")
+                st.rerun()
+
+        vehicles = vehicle.list_vehicles("active")
+        st.dataframe(vehicles, width="stretch", hide_index=True)
+        if vehicles:
+            labels = {item["vehicle_id"]: item["display_name"] for item in vehicles}
+            archive_id = st.selectbox(
+                "Vehicle to archive", list(labels), format_func=lambda value: labels[value],
+                key="vehicle_archive_select",
+            )
+            if st.button("Archive vehicle", key="vehicle_archive_button"):
+                vehicle.archive_vehicle(archive_id)
+                st.success("Vehicle archived.")
+                st.rerun()
+
+    with records_tab:
+        vehicles = vehicle.list_vehicles("active")
+        if not vehicles:
+            st.info("Add an active vehicle before recording Vehicle data.")
+        else:
+            labels = {item["vehicle_id"]: item["display_name"] for item in vehicles}
+            vehicle_id = st.selectbox(
+                "Vehicle", list(labels), format_func=lambda value: labels[value],
+                key="vehicle_records_select",
+            )
+            odometer_tab, maintenance_tab, schedule_tab, energy_tab = st.tabs(
+                ["Odometer", "Maintenance", "Schedule", "Fuel / Charge"]
+            )
+            with odometer_tab:
+                with st.form("vehicle_v15_odometer_form", clear_on_submit=True):
+                    odometer_km = st.number_input("Odometer (km)", min_value=0, step=1)
+                    recorded_on = st.date_input("Recorded on", value=date.today(), key="vehicle_odometer_date")
+                    odometer_note = st.text_input("Note", key="vehicle_odometer_note")
+                    odometer_submit = st.form_submit_button("Record odometer")
+                if odometer_submit:
+                    try:
+                        vehicle.record_odometer(vehicle_id, odometer_km, recorded_on.isoformat(), odometer_note)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
+                st.dataframe(vehicle.list_odometer_readings(vehicle_id), width="stretch", hide_index=True)
+
+            with maintenance_tab:
+                with st.form("vehicle_v15_maintenance_form", clear_on_submit=True):
+                    service_type = st.text_input("Service type")
+                    serviced_on = st.date_input("Serviced on", value=date.today(), key="vehicle_service_date")
+                    service_km = st.number_input("Service odometer (km)", min_value=0, step=1)
+                    service_cost = st.number_input("Service cost", min_value=0, step=1000)
+                    provider = st.text_input("Provider")
+                    service_note = st.text_area("Service note")
+                    maintenance_submit = st.form_submit_button("Record maintenance")
+                if maintenance_submit:
+                    try:
+                        vehicle.record_maintenance(
+                            vehicle_id, service_type, serviced_on.isoformat(), service_km,
+                            service_cost, provider, service_note,
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
+                st.dataframe(vehicle.list_maintenance_records(vehicle_id), width="stretch", hide_index=True)
+
+            with schedule_tab:
+                with st.form("vehicle_v15_schedule_form", clear_on_submit=True):
+                    schedule_type = st.text_input("Scheduled service")
+                    use_due_date = st.checkbox("Use due date", value=True)
+                    due_on = st.date_input("Due on", value=date.today(), key="vehicle_due_date")
+                    use_due_km = st.checkbox("Use due odometer")
+                    due_km = st.number_input("Due odometer (km)", min_value=0, step=1)
+                    schedule_submit = st.form_submit_button("Create schedule")
+                if schedule_submit:
+                    try:
+                        vehicle.create_maintenance_schedule(
+                            vehicle_id, schedule_type,
+                            due_on.isoformat() if use_due_date else None,
+                            due_km if use_due_km else None,
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
+                schedules = vehicle.list_maintenance_schedules(vehicle_id)
+                st.dataframe(schedules, width="stretch", hide_index=True)
+                active = [item for item in schedules if item["status"] == "active"]
+                maintenance = vehicle.list_maintenance_records(vehicle_id)
+                if active and maintenance:
+                    schedule_id = st.selectbox(
+                        "Schedule to complete", [item["schedule_id"] for item in active],
+                        format_func=lambda value: next(item["service_type"] for item in active if item["schedule_id"] == value),
+                    )
+                    maintenance_id = st.selectbox(
+                        "Completion record", [item["maintenance_id"] for item in maintenance],
+                        format_func=lambda value: next(item["service_type"] for item in maintenance if item["maintenance_id"] == value),
+                    )
+                    if st.button("Complete schedule", key="vehicle_complete_schedule"):
+                        try:
+                            vehicle.complete_maintenance_schedule(schedule_id, maintenance_id)
+                        except ValueError as exc:
+                            st.error(str(exc))
+                        else:
+                            st.rerun()
+
+            with energy_tab:
+                with st.form("vehicle_v15_energy_form", clear_on_submit=True):
+                    energy_type = st.selectbox("Energy type", ["fuel", "charge"])
+                    energy_on = st.date_input("Energy date", value=date.today(), key="vehicle_energy_date")
+                    quantity = st.number_input("Quantity (L or kWh)", min_value=0.001, step=0.001, format="%.3f")
+                    energy_cost = st.number_input("Energy cost", min_value=0, step=1000)
+                    energy_km = st.number_input("Energy odometer (km)", min_value=0, step=1)
+                    energy_note = st.text_input("Energy note")
+                    energy_submit = st.form_submit_button("Record fuel / charge")
+                if energy_submit:
+                    try:
+                        vehicle.record_energy(
+                            vehicle_id, energy_type, energy_on.isoformat(), quantity,
+                            energy_cost, energy_km, energy_note,
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
+                st.dataframe(vehicle.list_energy_logs(vehicle_id), width="stretch", hide_index=True)
+
+    with report_tab:
+        vehicles = vehicle.list_vehicles("active")
+        if not vehicles:
+            st.info("Add an active vehicle before generating a status report.")
+        else:
+            labels = {item["vehicle_id"]: item["display_name"] for item in vehicles}
+            report_id = st.selectbox(
+                "Report vehicle", list(labels), format_func=lambda value: labels[value],
+                key="vehicle_report_select",
+            )
+            st.json(vehicle.vehicle_report(report_id))

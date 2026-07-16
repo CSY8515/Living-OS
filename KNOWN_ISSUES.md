@@ -1,4 +1,4 @@
-# Living OS v1.2 Known Issues
+# Living OS v1.5 Known Issues
 
 - `app/`, `core/`, `modules/`, and `shared/` remain compatibility aliases; removing them would be a breaking change.
 - Canonical Hub and flat-file workflows coexist; startup does not migrate data.
@@ -8,6 +8,12 @@
 - Credential-store and optional AI availability are environment-dependent; AI stays draft-only.
 - Streamlit remains the application shell.
 - Streamlit Community Cloud's local filesystem is ephemeral and should not be treated as durable finance storage.
+
+## Vehicle Subsystem v1.0
+
+- Vehicle SQLite storage remains single-owner and is not durable on Streamlit Community Cloud.
+- GPS/trips, reminders, external integrations, Finance posting, and legacy migration are deliberately excluded.
+- Vehicle v1.0 uses kilometers and integer owner-currency costs only; unit and currency conversion are excluded.
 
 ## Finance Subsystem v1.0
 

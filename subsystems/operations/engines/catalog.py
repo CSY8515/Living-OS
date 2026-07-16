@@ -79,5 +79,16 @@ V14_STABLE_MANIFESTS = V13_STABLE_MANIFESTS + (
     ),
 )
 
+V15_STABLE_MANIFESTS = V14_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "vehicle", "Vehicle Subsystem", "1.0.0", ">=1.5,<2.0",
+        "Independent vehicle profiles, odometer, maintenance, energy-cost, and reporting subsystem.",
+        status="enabled",
+        capabilities=("vehicle-profile", "odometer", "maintenance",
+                      "maintenance-schedule", "energy-cost", "vehicle-report"),
+        privacy_class="sensitive",
+    ),
+)
+
 # Kept for callers that adopted the unreleased implementation-candidate name.
 V2_STABLE_MANIFESTS = V12_STABLE_MANIFESTS

@@ -1,5 +1,13 @@
 # Living OS Roadmap
 
+## v1.5 - Vehicle Subsystem v1.0
+
+Implementation, isolated verification, full 81-test regression, documentation synchronization, and deployment-readiness review are complete. No migration exists or ran. Commit, GitHub Release, and deployment remain separate owner-approved actions. Current status: release approval pending.
+
+Exact scope: vehicle profiles, kilometer odometer history, maintenance records and date/odometer schedules, fuel/charging cost logs, deterministic vehicle reports, isolated lazy SQLite storage, a v1.5 manifest, one Vehicle page, tests, and documentation. GPS/trips, reminders, AI, external integrations, Finance coupling, legacy migration, release, and deployment are excluded.
+
+The governing plan is `docs/v1.5/IMPLEMENTATION_PLAN.md`. Only that exact scope is authorized.
+
 ## v1.4 - Housing Subsystem v1.0
 
 Implementation, isolated verification, full regression, documentation synchronization, release publication, Streamlit deployment, and production verification are complete. Real Housing migration remains a separate owner-approved action and was not performed. Current status: Stable, production.

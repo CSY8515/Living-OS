@@ -1,4 +1,4 @@
-# Living OS v1.4 Master Design
+# Living OS v1.5 Master Design
 
 Mission: implement the official Skeleton Architecture without adding features or removing behavior.
 
@@ -21,3 +21,7 @@ Health applies the Finance reference architecture to sensitive Health data. It p
 ## Housing Subsystem v1.0 implementation
 
 Housing applies the reference architecture to the preserved Housing candidate workflow. It exposes one `HousingSubsystem` facade, preserves the legacy scoring contract, provides candidate CRUD, deterministic comparison and reports, isolates sensitive owner state, and requires explicit dry-run-first migration. The legacy Housing API and JSON source remain unchanged.
+
+## Vehicle Subsystem v1.0 implementation
+
+Vehicle applies the reference architecture through one `VehicleSubsystem` facade. Its boundary is limited to profiles, kilometer odometer readings, maintenance history/due criteria, fuel/charging costs, and deterministic reports. Vehicle state is isolated and sensitive; reads cannot create storage; engines cannot depend on another domain. GPS, reminders, AI, integrations, Finance posting, and migration are excluded.

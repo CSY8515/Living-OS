@@ -44,10 +44,11 @@ class SubsystemArchitectureTests(unittest.TestCase):
             "foundation": {"foundation"},
             "operations": {"operations", "foundation"},
             "insight": {"insight", "foundation"},
-            "experience": {"experience", "foundation", "operations", "insight", "compatibility", "finance", "health", "housing"},
+            "experience": {"experience", "foundation", "operations", "insight", "compatibility", "finance", "health", "housing", "vehicle"},
             "finance": {"finance"},
             "health": {"health"},
             "housing": {"housing"},
+            "vehicle": {"vehicle"},
             "compatibility": {"compatibility", "insight"},
         }
         violations: list[str] = []

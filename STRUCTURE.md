@@ -1,4 +1,4 @@
-# Living OS v1.4 Repository Structure
+# Living OS v1.5 Repository Structure
 
     subsystems/
       foundation/engines/    platform and state
@@ -49,3 +49,13 @@ Default sensitive state is `data/health/health.sqlite3`. No v1.2 data path is ch
                         migration, storage, validation
 
 Default sensitive state is `data/housing/housing.sqlite3`. Existing `modules/housing.py`, its canonical compatibility engine, and `data/housing_candidates.json` remain unchanged.
+
+## Vehicle Subsystem v1.0
+
+    subsystems/vehicle/
+      __init__.py       public VehicleSubsystem export
+      subsystem.py      interface and composition root
+      engines/          vehicle, odometer, maintenance, schedule,
+                        energy, report, storage, validation
+
+Default sensitive state is `data/vehicle/vehicle.sqlite3`. No legacy compatibility path or Vehicle migration exists. Reads do not create the database.
