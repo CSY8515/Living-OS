@@ -1,4 +1,4 @@
-# Living OS v1.3 Master Design
+# Living OS v1.4 Master Design
 
 Mission: implement the official Skeleton Architecture without adding features or removing behavior.
 
@@ -17,3 +17,7 @@ Finance Subsystem v1.0 is the production reference for future Living OS subsyste
 ## Health Subsystem v1.0 implementation
 
 Health applies the Finance reference architecture to sensitive Health data. It provides the nine approved domain engines through `HealthSubsystem`, stores owner data separately from fixtures, prevents automatic migration, and exposes deterministic baseline, trend, goal, and report behavior. Cross-domain access is prohibited below the facade.
+
+## Housing Subsystem v1.0 implementation
+
+Housing applies the reference architecture to the preserved Housing candidate workflow. It exposes one `HousingSubsystem` facade, preserves the legacy scoring contract, provides candidate CRUD, deterministic comparison and reports, isolates sensitive owner state, and requires explicit dry-run-first migration. The legacy Housing API and JSON source remain unchanged.

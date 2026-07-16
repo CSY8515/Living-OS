@@ -12,6 +12,7 @@ from subsystems.experience.engines.pages import (
     render_documents,
     render_finance,
     render_health,
+    render_housing,
     render_journal,
     render_knowledge,
     render_module_manager,
@@ -22,11 +23,12 @@ from subsystems.experience.engines.pages import (
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
 from subsystems.health import HealthSubsystem
+from subsystems.housing import HousingSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V13_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V14_STABLE_MANIFESTS
 
 
-VERSION = "v1.3 Stable"
+VERSION = "v1.4 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -36,7 +38,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V13_STABLE_MANIFESTS)
+        hub.bootstrap(V14_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -62,7 +64,18 @@ def _health() -> HealthSubsystem:
     return build_health()
 
 
-def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem) -> dict[str, Callable[[], None]]:
+def _housing() -> HousingSubsystem:
+    import streamlit as st
+
+    @st.cache_resource
+    def build_housing() -> HousingSubsystem:
+        return HousingSubsystem(ROOT)
+
+    return build_housing()
+
+
+def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem,
+                     housing: HousingSubsystem) -> dict[str, Callable[[], None]]:
     return {
         "Dashboard": lambda: render_dashboard(hub),
         "Daily Log": lambda: render_journal(hub),
@@ -75,6 +88,7 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSu
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
         "Health": lambda: render_health(health),
+        "Housing": lambda: render_housing(housing),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -128,7 +142,8 @@ def _authorize(hub: LivingHub) -> bool:
     return False
 
 
-def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem) -> dict[str, Callable[[], None]]:
+def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem,
+                         housing: HousingSubsystem) -> dict[str, Callable[[], None]]:
     from subsystems.compatibility.engines.ai_analysis import render_ai_analysis
     from subsystems.compatibility.engines.analytics import render_analytics as render_legacy_analytics
     from subsystems.compatibility.engines.archive import render_archive
@@ -151,6 +166,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: Heal
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
         "Health": lambda: render_health(health),
+        "Housing": lambda: render_housing(housing),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -164,10 +180,12 @@ def main() -> None:
     hub = _hub()
     finance = _finance()
     health = _health()
+    housing = _housing()
     if not _authorize(hub):
         return
     migrated = hub.v1_migration_complete
-    pages = _canonical_pages(hub, finance, health) if migrated else _compatibility_pages(hub, finance, health)
+    pages = (_canonical_pages(hub, finance, health, housing) if migrated
+             else _compatibility_pages(hub, finance, health, housing))
 
     module_by_page = {
         "Dashboard": "dashboard",
@@ -181,6 +199,7 @@ def main() -> None:
         "Documents": "documents",
         "Finance": "finance",
         "Health": "health",
+        "Housing": "housing",
         "Module Manager": "module_manager",
         "Settings": "settings",
     }

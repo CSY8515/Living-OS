@@ -1,4 +1,4 @@
-# Living OS v1.3 Stable
+# Living OS v1.4 Stable
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -44,6 +44,23 @@ Health is available only through its Living OS facade:
 
 Health data is sensitive and ignored by Git. Reads do not create storage, and real migration requires explicit approval. See `docs/health-subsystem-v1.0/` and `RELEASE_NOTES_v1.3.md`.
 
+## Housing Subsystem v1.0
+
+Housing is available through its public facade:
+
+    from pathlib import Path
+    from subsystems.housing import HousingSubsystem
+
+    housing = HousingSubsystem(Path.cwd())
+    housing.create_candidate(
+        name="Candidate A", deposit=10000000, monthly_rent=600000,
+        maintenance_fee=100000, maintenance_fee_provided=True,
+        commute_minutes=30, parking_available=True,
+    )
+    report = housing.housing_report()
+
+Housing preserves the legacy scoring formula while adding isolated CRUD, comparison, reports, and explicit dry-run-first migration. Reads do not create storage, legacy Housing files remain unchanged, and no real migration is included in the v1.4 release. See `docs/housing-subsystem-v1.0/` and `RELEASE_NOTES_v1.4.md`.
+
 ## Production deployment
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
@@ -56,4 +73,4 @@ Streamlit Community Cloud coordinates:
 - Python: 3.12 recommended
 - Secrets: none required
 
-The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance or Health storage. The listed deployment now serves Living OS v1.3 Stable.
+The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance, Health, or Housing storage. The listed deployment remains Living OS v1.3 Stable until the v1.4 release workflow is approved and completed.

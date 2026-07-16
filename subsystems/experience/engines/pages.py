@@ -7,6 +7,7 @@ from typing import Any
 
 from subsystems.finance import FinanceSubsystem
 from subsystems.health import HealthSubsystem
+from subsystems.housing import HousingSubsystem
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -732,3 +733,94 @@ def render_health(health: HealthSubsystem) -> None:
             st.json(health.monthly_report(report_month))
         except ValueError as exc:
             st.error(str(exc))
+
+
+def render_housing(housing: HousingSubsystem) -> None:
+    import streamlit as st
+
+    st.title("Housing")
+    st.caption("Housing Subsystem v1.0 · Sensitive owner data · Deterministic candidate comparison")
+    candidate_tab, comparison_tab, migration_tab = st.tabs(["Candidates", "Comparison / Report", "Migration"])
+
+    with candidate_tab:
+        with st.form("housing_candidate_v14_form", clear_on_submit=True):
+            name = st.text_input("Candidate name")
+            cost_col1, cost_col2, cost_col3 = st.columns(3)
+            deposit = cost_col1.number_input("Deposit", min_value=0, step=1_000_000, format="%d")
+            monthly_rent = cost_col2.number_input("Monthly rent", min_value=0, step=10_000, format="%d")
+            maintenance_fee = cost_col3.number_input("Maintenance fee", min_value=0, step=10_000, format="%d")
+            maintenance_fee_provided = st.checkbox("Maintenance fee is known", value=True)
+            condition_col1, condition_col2 = st.columns(2)
+            commute_minutes = condition_col1.number_input("Commute minutes", min_value=0, max_value=1440, step=5)
+            parking_available = condition_col2.checkbox("Parking available")
+            options_memo = st.text_area("Options memo")
+            special_notes = st.text_area("Special notes")
+            submitted = st.form_submit_button("Add candidate", type="primary")
+        if submitted:
+            try:
+                housing.create_candidate(
+                    name=name,
+                    deposit=deposit,
+                    monthly_rent=monthly_rent,
+                    maintenance_fee=maintenance_fee,
+                    maintenance_fee_provided=maintenance_fee_provided,
+                    commute_minutes=commute_minutes,
+                    parking_available=parking_available,
+                    options_memo=options_memo,
+                    special_notes=special_notes,
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Housing candidate added.")
+                st.rerun()
+
+        candidates = housing.list_candidates()
+        st.dataframe(candidates, width="stretch", hide_index=True)
+        if candidates:
+            labels = {item["candidate_id"]: item["name"] for item in candidates}
+            selected_id = st.selectbox(
+                "Candidate to manage",
+                list(labels),
+                format_func=lambda value: labels[value],
+            )
+            status = st.selectbox("Status", ["active", "shortlisted", "rejected", "selected"])
+            action_col1, action_col2 = st.columns(2)
+            if action_col1.button("Update status", key="housing_update_status"):
+                housing.update_candidate(selected_id, status=status)
+                st.success("Candidate status updated.")
+                st.rerun()
+            if action_col2.button("Delete candidate", key="housing_delete_candidate"):
+                housing.delete_candidate(selected_id)
+                st.success("Candidate deleted.")
+                st.rerun()
+
+    with comparison_tab:
+        st.dataframe(housing.rank_candidates(), width="stretch", hide_index=True)
+        st.json(housing.housing_report())
+
+    with migration_tab:
+        legacy_path = housing.root / "data" / "housing_candidates.json"
+        st.caption("Migration is dry-run-first, explicit, checksum-guarded, transactional, and idempotent.")
+        dry_col, apply_col = st.columns(2)
+        if dry_col.button("Dry run legacy Housing migration", disabled=not legacy_path.is_file()):
+            try:
+                result = housing.dry_run_legacy_json(legacy_path)
+            except (OSError, ValueError) as exc:
+                st.error(str(exc))
+            else:
+                st.session_state.housing_migration_dry_run = result
+                st.json(result)
+        dry_result = st.session_state.get("housing_migration_dry_run")
+        if apply_col.button(
+            "Apply reviewed Housing migration",
+            disabled=not bool(dry_result),
+            key="housing_apply_migration",
+        ):
+            try:
+                result = housing.migrate_legacy_json(legacy_path)
+            except (OSError, ValueError) as exc:
+                st.error(str(exc))
+            else:
+                st.json(result)
+                st.success("Reviewed Housing migration completed.")

@@ -1,4 +1,4 @@
-# Living OS v1.3 Repository Structure
+# Living OS v1.4 Repository Structure
 
     subsystems/
       foundation/engines/    platform and state
@@ -39,3 +39,13 @@ Default private runtime state: data/finance/finance.sqlite3. Existing modules/fi
                         migration, storage, validation
 
 Default sensitive state is `data/health/health.sqlite3`. No v1.2 data path is changed.
+
+## Housing Subsystem v1.0
+
+    subsystems/housing/
+      __init__.py       public HousingSubsystem export
+      subsystem.py      Living OS interface and composition root
+      engines/          candidate, scoring, comparison, report,
+                        migration, storage, validation
+
+Default sensitive state is `data/housing/housing.sqlite3`. Existing `modules/housing.py`, its canonical compatibility engine, and `data/housing_candidates.json` remain unchanged.

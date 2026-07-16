@@ -2,6 +2,20 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.4 Stable - Housing Subsystem v1.0
+
+### Added
+
+- Added the independently mountable `HousingSubsystem` facade and private Candidate, Scoring, Comparison, Housing Report, Migration, Storage, and Validation engines.
+- Added candidate CRUD, deterministic ranking, cost and status summaries, and attributable scoring deductions.
+- Added lazy transactional sensitive SQLite storage and explicit dry-run-first, checksum-guarded legacy JSON migration.
+- Added the v1.4 manifest and Housing page integration.
+
+### Compatibility and release control
+
+- Preserved all v1.3 manifests, behavior, imports, data contracts, release workflows, and the legacy Housing API and JSON source.
+- No real Housing migration, commit, push, GitHub Release, or deployment was performed.
+
 ## v1.3 Stable - Health Subsystem v1.0
 
 ### Added

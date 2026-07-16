@@ -69,5 +69,15 @@ V13_STABLE_MANIFESTS = V12_STABLE_MANIFESTS + (
     ),
 )
 
+V14_STABLE_MANIFESTS = V13_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "housing", "Housing Subsystem", "1.0.0", ">=1.4,<2.0",
+        "Independent candidate, scoring, comparison, reporting, and migration subsystem.",
+        status="enabled",
+        capabilities=("candidate-crud", "scoring", "comparison", "housing-report", "migration"),
+        privacy_class="sensitive",
+    ),
+)
+
 # Kept for callers that adopted the unreleased implementation-candidate name.
 V2_STABLE_MANIFESTS = V12_STABLE_MANIFESTS

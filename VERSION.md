@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v1.3 Stable
+Workspace version: Living OS v1.4 Stable
 
 Stable verification date: 2026-07-16
 
 Production version: Living OS v1.3 Stable
 
-Status: official v1.3 Stable GitHub Release and Streamlit production deployment are complete and verified.
+Status: v1.4 Housing Subsystem v1.0 is release-approved and fully verified. Publication and production deployment are in progress; production remains v1.3 Stable until deployment verification completes.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
@@ -19,3 +19,5 @@ All public behavior and data contracts on the v1.1 stable baseline are retained.
 Finance Subsystem v1.0.0 is enabled and compatible with Living OS `>=1.2,<2.0`. Implementation and regression verification are complete. Legacy data migration remains an explicit operator action and never runs automatically.
 
 Health Subsystem v1.0.0 is enabled in the v1.3 manifest and compatible with Living OS `>=1.3,<2.0`. All required engines, isolated tests, full regression, and docs are complete. Real Health migration remains an explicit owner action and has not run.
+
+Housing Subsystem v1.0.0 is enabled only in the new v1.4 manifest and compatible with Living OS `>=1.4,<2.0`. It preserves legacy Housing scoring and data, uses isolated lazy storage, and requires explicit dry-run-first migration. No real Housing migration has run.

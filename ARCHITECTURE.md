@@ -1,4 +1,4 @@
-# Living OS v1.3 Architecture
+# Living OS v1.4 Architecture
 
 ## Official placement
 
@@ -26,10 +26,16 @@ Previous public paths alias the same canonical Python module objects, preserving
 
 Finance is an independently mountable subsystem below Living OS. Its only supported external object is FinanceSubsystem. Storage, Validation, Ledger, Budget, Cash Flow, Savings, Report, and Migration Engines are composed internally.
 
+Finance depends only on Finance. Experience may depend on the Finance public facade; no other subsystem may import Finance engines. A database path can be injected so the subsystem can be tested, replaced, or rolled back independently. Reads do not create storage; writes are transactional.
+
 ## Health Subsystem v1.0
 
 Health is an independently mountable sensitive-data subsystem whose only supported boundary is `HealthSubsystem`. Weight, Body Composition, Health Checkup, Sleep, Exercise, Nutrition, Trend, Goal, Health Report, Migration, Storage, and Validation engines are private.
 
 Health depends only on Health. Experience may call the public facade; Health never directly imports another domain subsystem. Default state is isolated below `data/health/`, reads are lazy, writes are transactional, and migration is explicit.
 
-Finance → Finance only. Experience may depend on the Finance public facade; no other subsystem may import Finance engines. A database path can be injected so the subsystem can be tested, replaced, or rolled back independently. Reads do not create storage; writes are transactional.
+## Housing Subsystem v1.0
+
+Housing is an independently mountable sensitive-data subsystem whose only supported boundary is `HousingSubsystem`. Candidate, Scoring, Comparison, Housing Report, Migration, Storage, and Validation engines are private.
+
+Housing depends only on Housing. Experience may call the public facade; Housing never imports Finance, Health, Compatibility, or another domain subsystem. Default state is isolated below `data/housing/`, reads are lazy, writes are transactional, and legacy JSON migration is explicit and dry-run-first.
