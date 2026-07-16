@@ -10,11 +10,11 @@
 - Compile, 74/74 regression, page smoke, data integrity, privacy, and headless startup checks pass.
 - Required Housing and Living OS documents are synchronized.
 
-## Approved release actions
+## Completed release actions
 
-- Commit and push the approved Stable release.
-- Create the v1.4 GitHub Release and deploy Streamlit.
-- Verify production separately.
-- Approve any real Housing migration separately; migration is not part of release publication.
+- Committed and pushed the approved Stable release.
+- Created the v1.4 GitHub Release and deployed Streamlit.
+- Verified the v1.4 Stable label, Housing page and report, Dashboard status, and browser console.
+- Real Housing migration remains separate and was not performed.
 
-Decision: Living OS v1.4 Stable release workflow approved on 2026-07-16.
+Decision: Living OS v1.4 Stable is published and production verified.

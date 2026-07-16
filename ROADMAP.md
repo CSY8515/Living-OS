@@ -2,7 +2,7 @@
 
 ## v1.4 - Housing Subsystem v1.0
 
-Approved implementation scope is complete: isolated facade and engines, candidate CRUD, legacy-compatible scoring, deterministic comparison and reports, lazy sensitive storage, explicit dry-run-first migration, Living OS integration, tests, and documentation. The official release workflow is approved and in progress. Real Housing migration remains a separate owner-approved action and is not part of the release.
+Implementation, isolated verification, full regression, documentation synchronization, release publication, Streamlit deployment, and production verification are complete. Real Housing migration remains a separate owner-approved action and was not performed. Current status: Stable, production.
 
 ## v1.3 - Health Subsystem v1.0
 

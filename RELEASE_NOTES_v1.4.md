@@ -19,4 +19,4 @@ No v1.3 data contract or public path is changed. `V13_STABLE_MANIFESTS` remains 
 
 ## Release controls
 
-Commit, push, GitHub Release publication, Streamlit deployment, production verification, and real Housing migration remain explicit owner-approved actions.
+The approved commit, push, GitHub Release publication, Streamlit deployment, and production verification completed on 2026-07-16. Real Housing migration remains a separate explicit owner action and was not performed.

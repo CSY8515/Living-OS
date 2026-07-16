@@ -1,6 +1,6 @@
 # Living OS v1.4 Changed Files Report
 
-Final development inventory: 41 files (14 modified, 27 added).
+Final release inventory: 42 files, including the post-deployment report.
 
 ## Housing implementation
 

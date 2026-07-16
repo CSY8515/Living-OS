@@ -1,6 +1,6 @@
 # Living OS v1.4 Deployment Readiness
 
-Status: RELEASE APPROVED; READY FOR DEPLOYMENT; NOT YET DEPLOYED
+Status: DEPLOYED AND VERIFIED
 
 ## Target
 
@@ -8,7 +8,7 @@ Status: RELEASE APPROVED; READY FOR DEPLOYMENT; NOT YET DEPLOYED
 - Branch: `main`
 - Entrypoint: `app.py`
 - Workspace label: `v1.4 Stable`
-- Current production: `v1.3 Stable`
+- Current production: `v1.4 Stable`
 - Python: 3.12 recommended
 - Required normal-startup secrets: none
 
@@ -28,4 +28,4 @@ Status: RELEASE APPROVED; READY FOR DEPLOYMENT; NOT YET DEPLOYED
 
 Commit, push, tag, GitHub Release, Streamlit deployment, and production verification require explicit owner approval. Real Housing migration is a separate action and must never run automatically. Community Cloud local storage is not durable for long-lived Housing data.
 
-Decision: release workflow approved; deployment may proceed after commit, push, and GitHub Release publication.
+Decision: Living OS v1.4 Stable was deployed and production verified on 2026-07-16. See `DEPLOYMENT_REPORT.md`.

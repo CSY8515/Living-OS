@@ -4,9 +4,9 @@ Workspace version: Living OS v1.4 Stable
 
 Stable verification date: 2026-07-16
 
-Production version: Living OS v1.3 Stable
+Production version: Living OS v1.4 Stable
 
-Status: v1.4 Housing Subsystem v1.0 is release-approved and fully verified. Publication and production deployment are in progress; production remains v1.3 Stable until deployment verification completes.
+Status: official v1.4 Stable commit, GitHub Release, Streamlit production deployment, and production verification are complete.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
