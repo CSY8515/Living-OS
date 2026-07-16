@@ -1,6 +1,6 @@
 # Living OS v1.5 Deployment Readiness
 
-Status: **READY — NOT DEPLOYED**
+Status: **DEPLOYED AND VERIFIED**
 
 ## Target
 
@@ -8,7 +8,7 @@ Status: **READY — NOT DEPLOYED**
 - Branch: `main`
 - Entrypoint: `app.py`
 - Workspace label: `v1.5 Stable`
-- Current production: `v1.4 Stable`
+- Current production: `v1.5 Stable`
 - Python: 3.12 recommended
 - Required normal-startup secrets: none
 
@@ -25,6 +25,6 @@ Status: **READY — NOT DEPLOYED**
 
 ## Release controls
 
-No commit, push, GitHub Release, or Streamlit deployment has occurred. Community Cloud local storage is not durable Vehicle storage. Deployment requires explicit owner approval and production must remain identified as v1.4 until verification after deployment.
+Official commit, push, GitHub Release, Streamlit deployment, and production verification completed on 2026-07-16. Community Cloud local storage is not durable Vehicle storage. No migration was performed.
 
-Decision: READY FOR RELEASE APPROVAL.
+Decision: DEPLOYED AND VERIFIED.

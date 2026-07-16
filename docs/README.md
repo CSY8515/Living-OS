@@ -2,7 +2,7 @@
 
 Canonical documents are `../MASTER_DESIGN.md`, `../ARCHITECTURE.md`, `../STRUCTURE.md`, `../ROADMAP.md`, `../VERSION.md`, `../CHANGELOG.md`, and the current version release notes.
 
-The completed v1.5 implementation scope and release gate are in `v1.5/IMPLEMENTATION_PLAN.md`. Workspace v1.5 verification is complete; production remains Living OS v1.4 Stable pending separate release/deployment approval.
+The completed v1.5 implementation scope is in `v1.5/IMPLEMENTATION_PLAN.md`. Living OS v1.5 Stable is released and production verified.
 
 v1.2 evidence lives under `docs/v1.2/`: `ARCHITECTURE_REVIEW.md`, `MIGRATION_PLAN.md`, `REFACTORING_RESULT.md`, `COMPATIBILITY_REPORT.md`, `REGRESSION_REPORT.md`, and `CHANGED_FILES.md`.
 
@@ -18,4 +18,4 @@ Housing Subsystem v1.0 evidence is under `housing-subsystem-v1.0/`; its release 
 
 Vehicle Subsystem v1.0 evidence is under `vehicle-subsystem-v1.0/`; its release notes are `../RELEASE_NOTES_v1.5.md`.
 
-Versioned release evidence is under `releases/v1.2/` through `releases/v1.5/`. Current production deployment evidence remains `releases/v1.4/DEPLOYMENT_REPORT.md`; v1.5 contains readiness artifacts only.
+Versioned release evidence is under `releases/v1.2/` through `releases/v1.5/`. Current production deployment evidence is `releases/v1.5/DEPLOYMENT_REPORT.md`.

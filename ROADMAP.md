@@ -2,7 +2,7 @@
 
 ## v1.5 - Vehicle Subsystem v1.0
 
-Implementation, isolated verification, full 81-test regression, documentation synchronization, and deployment-readiness review are complete. No migration exists or ran. Commit, GitHub Release, and deployment remain separate owner-approved actions. Current status: release approval pending.
+Implementation, isolated verification, full 81-test regression, documentation synchronization, official commit, GitHub Release, Streamlit deployment, and production verification are complete. No migration exists or ran. Current status: Stable, production.
 
 Exact scope: vehicle profiles, kilometer odometer history, maintenance records and date/odometer schedules, fuel/charging cost logs, deterministic vehicle reports, isolated lazy SQLite storage, a v1.5 manifest, one Vehicle page, tests, and documentation. GPS/trips, reminders, AI, external integrations, Finance coupling, legacy migration, release, and deployment are excluded.
 

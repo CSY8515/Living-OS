@@ -1,6 +1,8 @@
 # Living OS v1.5 Stable Release Notes
 
-Release state: implementation and verification complete; awaiting commit, GitHub Release, and deployment approval.
+Release date: 2026-07-16
+
+Release state: published and production verified.
 
 Living OS v1.5 adds Vehicle Subsystem v1.0 behind one `VehicleSubsystem` facade. Approved capabilities are vehicle profiles, kilometer odometer history, maintenance records and schedules, fuel/charging costs, deterministic vehicle reports, isolated lazy SQLite storage, and one Vehicle page.
 
@@ -15,4 +17,4 @@ All v1.4 imports, manifests, pages, data paths, schemas, and safety contracts re
 
 ## Release controls
 
-Commit, push, GitHub Release, and Streamlit deployment have not occurred and require separate approval. Production remains Living OS v1.4 Stable.
+Official commit `ba3510254c4323181d032aaddd2e85f9178980f6`, push, GitHub Release publication, Streamlit reboot, and production verification completed. Production serves Living OS v1.5 Stable.

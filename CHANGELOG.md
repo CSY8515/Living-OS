@@ -13,7 +13,7 @@ All notable Living OS changes are recorded in this file.
 ### Compatibility and release control
 
 - Preserved v1.4 manifests, imports, behavior, paths, schemas, owner data, and safety contracts.
-- Compilation and the complete 81-test suite pass. No Vehicle migration exists or ran. Commit, GitHub Release, and deployment remain unapproved; production stays v1.4.
+- Compilation and the complete 81-test suite pass. Official commit, push, GitHub Release, Streamlit deployment, and production verification completed on 2026-07-16. No Vehicle migration exists or ran.
 
 ## v1.4 Stable - Housing Subsystem v1.0
 
