@@ -1,6 +1,6 @@
 # Living OS v1.3 Changed Files
 
-46 workspace files are added or modified, including this inventory.
+47 release files are added or modified, including this inventory and the final deployment report.
 
 ## Health implementation (15 added)
 
@@ -35,11 +35,12 @@
 - `RELEASE_REVIEW.md`, `VERSION_STATUS.md`
 - This `CHANGED_FILES.md` inventory
 
-## Final release documents (4 files)
+## Final release documents (5 files)
 
 - `docs/releases/v1.3/RELEASE_SUMMARY.md`
 - `docs/releases/v1.3/COMMIT_MESSAGE.md`
 - `docs/releases/v1.3/GITHUB_RELEASE_NOTES.md`
 - `docs/releases/v1.3/DEPLOYMENT_READINESS.md`
+- `docs/releases/v1.3/DEPLOYMENT_REPORT.md`
 
 No runtime Health database, sample masquerading as owner data, secret, commit, published release, or deployment action was added.

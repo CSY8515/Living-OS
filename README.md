@@ -56,4 +56,4 @@ Streamlit Community Cloud coordinates:
 - Python: 3.12 recommended
 - Secrets: none required
 
-The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance or Health storage. The listed deployment remains v1.2 Stable until v1.3 deployment is explicitly approved.
+The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance or Health storage. The listed deployment now serves Living OS v1.3 Stable.

@@ -2,7 +2,7 @@
 
 ## v1.3 - Health Subsystem v1.0
 
-Implementation, isolated verification, full regression, documentation sync, and release review are complete in the workspace. Real Health migration and publication actions remain owner-approved operations. Current status: Stable, publication pending.
+Implementation, isolated verification, full regression, documentation sync, release publication, Streamlit deployment, and production verification are complete. Real Health migration remains a separate owner-approved operation. Current status: Stable, production.
 
 ## v1.2 — Subsystem Architecture Migration
 
