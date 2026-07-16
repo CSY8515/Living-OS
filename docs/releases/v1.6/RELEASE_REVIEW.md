@@ -9,3 +9,5 @@ The complete release diff is limited to approved Food runtime, manifest/page wir
 Release gates pass: Food 7/7, complete regression 88/88, compilation, architecture, SQLite integrity/foreign keys, every-page no-write smoke, and headless startup.
 
 Decision: approved for commit, push to `origin/main`, GitHub Release `v1.6`, Streamlit deployment, and production verification.
+
+Final status: GitHub Release `v1.6` is published and production serves Living OS v1.6 Stable with the Food page verified.

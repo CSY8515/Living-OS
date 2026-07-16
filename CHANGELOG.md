@@ -13,7 +13,7 @@ All notable Living OS changes are recorded in this file.
 ### Compatibility and release control
 
 - Preserved v1.5 manifests, imports, behavior, paths, schemas, owner data, and safety contracts.
-- Compilation and the complete 88-test suite pass. No migration was performed. The Stable release workflow is approved; publication and production verification are recorded separately after completion.
+- Compilation and the complete 88-test suite pass. Official commit, push, GitHub Release, Streamlit deployment, and production verification completed on 2026-07-16. No migration was performed.
 
 ## v1.5 Stable - Vehicle Subsystem v1.0
 

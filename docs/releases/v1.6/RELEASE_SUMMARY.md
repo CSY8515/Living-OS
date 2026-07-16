@@ -4,4 +4,4 @@ Living OS v1.6 delivers Food Subsystem v1.0 behind one public facade. It provide
 
 Verification: Food 7/7, full regression 88/88, compilation PASS, SQLite integrity `ok`, foreign-key violations 0, page no-write smoke PASS, headless startup PASS. No owner data changed and no migration exists or ran.
 
-Release publication and production verification are recorded in `DEPLOYMENT_REPORT.md` after completion.
+Official commit, GitHub Release, Streamlit deployment, and production verification are complete. See `DEPLOYMENT_REPORT.md`.

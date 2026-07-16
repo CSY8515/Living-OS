@@ -1,6 +1,6 @@
 # Living OS v1.6 Scope
 
-Status: **APPROVED, IMPLEMENTED, AND RELEASE-VERIFIED**
+Status: **RELEASED AND PRODUCTION-VERIFIED**
 
 Planning date: 2026-07-16
 
@@ -318,4 +318,4 @@ Implementation may be reported complete only when all of the following are true:
 
 ## Approval
 
-**IMPLEMENTED AND RELEASE-VERIFIED.** The separate official v1.6 Stable release workflow is approved. Migration remains excluded.
+**COMPLETE.** Implementation, verification, official commit, GitHub Release, Streamlit deployment, and production verification are complete. Migration remains excluded and was not performed.

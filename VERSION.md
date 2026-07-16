@@ -4,9 +4,9 @@ Workspace version: Living OS v1.6 Stable
 
 Stable verification date: 2026-07-16
 
-Production version: Living OS v1.5 Stable
+Production version: Living OS v1.6 Stable
 
-Status: Food Subsystem v1.0 implementation and release verification are complete. The official v1.6 Stable release workflow is approved and in progress; production remains v1.5 Stable until verified.
+Status: official v1.6 Stable commit, GitHub Release, Streamlit production deployment, and production verification are complete.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
