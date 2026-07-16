@@ -1,6 +1,6 @@
-# Living OS v1.5 Stable
+# Living OS v1.6 Stable
 
-> Living OS v1.5 Stable is released and production verified. See `docs/releases/v1.5/DEPLOYMENT_REPORT.md`.
+> Living OS v1.6 Stable is release-ready with Food Subsystem v1.0 implemented and verified. Production remains Living OS v1.5 Stable until the approved release workflow completes.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -75,6 +75,21 @@ Vehicle is available through its public facade:
     vehicle.record_odometer(car["vehicle_id"], 12000, "2026-07-16")
 
 Vehicle provides profiles, kilometer odometer history, maintenance records and schedules, fuel/charging costs, and deterministic status reports. Sensitive storage is isolated and lazy; reads do not create it. No legacy Vehicle migration exists. See `docs/vehicle-subsystem-v1.0/` and `RELEASE_NOTES_v1.5.md`.
+
+## Food Subsystem v1.0
+
+Food is available through its public facade:
+
+    from pathlib import Path
+    from subsystems.food import FoodSubsystem
+
+    food = FoodSubsystem(Path.cwd())
+    rice = food.create_ingredient(
+        "Rice", "grain", 100, "g",
+        {"calories": 130, "protein": 2.7, "carbohydrate": 28, "fat": 0.3},
+    )
+
+Food provides ingredients, recipes, cooking and meal records, owner-entered nutrition arithmetic, and deterministic reports. Sensitive storage is isolated and lazy; reads do not create it. Food does not access Health or Finance and performs no unit conversion or nutrition estimation. See `docs/food-subsystem-v1.0/` and `docs/roadmap/Living_OS_v1.6_SCOPE.md`.
 
 ## Production deployment
 

@@ -1,4 +1,4 @@
-# Living OS v1.5 Master Design
+# Living OS v1.6 Master Design
 
 Mission: implement the official Skeleton Architecture without adding features or removing behavior.
 
@@ -25,3 +25,7 @@ Housing applies the reference architecture to the preserved Housing candidate wo
 ## Vehicle Subsystem v1.0 implementation
 
 Vehicle applies the reference architecture through one `VehicleSubsystem` facade. Its boundary is limited to profiles, kilometer odometer readings, maintenance history/due criteria, fuel/charging costs, and deterministic reports. Vehicle state is isolated and sensitive; reads cannot create storage; engines cannot depend on another domain. GPS, reminders, AI, integrations, Finance posting, and migration are excluded.
+
+## Food Subsystem v1.0 implementation
+
+Food applies the reference architecture through one `FoodSubsystem` facade. Its boundary is limited to ingredients, recipes, cooking records, meal records, explicit owner-entered nutrition values, and deterministic reports. Food state is isolated and sensitive; reads cannot create storage; Food engines depend only on Food. Health synchronization, Finance posting, Inventory, Calendar, AI, integrations, automation, unit conversion, nutrition estimation, and migration are excluded.

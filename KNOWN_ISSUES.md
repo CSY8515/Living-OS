@@ -1,4 +1,4 @@
-# Living OS v1.5 Known Issues
+# Living OS v1.6 Known Issues
 
 - `app/`, `core/`, `modules/`, and `shared/` remain compatibility aliases; removing them would be a breaking change.
 - Canonical Hub and flat-file workflows coexist; startup does not migrate data.
@@ -8,6 +8,13 @@
 - Credential-store and optional AI availability are environment-dependent; AI stays draft-only.
 - Streamlit remains the application shell.
 - Streamlit Community Cloud's local filesystem is ephemeral and should not be treated as durable finance storage.
+
+## Food Subsystem v1.0
+
+- Food SQLite storage remains single-owner and is not durable on Streamlit Community Cloud.
+- Nutrition values are owner-entered deterministic records, not medical guidance or externally verified data.
+- Units are limited to `g`, `kg`, `ml`, `l`, `item`, and `serving`; no conversions or estimates are performed.
+- Food and Health nutrition remain deliberately independent and are not synchronized.
 
 ## Vehicle Subsystem v1.0
 

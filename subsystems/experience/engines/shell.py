@@ -11,6 +11,7 @@ from subsystems.experience.engines.pages import (
     render_decisions,
     render_documents,
     render_finance,
+    render_food,
     render_health,
     render_housing,
     render_vehicle,
@@ -23,14 +24,15 @@ from subsystems.experience.engines.pages import (
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
+from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V15_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V16_STABLE_MANIFESTS
 
 
-VERSION = "v1.5 Stable"
+VERSION = "v1.6 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -40,7 +42,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V15_STABLE_MANIFESTS)
+        hub.bootstrap(V16_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -54,6 +56,16 @@ def _finance() -> FinanceSubsystem:
         return FinanceSubsystem(ROOT)
 
     return build_finance()
+
+
+def _food() -> FoodSubsystem:
+    import streamlit as st
+
+    @st.cache_resource
+    def build_food() -> FoodSubsystem:
+        return FoodSubsystem(ROOT)
+
+    return build_food()
 
 
 def _health() -> HealthSubsystem:
@@ -86,7 +98,8 @@ def _vehicle() -> VehicleSubsystem:
     return build_vehicle()
 
 
-def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem,
+def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
+                     health: HealthSubsystem,
                      housing: HousingSubsystem,
                      vehicle: VehicleSubsystem) -> dict[str, Callable[[], None]]:
     return {
@@ -100,6 +113,7 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSu
         "AI Analysis": lambda: render_ai_briefing(hub),
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
+        "Food": lambda: render_food(food),
         "Health": lambda: render_health(health),
         "Housing": lambda: render_housing(housing),
         "Vehicle": lambda: render_vehicle(vehicle),
@@ -156,7 +170,8 @@ def _authorize(hub: LivingHub) -> bool:
     return False
 
 
-def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem,
+def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
+                         health: HealthSubsystem,
                          housing: HousingSubsystem,
                          vehicle: VehicleSubsystem) -> dict[str, Callable[[], None]]:
     from subsystems.compatibility.engines.ai_analysis import render_ai_analysis
@@ -180,6 +195,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: Heal
         "AI Analysis": render_ai_analysis,
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
+        "Food": lambda: render_food(food),
         "Health": lambda: render_health(health),
         "Housing": lambda: render_housing(housing),
         "Vehicle": lambda: render_vehicle(vehicle),
@@ -195,14 +211,15 @@ def main() -> None:
     apply_responsive_layout()
     hub = _hub()
     finance = _finance()
+    food = _food()
     health = _health()
     housing = _housing()
     vehicle = _vehicle()
     if not _authorize(hub):
         return
     migrated = hub.v1_migration_complete
-    pages = (_canonical_pages(hub, finance, health, housing, vehicle) if migrated
-             else _compatibility_pages(hub, finance, health, housing, vehicle))
+    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle) if migrated
+             else _compatibility_pages(hub, finance, food, health, housing, vehicle))
 
     module_by_page = {
         "Dashboard": "dashboard",
@@ -215,6 +232,7 @@ def main() -> None:
         "AI Analysis": "ai_briefing",
         "Documents": "documents",
         "Finance": "finance",
+        "Food": "food",
         "Health": "health",
         "Housing": "housing",
         "Vehicle": "vehicle",

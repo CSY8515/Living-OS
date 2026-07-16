@@ -90,5 +90,16 @@ V15_STABLE_MANIFESTS = V14_STABLE_MANIFESTS + (
     ),
 )
 
+V16_STABLE_MANIFESTS = V15_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "food", "Food Subsystem", "1.0.0", ">=1.6,<2.0",
+        "Independent ingredients, recipes, cooking, meals, nutrition summaries, and reporting subsystem.",
+        status="enabled",
+        capabilities=("ingredient-catalog", "recipe", "cooking-record",
+                      "meal-record", "nutrition-summary", "food-report"),
+        privacy_class="sensitive",
+    ),
+)
+
 # Kept for callers that adopted the unreleased implementation-candidate name.
 V2_STABLE_MANIFESTS = V12_STABLE_MANIFESTS

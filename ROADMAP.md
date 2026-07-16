@@ -1,5 +1,11 @@
 # Living OS Roadmap
 
+## v1.6 Stable - Food Subsystem v1.0
+
+The approved scope in `docs/roadmap/Living_OS_v1.6_SCOPE.md` is implemented and release-verified. Compilation, seven focused Food tests, the complete 88-test regression suite, architecture enforcement, SQLite integrity, and every-page no-write smoke checks pass. No migration was performed. Current status: Stable release candidate, approved for the standard release workflow.
+
+Exact scope: ingredients, recipes with ordered steps and ingredient lines, cooking records, meal records, explicit owner-entered nutrition arithmetic, deterministic Food reports, isolated lazy SQLite storage, a v1.6 manifest, one Food page, tests, and documentation. Inventory, Calendar, Health/Finance coupling, AI, external integrations, automation, unit conversion, nutrition estimation, legacy migration, release, and deployment are excluded.
+
 ## v1.5 - Vehicle Subsystem v1.0
 
 Implementation, isolated verification, full 81-test regression, documentation synchronization, official commit, GitHub Release, Streamlit deployment, and production verification are complete. No migration exists or ran. Current status: Stable, production.

@@ -1,4 +1,4 @@
-# Living OS v1.5 Repository Structure
+# Living OS v1.6 Repository Structure
 
     subsystems/
       foundation/engines/    platform and state
@@ -59,3 +59,13 @@ Default sensitive state is `data/housing/housing.sqlite3`. Existing `modules/hou
                         energy, report, storage, validation
 
 Default sensitive state is `data/vehicle/vehicle.sqlite3`. No legacy compatibility path or Vehicle migration exists. Reads do not create the database.
+
+## Food Subsystem v1.0
+
+    subsystems/food/
+      __init__.py       public FoodSubsystem export
+      subsystem.py      interface and composition root
+      engines/          ingredient, recipe, cooking, meal, nutrition,
+                        report, storage, validation
+
+Default sensitive state is `data/food/food.sqlite3`. No legacy compatibility path or Food migration exists. Reads do not create the database.

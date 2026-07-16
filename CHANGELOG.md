@@ -2,6 +2,19 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.6 Stable - Food Subsystem v1.0
+
+### Added
+
+- Added the independently mountable `FoodSubsystem` facade and private Ingredient, Recipe, Cooking, Meal, Nutrition, Report, Storage, and Validation engines.
+- Added ingredient and recipe lifecycle, transactional recipe lines, cooking and meal records, explicit deterministic nutrition arithmetic, Food reports, lazy SQLite storage, and one Food page.
+- Added the append-only v1.6 manifest, seven focused Food tests, architecture enforcement, and implementation documentation.
+
+### Compatibility and release control
+
+- Preserved v1.5 manifests, imports, behavior, paths, schemas, owner data, and safety contracts.
+- Compilation and the complete 88-test suite pass. No migration was performed. The Stable release workflow is approved; publication and production verification are recorded separately after completion.
+
 ## v1.5 Stable - Vehicle Subsystem v1.0
 
 ### Added

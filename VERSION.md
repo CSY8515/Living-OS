@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v1.5 Stable
+Workspace version: Living OS v1.6 Stable
 
 Stable verification date: 2026-07-16
 
 Production version: Living OS v1.5 Stable
 
-Status: official v1.5 Stable commit, GitHub Release, Streamlit production deployment, and production verification are complete.
+Status: Food Subsystem v1.0 implementation and release verification are complete. The official v1.6 Stable release workflow is approved and in progress; production remains v1.5 Stable until verified.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
@@ -23,3 +23,5 @@ Health Subsystem v1.0.0 is enabled in the v1.3 manifest and compatible with Livi
 Housing Subsystem v1.0.0 is enabled only in the new v1.4 manifest and compatible with Living OS `>=1.4,<2.0`. It preserves legacy Housing scoring and data, uses isolated lazy storage, and requires explicit dry-run-first migration. No real Housing migration has run.
 
 Vehicle Subsystem v1.0.0 is enabled only in the new v1.5 manifest and compatible with Living OS `>=1.5,<2.0`. It provides isolated profiles, odometer, maintenance, schedule, energy-cost, and report capabilities. No legacy Vehicle source or migration exists.
+
+Food Subsystem v1.0.0 is enabled only in the v1.6 manifest and compatible with Living OS `>=1.6,<2.0`. It provides isolated ingredients, recipes, cooking, meals, explicit nutrition summaries, and Food reports. No legacy Food source or migration exists. Food does not access Health or Finance.

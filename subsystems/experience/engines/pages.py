@@ -7,6 +7,7 @@ import tempfile
 from typing import Any
 
 from subsystems.finance import FinanceSubsystem
+from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
@@ -991,3 +992,146 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                 key="vehicle_report_select",
             )
             st.json(vehicle.vehicle_report(report_id))
+
+
+def render_food(food: FoodSubsystem) -> None:
+    import streamlit as st
+
+    st.title("Food")
+    st.caption("Food Subsystem v1.0 - Sensitive owner data - Owner-entered deterministic nutrition")
+    ingredients_tab, recipes_tab, records_tab, report_tab = st.tabs(
+        ["Ingredients", "Recipes", "Cooking and meals", "Food report"]
+    )
+
+    with ingredients_tab:
+        with st.form("food_v16_ingredient_form", clear_on_submit=True):
+            name = st.text_input("Ingredient name")
+            category = st.text_input("Category")
+            base_quantity = st.number_input("Base quantity", min_value=0.001, step=0.001, format="%.3f")
+            unit = st.selectbox("Base unit", ["g", "kg", "ml", "l", "item", "serving"])
+            calories = st.number_input("Calories", min_value=0.0, step=0.1)
+            protein = st.number_input("Protein", min_value=0.0, step=0.1)
+            carbohydrate = st.number_input("Carbohydrate", min_value=0.0, step=0.1)
+            fat = st.number_input("Fat", min_value=0.0, step=0.1)
+            ingredient_submit = st.form_submit_button("Add ingredient", type="primary")
+        if ingredient_submit:
+            try:
+                food.create_ingredient(
+                    name, category, base_quantity, unit,
+                    {"calories": calories, "protein": protein,
+                     "carbohydrate": carbohydrate, "fat": fat},
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Ingredient added.")
+                st.rerun()
+        ingredients = food.list_ingredients("active")
+        st.dataframe(ingredients, width="stretch", hide_index=True)
+        if ingredients:
+            ingredient_labels = {row["ingredient_id"]: row["name"] for row in ingredients}
+            archive_id = st.selectbox(
+                "Ingredient to archive", list(ingredient_labels),
+                format_func=lambda value: ingredient_labels[value], key="food_ingredient_archive_select",
+            )
+            if st.button("Archive ingredient", key="food_ingredient_archive_button"):
+                food.archive_ingredient(archive_id)
+                st.rerun()
+
+    with recipes_tab:
+        with st.form("food_v16_recipe_form", clear_on_submit=True):
+            recipe_name = st.text_input("Recipe name")
+            servings = st.number_input("Recipe servings", min_value=1, step=1)
+            instructions = st.text_area("Instructions", help="Enter one step per line.")
+            recipe_submit = st.form_submit_button("Add recipe", type="primary")
+        if recipe_submit:
+            try:
+                food.create_recipe(
+                    recipe_name, servings,
+                    [line.strip() for line in instructions.splitlines() if line.strip()],
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Recipe added.")
+                st.rerun()
+        recipes = food.list_recipes("active")
+        st.dataframe(recipes, width="stretch", hide_index=True)
+        ingredients = food.list_ingredients("active")
+        if recipes and ingredients:
+            recipe_labels = {row["recipe_id"]: row["name"] for row in recipes}
+            ingredient_labels = {row["ingredient_id"]: row["name"] for row in ingredients}
+            with st.form("food_v16_recipe_ingredient_form", clear_on_submit=True):
+                selected_recipe = st.selectbox(
+                    "Recipe", list(recipe_labels), format_func=lambda value: recipe_labels[value]
+                )
+                selected_ingredient = st.selectbox(
+                    "Ingredient", list(ingredient_labels),
+                    format_func=lambda value: ingredient_labels[value],
+                )
+                line_quantity = st.number_input(
+                    "Ingredient quantity", min_value=0.001, step=0.001, format="%.3f"
+                )
+                line_unit = st.selectbox("Ingredient unit", ["g", "kg", "ml", "l", "item", "serving"])
+                line_submit = st.form_submit_button("Set as recipe ingredient")
+            if line_submit:
+                try:
+                    food.set_recipe_ingredients(selected_recipe, [{
+                        "ingredient_id": selected_ingredient,
+                        "quantity": line_quantity,
+                        "unit": line_unit,
+                    }])
+                except (KeyError, ValueError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.rerun()
+
+    with records_tab:
+        recipes = food.list_recipes("active")
+        if not recipes:
+            st.info("Add an active recipe before recording cooking linked to a recipe.")
+        else:
+            recipe_labels = {row["recipe_id"]: row["name"] for row in recipes}
+            with st.form("food_v16_cooking_form", clear_on_submit=True):
+                cooking_recipe = st.selectbox(
+                    "Cooked recipe", list(recipe_labels),
+                    format_func=lambda value: recipe_labels[value],
+                )
+                cooked_on = st.date_input("Cooked on", value=date.today())
+                produced = st.number_input("Servings produced", min_value=1, step=1)
+                cooking_note = st.text_input("Cooking note")
+                cooking_submit = st.form_submit_button("Record cooking")
+            if cooking_submit:
+                try:
+                    food.record_cooking(cooking_recipe, cooked_on.isoformat(), produced, cooking_note)
+                except ValueError as exc:
+                    st.error(str(exc))
+                else:
+                    st.rerun()
+        with st.form("food_v16_meal_form", clear_on_submit=True):
+            eaten_on = st.date_input("Eaten on", value=date.today())
+            meal_type = st.selectbox("Meal type", ["breakfast", "lunch", "dinner", "snack", "other"])
+            meal_recipe_options = [""] + [row["recipe_id"] for row in recipes]
+            meal_recipe = st.selectbox(
+                "Meal recipe (optional)", meal_recipe_options,
+                format_func=lambda value: "No linked recipe" if not value else recipe_labels[value],
+            )
+            consumed = st.number_input("Servings consumed", min_value=0.001, step=0.001, format="%.3f")
+            meal_note = st.text_input("Meal note")
+            meal_submit = st.form_submit_button("Record meal")
+        if meal_submit:
+            try:
+                food.record_meal(
+                    eaten_on.isoformat(), meal_type, consumed,
+                    recipe_id=meal_recipe or None, note=meal_note,
+                )
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.rerun()
+        st.dataframe(food.list_cooking_records(), width="stretch", hide_index=True)
+        st.dataframe(food.list_meals(), width="stretch", hide_index=True)
+
+    with report_tab:
+        st.info("Nutrition totals use owner-entered values only and are not medical guidance.")
+        st.json(food.food_report())
