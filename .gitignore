@@ -9,3 +9,4 @@ backups/
 data/hub/
 *.tmp
 data/finance/
+data/health/

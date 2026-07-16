@@ -2,6 +2,24 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.3 Stable - Health Subsystem v1.0
+
+### Added
+
+- Added the independently mountable `HealthSubsystem` facade and nine approved domain engines.
+- Added weight CRUD/baseline, InBody, checkup follow-up, sleep, exercise, nutrition, trends, goals, and daily/weekly/monthly reports.
+- Added lazy transactional sensitive SQLite storage and explicit checksum-guarded JSON migration with read-only dry run.
+- Added v1.3 manifest and Health page integration.
+
+### Verification
+
+- Added 7 Health tests covering engines, interface, validation, migration, trends, goals, reports, and privacy.
+- Passed compile and the complete 67-test Living OS regression suite.
+
+### Release control
+
+- No real owner data migration, commit, push, GitHub Release, or Streamlit deployment has been performed.
+
 ## Finance Subsystem v1.0
 
 ### Added

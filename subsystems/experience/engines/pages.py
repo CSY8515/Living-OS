@@ -6,6 +6,7 @@ import tempfile
 from typing import Any
 
 from subsystems.finance import FinanceSubsystem
+from subsystems.health import HealthSubsystem
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -647,3 +648,87 @@ def render_finance(finance: FinanceSubsystem) -> None:
                     st.error(str(exc))
                 else:
                     st.json(result)
+
+
+def render_health(health: HealthSubsystem) -> None:
+    import streamlit as st
+    from datetime import date
+
+    st.title("Health")
+    st.caption("Health Subsystem v1.0 · Sensitive owner data · Informational, not medical advice")
+    today = date.today()
+    weight_tab, inbody_tab, lifestyle_tab, goal_tab = st.tabs(
+        ["Weight", "InBody / Checkup", "Sleep / Exercise / Nutrition", "Goals / Report"]
+    )
+    with weight_tab:
+        with st.form("health_weight_form"):
+            measured_on = st.date_input("Measured on", value=today, key="health_weight_date")
+            weight_kg = st.number_input("Weight (kg)", min_value=20.0, max_value=500.0, value=70.0)
+            note = st.text_input("Weight note")
+            submitted = st.form_submit_button("Record weight")
+        if submitted:
+            try:
+                health.record_weight(weight_kg, measured_on, note)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Weight recorded.")
+                st.rerun()
+        st.dataframe(health.list_weights(), width="stretch")
+        st.json(health.weight_baseline_comparison())
+    with inbody_tab:
+        with st.form("health_inbody_form"):
+            inbody_on = st.date_input("InBody date", value=today)
+            muscle = st.number_input("Skeletal muscle (kg)", min_value=1.0, max_value=150.0, value=30.0)
+            body_fat = st.number_input("Body fat (%)", min_value=1.0, max_value=75.0, value=20.0)
+            bmi = st.number_input("BMI", min_value=5.0, max_value=100.0, value=22.0)
+            inbody_submit = st.form_submit_button("Record InBody")
+        if inbody_submit:
+            try:
+                health.record_body_composition(inbody_on, muscle, body_fat, bmi)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("InBody recorded.")
+                st.rerun()
+        st.dataframe(health.body_composition_timeline(), width="stretch")
+        st.subheader("Health checkups")
+        st.dataframe(health.list_health_checkups(), width="stretch")
+    with lifestyle_tab:
+        st.subheader("Sleep")
+        with st.form("health_sleep_form"):
+            bedtime = st.text_input("Bedtime (ISO with timezone)", value=f"{today.isoformat()}T23:00:00+09:00")
+            wake_time = st.text_input("Wake time (ISO with timezone)", value=f"{today.isoformat()}T23:30:00+09:00")
+            fatigue = st.slider("Fatigue", 1, 5, 3)
+            sleep_submit = st.form_submit_button("Record sleep")
+        if sleep_submit:
+            try:
+                health.record_sleep(bedtime, wake_time, fatigue)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.rerun()
+        st.dataframe(health.list_sleep(), width="stretch")
+        st.subheader("Exercise")
+        st.dataframe(health.list_exercise(), width="stretch")
+        st.subheader("Nutrition")
+        st.dataframe(health.list_nutrition(), width="stretch")
+    with goal_tab:
+        with st.form("health_goal_form"):
+            goal_name = st.text_input("Goal name")
+            target_weight = st.number_input("Target weight (kg)", min_value=20.0, max_value=500.0, value=70.0)
+            target_fat = st.number_input("Target body fat (%)", min_value=1.0, max_value=75.0, value=20.0)
+            goal_submit = st.form_submit_button("Create Health goal")
+        if goal_submit:
+            try:
+                health.create_health_goal(goal_name, today, target_weight, target_fat)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.rerun()
+        st.dataframe(health.list_health_goals(), width="stretch")
+        report_month = st.text_input("Report month", value=today.strftime("%Y-%m"), key="health_report_month")
+        try:
+            st.json(health.monthly_report(report_month))
+        except ValueError as exc:
+            st.error(str(exc))

@@ -1,4 +1,4 @@
-# Living OS v1.2 Repository Structure
+# Living OS v1.3 Repository Structure
 
     subsystems/
       foundation/engines/    platform and state
@@ -28,3 +28,14 @@ All previous public paths remain available.
                         savings, report, migration
 
 Default private runtime state: data/finance/finance.sqlite3. Existing modules/finance.py remains the legacy compatibility alias and data/finance_budget.json remains unchanged.
+
+## Health Subsystem v1.0
+
+    subsystems/health/
+      __init__.py       public HealthSubsystem export
+      subsystem.py      Living OS interface and composition root
+      engines/          weight, body_composition, health_checkup, sleep,
+                        exercise, nutrition, trend, goal, report,
+                        migration, storage, validation
+
+Default sensitive state is `data/health/health.sqlite3`. No v1.2 data path is changed.

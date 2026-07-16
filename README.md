@@ -1,4 +1,4 @@
-# Living OS v1.2 Stable
+# Living OS v1.3 Stable
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -31,6 +31,19 @@ Finance is the first official production-grade reference Subsystem. Use only its
 
 It provides Ledger, Budget, Cash Flow, Savings, Report, and explicit legacy Migration behavior. See docs/finance-subsystem-v1.0/ and RELEASE_NOTES_FINANCE_SUBSYSTEM_v1.0.md.
 
+## Health Subsystem v1.0
+
+Health is available only through its Living OS facade:
+
+    from pathlib import Path
+    from subsystems.health import HealthSubsystem
+
+    health = HealthSubsystem(Path.cwd())
+    health.record_weight(70.0, "2026-07-15")
+    report = health.monthly_report("2026-07")
+
+Health data is sensitive and ignored by Git. Reads do not create storage, and real migration requires explicit approval. See `docs/health-subsystem-v1.0/` and `RELEASE_NOTES_v1.3.md`.
+
 ## Production deployment
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
@@ -43,4 +56,4 @@ Streamlit Community Cloud coordinates:
 - Python: 3.12 recommended
 - Secrets: none required
 
-The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable finance storage; keep backups or use an externally managed persistent store for long-lived production records.
+The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance or Health storage. The listed deployment remains v1.2 Stable until v1.3 deployment is explicitly approved.

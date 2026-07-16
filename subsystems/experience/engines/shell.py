@@ -11,6 +11,7 @@ from subsystems.experience.engines.pages import (
     render_decisions,
     render_documents,
     render_finance,
+    render_health,
     render_journal,
     render_knowledge,
     render_module_manager,
@@ -20,11 +21,12 @@ from subsystems.experience.engines.pages import (
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
+from subsystems.health import HealthSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V12_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V13_STABLE_MANIFESTS
 
 
-VERSION = "v1.2 Stable"
+VERSION = "v1.3 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -34,7 +36,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V12_STABLE_MANIFESTS)
+        hub.bootstrap(V13_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -50,7 +52,17 @@ def _finance() -> FinanceSubsystem:
     return build_finance()
 
 
-def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem) -> dict[str, Callable[[], None]]:
+def _health() -> HealthSubsystem:
+    import streamlit as st
+
+    @st.cache_resource
+    def build_health() -> HealthSubsystem:
+        return HealthSubsystem(ROOT)
+
+    return build_health()
+
+
+def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem) -> dict[str, Callable[[], None]]:
     return {
         "Dashboard": lambda: render_dashboard(hub),
         "Daily Log": lambda: render_journal(hub),
@@ -62,6 +74,7 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem) -> dict[str, Cal
         "AI Analysis": lambda: render_ai_briefing(hub),
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
+        "Health": lambda: render_health(health),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -115,7 +128,7 @@ def _authorize(hub: LivingHub) -> bool:
     return False
 
 
-def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem) -> dict[str, Callable[[], None]]:
+def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, health: HealthSubsystem) -> dict[str, Callable[[], None]]:
     from subsystems.compatibility.engines.ai_analysis import render_ai_analysis
     from subsystems.compatibility.engines.analytics import render_analytics as render_legacy_analytics
     from subsystems.compatibility.engines.archive import render_archive
@@ -137,6 +150,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem) -> dict[str,
         "AI Analysis": render_ai_analysis,
         "Documents": lambda: render_documents(hub),
         "Finance": lambda: render_finance(finance),
+        "Health": lambda: render_health(health),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -149,10 +163,11 @@ def main() -> None:
     apply_responsive_layout()
     hub = _hub()
     finance = _finance()
+    health = _health()
     if not _authorize(hub):
         return
     migrated = hub.v1_migration_complete
-    pages = _canonical_pages(hub, finance) if migrated else _compatibility_pages(hub, finance)
+    pages = _canonical_pages(hub, finance, health) if migrated else _compatibility_pages(hub, finance, health)
 
     module_by_page = {
         "Dashboard": "dashboard",
@@ -165,6 +180,7 @@ def main() -> None:
         "AI Analysis": "ai_briefing",
         "Documents": "documents",
         "Finance": "finance",
+        "Health": "health",
         "Module Manager": "module_manager",
         "Settings": "settings",
     }

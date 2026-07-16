@@ -58,5 +58,16 @@ V12_STABLE_MANIFESTS = (
     ),
 )
 
+V13_STABLE_MANIFESTS = V12_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "health", "Health Subsystem", "1.0.0", ">=1.3,<2.0",
+        "Independent weight, body composition, checkup, sleep, exercise, nutrition, trend, goal, and reporting subsystem.",
+        status="enabled",
+        capabilities=("weight", "body-composition", "health-checkup", "sleep", "exercise",
+                      "nutrition", "trend", "goal", "health-report", "migration"),
+        privacy_class="sensitive",
+    ),
+)
+
 # Kept for callers that adopted the unreleased implementation-candidate name.
 V2_STABLE_MANIFESTS = V12_STABLE_MANIFESTS
