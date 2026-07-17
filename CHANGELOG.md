@@ -16,7 +16,7 @@ All notable Living OS changes are recorded in this file.
 - Preserved Finance, Health, Housing, Vehicle, Food, Hub, JSON/JSONL, and compatibility paths.
 - Startup does not apply the v1.7 Migration. Real user data has not been migrated or deleted.
 - Backup and Restore use checksums, staging, SQLite Integrity checks, a pre-restore safety backup, rollback behavior, and preserved control-plane history.
-- User Approval and the final 98-test release gate are complete. Official GitHub and production verification coordinates are recorded after deployment.
+- User Approval, the final 98-test release gate, official commit, GitHub Release, Streamlit production deployment, Stable Verification, and Archive completed on 2026-07-17.
 
 ## v1.6 Stable - Food Subsystem v1.0
 

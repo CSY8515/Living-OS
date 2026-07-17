@@ -43,10 +43,11 @@ Living OS v1.7 Stable is authorized for the official release workflow.
 - Documentation UTF-8 and relative-link validation passed.
 - Secret token pattern scan found no credential.
 
-## Remaining Release Gates
+## Release Closure
 
-- Git Commit and Push
-- GitHub Release
-- Streamlit Production Deploy
-- Stable Verification
-- v1.7 Archive
+- Git Commit and Push: complete
+- GitHub Release and Release Notes: complete
+- Streamlit Production Deploy: complete
+- Stable Verification: complete
+- v1.7 Archive: complete
+- v1.8 work: not started

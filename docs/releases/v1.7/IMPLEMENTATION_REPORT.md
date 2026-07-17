@@ -7,7 +7,7 @@
 - Implementation: complete
 - Local Validation and Testing: complete
 - User Approval: complete
-- External Release and production verification: in progress
+- External Release, production verification, and Archive: complete
 
 ## Implemented
 

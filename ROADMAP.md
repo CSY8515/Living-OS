@@ -4,7 +4,7 @@
 
 Implemented: peer Database and Database Management Subsystems, explicit additive Schema v2 Migration, versioned canonical Repository, Transaction/Rollback, Metadata and Archive lifecycle, Execution Database records, verified Backup/Restore, Integrity/Foreign Key/required-structure checks, Health/Schema/Migration/Backup/Restore/Performance/Capacity status, operational reports, Settings management controls, focused tests, full regression, and documentation synchronization.
 
-The real workspace database has not been migrated automatically. User Approval is complete and the official release workflow is in progress. v1.8 work has not started and remains outside this release.
+The real workspace database has not been migrated automatically. Official commit, GitHub Release, Streamlit production deployment, Stable Verification, and Archive are complete. v1.8 work has not started and remains outside this release.
 
 ## v1.6 Stable - Food Subsystem v1.0
 

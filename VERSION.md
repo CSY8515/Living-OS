@@ -2,11 +2,11 @@
 
 Workspace version: Living OS v1.7 Stable
 
-Stable verification date: 2026-07-16
+Stable verification date: 2026-07-17
 
-Production version: Living OS v1.6 Stable
+Production version: Living OS v1.7 Stable
 
-Status: Living OS v1.7 Stable is user-approved and release verification is in progress. Production remains v1.6 Stable until the v1.7 deployment is verified.
+Status: official v1.7 Stable commit, GitHub Release, Release Notes, Streamlit production deployment, Stable Verification, and Archive are complete. v1.8 work has not started.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 

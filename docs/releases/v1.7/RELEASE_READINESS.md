@@ -25,15 +25,15 @@
 
 ## External Release Gates
 
-- [ ] Git Commit
-- [ ] Git Push
-- [ ] GitHub Release
-- [ ] Streamlit Production Deploy
-- [ ] Stable Verification
-- [ ] v1.7 Archive
+- [x] Git Commit
+- [x] Git Push
+- [x] GitHub Release
+- [x] Streamlit Production Deploy
+- [x] Stable Verification
+- [x] v1.7 Archive
 
 ## Release Decision
 
-Local Release Candidate: approved.
+Local Release Candidate: promoted and archived as Stable.
 
-Stable Release: authorized; external publication and production verification are in progress.
+Stable Release: complete, production verified, and archived.

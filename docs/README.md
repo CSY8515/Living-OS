@@ -20,4 +20,4 @@ Vehicle Subsystem v1.0 evidence is under `vehicle-subsystem-v1.0/`; its release 
 
 Food Subsystem v1.0 implementation and verification evidence is under `food-subsystem-v1.0/`. Versioned v1.6 release and deployment evidence is under `releases/v1.6/`.
 
-Versioned release evidence is under `releases/v1.2/` through `releases/v1.7/`. Current production deployment evidence remains `releases/v1.6/DEPLOYMENT_REPORT.md` until v1.7 production verification completes.
+Versioned release evidence is under `releases/v1.2/` through `releases/v1.7/`. Current production deployment evidence is `releases/v1.7/DEPLOYMENT_REPORT.md`.
