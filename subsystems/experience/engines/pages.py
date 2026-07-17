@@ -522,7 +522,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for v1.7.1 Integration Candidate.")
+        st.success("Database schema is current for v1.7.1 Stable.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()
@@ -620,7 +620,7 @@ def render_settings(hub: LivingHub) -> None:
         st.json(st.session_state.v17_database_health)
 
     if not migration["pending"]:
-        if st.button("Create and Verify v1.7 Database Backup"):
+        if st.button("Create and Verify v1.7.1 Database Backup"):
             try:
                 backup_path = management.request_backup(actor="owner")
             except (OSError, ValueError):
@@ -639,10 +639,10 @@ def render_settings(hub: LivingHub) -> None:
                 candidate_by_name = {candidate.path.name: candidate for candidate in valid_candidates}
                 selected_name = st.selectbox("Verified restore candidate", list(candidate_by_name))
                 restore_approval = st.checkbox(
-                    "I approve a safety backup followed by restoring this verified v1.7 archive.",
+                    "I approve a safety backup followed by restoring this verified v1.7.1 archive.",
                     key="v17_restore_approval",
                 )
-                if st.button("Restore Selected v1.7 Backup"):
+                if st.button("Restore Selected v1.7.1 Backup"):
                     if not restore_approval:
                         st.error("Explicit restore approval is required.")
                     else:
@@ -659,7 +659,7 @@ def render_settings(hub: LivingHub) -> None:
                             )
                             st.rerun()
         else:
-            st.info("No registered v1.7 database backup exists yet.")
+            st.info("No registered v1.7.1 database backup exists yet.")
 
         if st.button("Generate Database Management Report"):
             st.session_state.v17_database_report = management.operational_report(

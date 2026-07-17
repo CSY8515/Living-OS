@@ -1,8 +1,8 @@
-# Living OS v1.7 Master Design — Stable
+# Living OS v1.7.1 Master Design — Stable
 
 Mission: synchronize the shared Architecture foundation and complete the Database and Database Management Subsystems without adding v1.8 features or removing stable behavior.
 
-Release status: Living OS v1.7.1 Database Foundation Integration Candidate. GitHub publication and Production deployment require separate user approval.
+Release status: Living OS v1.7.1 Database Foundation Integration Stable. Publication and Production deployment approved on 2026-07-17.
 
 Living OS is one Module. Its implementation unit is the Subsystem; Subsystems contain Engines; behavior is expressed by Functions and methods.
 
