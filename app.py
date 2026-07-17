@@ -1,4 +1,4 @@
-"""Compatibility entry point for the Living OS v1.2 Hub shell."""
+"""Living OS v2.0 Streamlit entry point."""
 
 from app.shell import VERSION, main
 

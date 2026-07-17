@@ -21,6 +21,8 @@ PERSISTED_FILES = [
     ROOT / "data" / "routine" / "routine.sqlite3",
     ROOT / "data" / "investment" / "investment.sqlite3",
     ROOT / "data" / "job" / "job.sqlite3",
+    ROOT / "data" / "personal_growth" / "personal_growth.sqlite3",
+    ROOT / "data" / "collaboration" / "collaboration.sqlite3",
     ROOT / "data" / "housing_candidates.json",
     ROOT / "logs" / "decision_log.jsonl",
     ROOT / "reports" / "report_index.json",
@@ -28,7 +30,7 @@ PERSISTED_FILES = [
     ROOT / "config" / "module_registry.json",
 ]
 PAGES = [
-    "Dashboard",
+    "Command Center",
     "Daily Log",
     "Decision Log",
     "Reports",
@@ -50,6 +52,12 @@ PAGES = [
     "Job",
     "Investment Management",
     "Job Management",
+    "Personal Growth",
+    "Personal Growth Management",
+    "Collaboration",
+    "Collaboration Management",
+    "Database",
+    "Database Management",
     "Module Manager",
     "Settings",
 ]
@@ -67,7 +75,10 @@ class StreamlitPageSmokeTests(unittest.TestCase):
     def test_every_page_renders_without_errors_or_page_load_writes(self) -> None:
         before = fingerprints()
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
-        self.assertEqual(app.sidebar.caption[0].value, "v1.9 Stable")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0")
+        self.assertFalse(app.exception)
+        next(button for button in app.button if button.label == "Open Growth").click().run()
+        self.assertEqual(app.sidebar.radio[0].value, "Personal Growth")
         self.assertFalse(app.exception)
 
         for page in PAGES:

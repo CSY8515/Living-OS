@@ -137,6 +137,31 @@ V19_STABLE_MANIFESTS = V18_STABLE_MANIFESTS + (
 
 V19_DEVELOPMENT_MANIFESTS = V19_STABLE_MANIFESTS
 
+V20_STABLE_MANIFESTS = V19_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "personal_growth", "Personal Growth Subsystem", "1.0.0", ">=2.0,<3.0",
+        "Goals, progress, reflection, priorities, and personal growth management.",
+        status="enabled", capabilities=("crud", "progress", "reflection", "management"),
+        privacy_class="sensitive",
+    ),
+    ModuleManifest(
+        "collaboration", "Collaboration Subsystem", "1.0.0", ">=2.0,<3.0",
+        "Partner work, shared objectives, next actions, status, and collaboration management.",
+        status="enabled", capabilities=("crud", "coordination", "pipeline", "management"),
+        privacy_class="sensitive",
+    ),
+    ModuleManifest(
+        "database", "Database", "2.0.0", ">=2.0,<3.0", "Database contract and execution status.",
+        status="enabled", capabilities=("contract", "execution", "integrity"),
+    ),
+    ModuleManifest(
+        "database_management", "Database Management", "2.0.0", ">=2.0,<3.0", "Database operations control plane.",
+        status="enabled", capabilities=("health", "backup", "restore", "maintenance"),
+    ),
+)
+
+V20_DEVELOPMENT_MANIFESTS = V20_STABLE_MANIFESTS
+
 # Compatibility alias for the approved pre-release name.
 V17_RELEASE_CANDIDATE_MANIFESTS = V17_STABLE_MANIFESTS
 

@@ -1,6 +1,8 @@
-# Living OS v1.9 Stable
+# Living OS v2.0
 
-> Living OS v1.9 Stable adds Investment and Job while preserving the v1.8 Stable baseline.
+> Living OS v2.0 is a personal command system with a unified responsive interface, Personal Growth, Collaboration, and first-class Database control surfaces. It preserves the v1.9 Stable data and architecture contracts.
+
+The official v2.0 interface uses a restrained dark command-center design with cyan/blue signals, reusable status components, responsive layouts, and one visual language across every subsystem.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -103,4 +105,4 @@ Streamlit Community Cloud coordinates:
 - Python: 3.12 recommended
 - Secrets: none required
 
-The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance, Food, Health, Housing, Vehicle, Knowledge, Routine, Investment, or Job storage. The listed deployment serves Living OS v1.9 Stable.
+The current file-backed stores are intended for a single-owner runtime. A hosted local filesystem is not durable Finance, Food, Health, Housing, Vehicle, Knowledge, Routine, Investment, Job, Personal Growth, or Collaboration storage.

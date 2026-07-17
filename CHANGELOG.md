@@ -2,6 +2,15 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0 — 2026-07-18
+
+- Added the official responsive Living OS command-center theme and reusable UI component layer.
+- Added Personal Growth and Collaboration Subsystems with management screens, registry contracts, execution records, integrity, backup, and restore support.
+- Added Command Center, Database Contract, and Database Management navigation surfaces.
+- Unified cards, metrics, forms, tables, tabs, alerts, buttons, empty states, typography, spacing, and status signals across existing pages.
+- Removed legacy-version and compatibility-mode messaging from the primary navigation and management UI.
+- Verified all pages, responsive desktop/tablet/mobile layouts, Database Integrity, and 119 automated tests.
+
 ## v1.9 Stable
 
 - Added independent Investment and Job Subsystems using the common versioned RecordRepository and Database Contract.

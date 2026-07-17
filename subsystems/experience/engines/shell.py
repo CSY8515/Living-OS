@@ -29,7 +29,14 @@ from subsystems.experience.engines.pages import (
     render_investment_management,
     render_job_subsystem,
     render_job_management,
+    render_personal_growth,
+    render_personal_growth_management,
+    render_collaboration,
+    render_collaboration_management,
+    render_database,
+    render_database_management,
 )
+from subsystems.experience.engines.design_system import system_banner
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
 from subsystems.food import FoodSubsystem
@@ -40,11 +47,13 @@ from subsystems.knowledge import KnowledgeSubsystem
 from subsystems.routine import RoutineSubsystem
 from subsystems.investment import InvestmentSubsystem
 from subsystems.job import JobSubsystem
+from subsystems.personal_growth import PersonalGrowthSubsystem
+from subsystems.collaboration import CollaborationSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V19_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V20_STABLE_MANIFESTS
 
 
-VERSION = "v1.9 Stable"
+VERSION = "v2.0"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -54,7 +63,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V19_STABLE_MANIFESTS)
+        hub.bootstrap(V20_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -138,14 +147,33 @@ def _job_subsystem() -> JobSubsystem:
     return build()
 
 
+def _personal_growth_subsystem() -> PersonalGrowthSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> PersonalGrowthSubsystem:
+        return PersonalGrowthSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
+def _collaboration_subsystem() -> CollaborationSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> CollaborationSubsystem:
+        return CollaborationSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
 def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
                      health: HealthSubsystem,
                      housing: HousingSubsystem,
                      vehicle: VehicleSubsystem, knowledge: KnowledgeSubsystem,
                      routine: RoutineSubsystem, investment: InvestmentSubsystem,
-                     job: JobSubsystem) -> dict[str, Callable[[], None]]:
+                     job: JobSubsystem, growth: PersonalGrowthSubsystem,
+                     collaboration: CollaborationSubsystem) -> dict[str, Callable[[], None]]:
+    managed = {"Personal Growth": growth, "Collaboration": collaboration,
+               "Knowledge": knowledge, "Routine": routine, "Investment": investment, "Job": job}
     return {
-        "Dashboard": lambda: render_dashboard(hub),
+        "Command Center": lambda: render_dashboard(hub, managed),
         "Daily Log": lambda: render_journal(hub),
         "Decision Log": lambda: render_decisions(hub),
         "Reports": lambda: render_reports(hub),
@@ -167,6 +195,12 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
         "Job": lambda: render_job_subsystem(job),
         "Investment Management": lambda: render_investment_management(investment),
         "Job Management": lambda: render_job_management(job),
+        "Personal Growth": lambda: render_personal_growth(growth),
+        "Personal Growth Management": lambda: render_personal_growth_management(growth),
+        "Collaboration": lambda: render_collaboration(collaboration),
+        "Collaboration Management": lambda: render_collaboration_management(collaboration),
+        "Database": lambda: render_database(hub),
+        "Database Management": lambda: render_database_management(hub),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -267,7 +301,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 def main() -> None:
     import streamlit as st
 
-    st.set_page_config(page_title="Living OS", page_icon="◉", layout="wide")
+    st.set_page_config(page_title="Living OS v2.0", page_icon="◈", layout="wide", initial_sidebar_state="auto")
     apply_responsive_layout()
     hub = _hub()
     finance = _finance()
@@ -279,14 +313,14 @@ def main() -> None:
     routine = _routine_subsystem()
     investment = _investment_subsystem()
     job = _job_subsystem()
+    growth = _personal_growth_subsystem()
+    collaboration = _collaboration_subsystem()
     if not _authorize(hub):
         return
-    migrated = hub.v1_migration_complete
-    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job) if migrated
-             else _compatibility_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job))
+    pages = _canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job, growth, collaboration)
 
     module_by_page = {
-        "Dashboard": "dashboard",
+        "Command Center": "dashboard",
         "Daily Log": "journal",
         "Decision Log": "decision",
         "Reports": "reports",
@@ -308,6 +342,12 @@ def main() -> None:
         "Job": "job",
         "Investment Management": "investment",
         "Job Management": "job",
+        "Personal Growth": "personal_growth",
+        "Personal Growth Management": "personal_growth",
+        "Collaboration": "collaboration",
+        "Collaboration Management": "collaboration",
+        "Database": "database",
+        "Database Management": "database_management",
         "Module Manager": "module_manager",
         "Settings": "settings",
     }
@@ -323,11 +363,9 @@ def main() -> None:
     ]
 
     with st.sidebar:
-        st.title("Living OS")
+        st.title("LIVING OS")
         st.caption(VERSION)
-        st.caption("Canonical Hub" if migrated else "Compatibility Mode")
-        page = st.radio("Menu", visible_pages, label_visibility="collapsed")
-
-    if not migrated and page != "Settings":
-        st.info("Living OS preserves existing data in compatibility mode. Review and approve migration in Settings when ready.")
+        st.caption("PERSONAL COMMAND SYSTEM")
+        page = st.radio("Menu", visible_pages, label_visibility="collapsed", key="nav_page")
+    system_banner(version=VERSION, status="ONLINE", detail=f"{len(enabled)} modules active · {page}")
     pages[page]()

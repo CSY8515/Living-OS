@@ -109,9 +109,9 @@ class DatabaseIntegrationV171Tests(unittest.TestCase):
             )
         )
         self.assertEqual(set(registry["contract_required_layers"]), ALLOWED_COMPONENT_LAYERS)
-        self.assertEqual(
-            set(registry["required_future_components"]),
-            {"Personal Growth", "Collaboration"},
+        self.assertEqual(set(registry["required_future_components"]), set())
+        self.assertTrue(
+            {"SUB-PERSONAL-GROWTH", "SUB-COLLABORATION"}.issubset(registry["runtime_components"])
         )
         self.assertTrue({"SUB-INVESTMENT", "SUB-JOB"}.issubset(registry["runtime_components"]))
         self.assertTrue({"SUB-KNOWLEDGE", "SUB-ROUTINE"}.issubset(registry["runtime_components"]))

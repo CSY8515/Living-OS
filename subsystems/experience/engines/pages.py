@@ -14,6 +14,15 @@ from subsystems.knowledge import KnowledgeSubsystem
 from subsystems.routine import RoutineSubsystem
 from subsystems.investment import InvestmentSubsystem
 from subsystems.job import JobSubsystem
+from subsystems.personal_growth import PersonalGrowthSubsystem
+from subsystems.collaboration import CollaborationSubsystem
+from subsystems.experience.engines.design_system import (
+    activity_feed,
+    health_row,
+    page_header,
+    panel_header,
+    status_card,
+)
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -238,33 +247,138 @@ def render_routine_management(routine: RoutineSubsystem) -> None:
     st.json(summary["by_status"]); st.write("Database Adapter"); st.json(summary["health"]); st.write("Recent execution results"); st.dataframe(summary["recent_executions"])
 
 
-def render_dashboard(hub: LivingHub) -> None:
+def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
     import streamlit as st
 
     data = dashboard_projection(hub)
-    st.title("Living OS")
-    st.caption("Subsystem Architecture · compatible canonical state")
-    st.success("System Status: NORMAL")
+    systems = systems or {}
+    management = hub.database_management
+    database_health = management.health_check(record=False)
+    component_status = management.component_status()
+    unhealthy = [item for item in component_status if item.get("status") not in {"HEALTHY", "READY"}]
+    overall = "NORMAL" if database_health.get("status") == "HEALTHY" and not unhealthy else "ATTENTION"
+    page_header("Command Center", "Living OS / Overview", "Your operating picture, priorities, signals, and infrastructure health.", overall)
     cols = st.columns(5)
-    cols[0].metric("Journal", data["journal_count"])
-    cols[1].metric("Decisions", data["decision_count"])
-    cols[2].metric("Needs Review", data["review_count"])
-    cols[3].metric("Knowledge", data["knowledge_count"])
-    cols[4].metric("Reports", data["report_count"])
-    left, right = st.columns(2)
+    with cols[0]: status_card("Journal", data["journal_count"], "captured entries", "HEALTHY")
+    with cols[1]: status_card("Decisions", data["decision_count"], "tracked decisions", "HEALTHY")
+    with cols[2]: status_card("Review Queue", data["review_count"], "requires attention", "WARNING" if data["review_count"] else "HEALTHY")
+    with cols[3]: status_card("Knowledge", data["knowledge_count"], "active records", "HEALTHY")
+    with cols[4]: status_card("Reports", data["report_count"], "generated artifacts", "HEALTHY")
+    left, right = st.columns([1.45, 1])
     with left:
-        st.subheader("Recent Journal")
-        for item in data["recent_journals"]:
-            st.markdown(f"**{item.get('date', '-')} — {item.get('title', 'Untitled')}**")
-        if not data["recent_journals"]:
-            st.info("No journal entries yet.")
+        panel_header("Priority Stream", "Recent journal and decision signals", "LIVE FEED")
+        feed = [{"title": item.get("title", "Journal"), "detail": "Journal entry", "time": item.get("date", "")} for item in data["recent_journals"]]
+        feed += [{"title": item.get("decision", "Decision"), "detail": f"Decision · {item.get('status', 'draft')}", "time": ""} for item in data["recent_decisions"]]
+        activity_feed(feed[:8], empty="Capture a journal entry or decision to begin the activity stream.")
     with right:
-        st.subheader("Recent Decisions")
-        for item in data["recent_decisions"]:
-            st.markdown(f"**{item.get('decision', 'Untitled')}**")
-            st.caption(f"Status: {item.get('status', 'draft')}")
-        if not data["recent_decisions"]:
-            st.info("No decisions yet.")
+        panel_header("System Health", "Database, registry, backup, integrity", "CONTROL PLANE")
+        health_row("Database", str(database_health.get("status", "UNKNOWN")), f"Schema {database_health.get('schema_version', '-')}")
+        health_row("Integrity", "HEALTHY" if database_health.get("integrity_status") == "ok" else "WARNING", str(database_health.get("integrity_status", "unknown")))
+        health_row("Registry", "HEALTHY" if component_status else "READY", f"{len(component_status)} components")
+        backups = management.backup_status()
+        health_row("Backup", "HEALTHY" if backups else "WARNING", backups[0].get("created_at", "No verified backup") if backups else "No verified backup")
+    if systems:
+        st.divider(); panel_header("Subsystem Matrix", "Operational status and immediate priorities", "V2.0")
+        rows = []
+        for name, subsystem in systems.items():
+            summary = subsystem.management_summary()
+            health = summary.get("health", {})
+            rows.append({"Subsystem": name, "Status": health.get("status", "READY"), "Records": summary.get("total", 0), "Active": summary.get("active", summary.get("active_pipeline", 0)), "Priority / Due": summary.get("overdue", summary.get("due", summary.get("due_actions", 0))), "Registry": "REGISTERED" if summary.get("registry_registered") else "MISSING"})
+        st.dataframe(rows, width="stretch", hide_index=True)
+    st.divider(); panel_header("Quick Actions", "Move directly to a focused workspace", "NAVIGATION")
+    actions = st.columns(4)
+    targets = [("Open Growth", "Personal Growth"), ("Open Collaboration", "Collaboration"), ("Review Database", "Database"), ("System Settings", "Settings")]
+    def navigate(target: str) -> None:
+        st.session_state.nav_page = target
+    for column, (label, target) in zip(actions, targets):
+        column.button(label, key=f"quick_{target}", on_click=navigate, args=(target,))
+
+
+def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
+    import streamlit as st
+    page_header("Personal Growth", "Growth / Workspace", "Turn intentions into measurable progress and clear next actions.", growth.health().get("status", "READY"))
+    summary = growth.management_summary(); cols = st.columns(4)
+    cols[0].metric("Active", summary["active"]); cols[1].metric("Average Progress", f"{summary['average_progress']}%")
+    cols[2].metric("Completed", summary["completed"]); cols[3].metric("Overdue", summary["overdue"])
+    create_tab, portfolio_tab = st.tabs(["Create goal", "Growth portfolio"])
+    with create_tab:
+        with st.form("growth_create", clear_on_submit=True):
+            title = st.text_input("Goal title"); area = st.selectbox("Growth area", ["MIND", "BODY", "CAREER", "RELATIONSHIPS", "CREATIVITY", "FINANCE", "OTHER"])
+            purpose = st.text_area("Purpose"); next_action = st.text_input("Next action"); priority = st.slider("Priority", 1, 5, 3); submitted = st.form_submit_button("Create goal")
+        if submitted:
+            try: growth.create(title, area=area, purpose=purpose, next_action=next_action, priority=priority)
+            except ValueError as exc: st.error(str(exc))
+            else: st.success("Growth goal created."); st.rerun()
+    with portfolio_tab:
+        records = growth.list(include_archived=True)
+        if not records: st.info("No growth goals yet. Create a focused goal to start.")
+        for item in records:
+            with st.expander(f"{item['title']} · {item['status']} · {item['progress']}%"):
+                progress = st.slider("Progress", 0, 100, int(item["progress"]), key=f"growth_progress_{item['goal_id']}")
+                status = st.selectbox("Status", ["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"], index=["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"].index(item["status"]), key=f"growth_status_{item['goal_id']}")
+                reflection = st.text_area("Reflection", value=item["last_reflection"], key=f"growth_reflection_{item['goal_id']}")
+                if st.button("Save progress", key=f"growth_save_{item['goal_id']}"): growth.update(item["goal_id"], progress=progress, status=status, last_reflection=reflection); st.rerun()
+
+
+def render_personal_growth_management(growth: PersonalGrowthSubsystem) -> None:
+    import streamlit as st
+    page_header("Growth Management", "Growth / Management", "Portfolio health, distribution, priorities, and data contract status.", growth.health().get("status", "READY"))
+    summary = growth.management_summary(); cols = st.columns(5)
+    for col, label, value in zip(cols, ["Total", "Active", "Completed", "Overdue", "Registry"], [summary["total"], summary["active"], summary["completed"], summary["overdue"], "REGISTERED" if summary["registry_registered"] else "MISSING"]): col.metric(label, value)
+    left, right = st.columns(2); left.json({"Status": summary["by_status"], "Area": summary["by_area"]}); right.dataframe(summary["priorities"], width="stretch", hide_index=True)
+
+
+def render_collaboration(collaboration: CollaborationSubsystem) -> None:
+    import streamlit as st
+    page_header("Collaboration", "Collaboration / Workspace", "Coordinate partners, commitments, due dates, and blockers from one view.", collaboration.health().get("status", "READY"))
+    summary = collaboration.management_summary(); cols = st.columns(4)
+    cols[0].metric("Active", summary["active"]); cols[1].metric("Blocked", summary["blocked"]); cols[2].metric("Due", summary["due"]); cols[3].metric("Completed", summary["completed"])
+    create_tab, work_tab = st.tabs(["New collaboration", "Active work"])
+    with create_tab:
+        with st.form("collaboration_create", clear_on_submit=True):
+            title = st.text_input("Title"); partner = st.text_input("Partner / team"); objective = st.text_area("Shared objective"); next_action = st.text_input("Next action"); priority = st.slider("Priority", 1, 5, 3); submitted = st.form_submit_button("Create collaboration")
+        if submitted:
+            try: collaboration.create(title, partner, objective=objective, next_action=next_action, priority=priority)
+            except ValueError as exc: st.error(str(exc))
+            else: st.success("Collaboration created."); st.rerun()
+    with work_tab:
+        records = collaboration.list(include_archived=True)
+        if not records: st.info("No collaboration records yet.")
+        for item in records:
+            with st.expander(f"{item['title']} · {item['partner']} · {item['status']}"):
+                status = st.selectbox("Status", ["PLANNED", "ACTIVE", "BLOCKED", "COMPLETED", "ARCHIVED"], index=["PLANNED", "ACTIVE", "BLOCKED", "COMPLETED", "ARCHIVED"].index(item["status"]), key=f"collab_status_{item['collaboration_id']}")
+                notes = st.text_area("Coordination notes", value=item["notes"], key=f"collab_notes_{item['collaboration_id']}")
+                if st.button("Save collaboration", key=f"collab_save_{item['collaboration_id']}"): collaboration.update(item["collaboration_id"], status=status, notes=notes); st.rerun()
+
+
+def render_collaboration_management(collaboration: CollaborationSubsystem) -> None:
+    import streamlit as st
+    page_header("Collaboration Management", "Collaboration / Management", "Pipeline health, blockers, partner distribution, and control status.", collaboration.health().get("status", "READY"))
+    summary = collaboration.management_summary(); cols = st.columns(5)
+    for col, label, value in zip(cols, ["Total", "Active", "Blocked", "Due", "Registry"], [summary["total"], summary["active"], summary["blocked"], summary["due"], "REGISTERED" if summary["registry_registered"] else "MISSING"]): col.metric(label, value)
+    left, right = st.columns(2); left.json({"Status": summary["by_status"], "Partner": summary["by_partner"]}); right.dataframe(summary["priorities"], width="stretch", hide_index=True)
+
+
+def render_database(hub: LivingHub) -> None:
+    import streamlit as st
+    management = hub.database_management; health = management.health_check(record=False); schema = management.schema_registry()
+    page_header("Database Contract", "System / Database", "Execution Database, schema, registry, and integrity observability.", str(health.get("status", "UNKNOWN")))
+    cols = st.columns(4); cols[0].metric("Schema", f"{schema.get('schema_version', 0)} / {schema.get('expected_schema_version', 0)}"); cols[1].metric("Integrity", health.get("integrity_status", "unknown")); cols[2].metric("Components", len(management.component_status())); cols[3].metric("Executions", len(hub.database.execution_records(500)))
+    st.dataframe(management.component_status(), width="stretch", hide_index=True); st.dataframe(hub.database.execution_records(100), width="stretch", hide_index=True)
+
+
+def render_database_management(hub: LivingHub) -> None:
+    import streamlit as st
+    management = hub.database_management; health = management.health_check(record=False); backups = management.backup_status()
+    page_header("Database Management", "System / Control Plane", "Health checks, verified backup readiness, restore safety, and operational reporting.", str(health.get("status", "UNKNOWN")))
+    cols = st.columns(4); cols[0].metric("Database", health.get("status", "UNKNOWN")); cols[1].metric("Integrity", health.get("integrity_status", "unknown")); cols[2].metric("Verified Backups", len(backups)); cols[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
+    if st.button("Run health check", key="database_management_health"): st.session_state.v20_database_health = management.health_check(record=True, actor="owner")
+    if st.button("Create verified backup", key="database_management_backup"):
+        try: path = management.request_backup(actor="owner")
+        except (OSError, ValueError): st.error("Backup failed verification; the source database was preserved.")
+        else: st.success(f"Verified backup created: {path.name}"); st.rerun()
+    if st.session_state.get("v20_database_health"): st.json(st.session_state.v20_database_health)
+    st.dataframe(backups, width="stretch", hide_index=True)
 
 
 def render_journal(hub: LivingHub) -> None:
@@ -610,7 +724,7 @@ def render_settings(hub: LivingHub) -> None:
         from subsystems.compatibility.engines.settings import load_settings, save_settings
 
         legacy_settings = load_settings()
-        with st.form("v1_compatibility_preferences"):
+        with st.form("application_preferences_fallback"):
             app_name = st.text_input("App Name", value=str(legacy_settings.get("app_name", "Living OS")))
             ranges = ["daily", "weekly", "monthly"]
             current_range = str(legacy_settings.get("default_report_range", "daily"))
@@ -619,14 +733,14 @@ def render_settings(hub: LivingHub) -> None:
                 ranges,
                 index=ranges.index(current_range) if current_range in ranges else 0,
             )
-            save_preferences = st.form_submit_button("Save v1 Compatibility Preferences")
+            save_preferences = st.form_submit_button("Save Preferences")
         if save_preferences:
             try:
                 save_settings({"app_name": app_name, "default_report_range": report_range})
             except (OSError, ValueError):
-                st.error("Compatibility preferences could not be saved.")
+                st.error("Preferences could not be saved.")
             else:
-                st.success("Compatibility preferences saved without changing the v1 schema.")
+                st.success("Preferences saved.")
     st.divider()
     st.subheader("OpenAI Configuration")
     session_key = st.text_input(
@@ -669,11 +783,11 @@ def render_settings(hub: LivingHub) -> None:
                     st.rerun()
         st.caption("Encrypted transport must be provided by the selected deployment profile for remote access.")
     st.divider()
-    st.subheader("Living OS Compatibility Migration")
+    st.subheader("Data Store Migration")
     if hub.v1_migration_complete:
-        st.success("Compatibility migration is complete. The Hub store is canonical.")
+        st.success("The canonical Hub store is current.")
     else:
-        st.warning("The application is operating in v1 compatibility mode. Migration requires review and explicit approval.")
+        st.warning("A legacy data store is available. Migration requires review and explicit approval.")
         if st.button("Run Migration Dry Run"):
             report = hub.migration.dry_run()
             st.session_state.v2_migration_report = report.to_dict()
@@ -708,7 +822,7 @@ def render_settings(hub: LivingHub) -> None:
     status_columns[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
 
     if migration["pending"]:
-        st.warning("A reviewed additive Database Foundation migration is pending for v1.9 Stable.")
+        st.warning("A reviewed additive Database Foundation migration is pending.")
         st.json(migration["pending"])
         migration_approval = st.checkbox(
             "I reviewed the pending database migration and approve applying it.",
@@ -726,7 +840,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for v1.9 Stable.")
+        st.success("Database schema is current for Living OS v2.0.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()
