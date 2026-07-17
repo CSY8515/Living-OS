@@ -43,6 +43,8 @@ def apply_living_os_theme() -> None:
         [data-testid="stSidebar"] div[role="radiogroup"]>label p { color:#9eb3c5!important;font-size:.82rem;font-weight:520;letter-spacing:.01em; }
         [data-testid="stSidebar"] div[role="radiogroup"]>label:hover p,[data-testid="stSidebar"] div[role="radiogroup"]>label:has(input:checked) p { color:var(--los-text)!important; }
         [data-testid="stSidebar"] div[role="radiogroup"]>label>div:first-child { display:none; }
+        [data-testid="stSidebar"] [data-testid="stRadioOption"]>div>div>div:first-child { display:none; }
+        [data-testid="stSidebar"] [data-testid="stRadioOption"]>div>div { gap:0!important; }
         [data-testid="stSidebar"] div[role="radiogroup"]>label:nth-child(1)::before,
         [data-testid="stSidebar"] div[role="radiogroup"]>label:nth-child(2)::before,
         [data-testid="stSidebar"] div[role="radiogroup"]>label:nth-child(10)::before,
