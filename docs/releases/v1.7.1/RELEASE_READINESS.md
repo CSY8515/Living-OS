@@ -1,6 +1,6 @@
 # v1.7.1 Release Readiness
 
-State: USER APPROVED — RELEASE IN PROGRESS
+State: STABLE RELEASE COMPLETE
 
 - Architecture and MASTER DESIGN synchronized: complete
 - Implementation: complete
@@ -11,7 +11,9 @@ State: USER APPROVED — RELEASE IN PROGRESS
 - Automated tests and regression: complete
 - Codex Review: complete
 - User approval for publication: complete
-- Git commit/push/release: not started
-- Streamlit Production deploy: not started
+- Git commit/push/release: complete
+- Streamlit Production deploy: complete
+- Production smoke test: complete
+- Stable archive: complete
 
-The next authorized action is user review and approval of the publication/deployment phase. v1.8 must not start.
+All v1.7.1 release gates are complete. The version is Stable and archived. v1.8 has not started.
