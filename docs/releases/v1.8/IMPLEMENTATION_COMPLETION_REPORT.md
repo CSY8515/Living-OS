@@ -31,6 +31,6 @@
 
 ## Final decision
 
-READY FOR USER REVIEW.
+RELEASED AND PRODUCTION VERIFIED.
 
-Git commit / push / release / deploy: NOT EXECUTED; WAITING FOR USER APPROVAL.
+Git commit / push / GitHub Release v1.8 / Stable Archive / Streamlit Production deploy: COMPLETE.
