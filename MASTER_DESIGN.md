@@ -10,7 +10,7 @@ The Streamlit shell adds Knowledge, Routine, Knowledge Management, and Routine M
 
 Mission: extend the shared Architecture foundation with Knowledge and Routine without removing stable behavior.
 
-Release status: Living OS v1.7.1 Database Foundation Integration Stable. Publication and Production deployment approved on 2026-07-17.
+Release status: Living OS v1.8 Stable. Knowledge and Routine are integrated with the v1.7.1 Database Foundation contract; publication and Production deployment were approved on 2026-07-17.
 
 Living OS is one Module. Its implementation unit is the Subsystem; Subsystems contain Engines; behavior is expressed by Functions and methods.
 
@@ -34,7 +34,7 @@ The v1.7 statement that these stores were independent is retained as historical 
 
 Finance, Health, Housing, Vehicle, and Food retain domain-owned schemas and public facades but use the shared `ComponentDatabaseAdapter` for SQLite connections and transactions. Their contracts are persisted through the canonical `RecordRepository`; the Execution Database records component writes. Database Management provides a unified control plane for registration, schema, migration, health, integrity, backup, restore, and execution state without owning business logic.
 
-Schema v3 is the v1.7.1 integration marker. New Knowledge, Routine, Investment, Job, Personal Growth, and Collaboration components, and every data-owning OS System, Capability, Module, Subsystem, Engine Group, Engine, or Function, must satisfy `docs/03_Database/Database_Integration_Contract.md` at bootstrap. Direct component-level SQLite connections are prohibited. v1.8 work is outside this release.
+Schema v3 is the v1.7.1 integration marker retained by v1.8. Knowledge and Routine now satisfy `docs/03_Database/Database_Integration_Contract.md`; future Investment, Job, Personal Growth, and Collaboration components, and every data-owning OS System, Capability, Module, Subsystem, Engine Group, Engine, or Function, must satisfy the same contract at bootstrap. Direct component-level SQLite connections are prohibited.
 
 ## Official reference subsystem
 

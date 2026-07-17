@@ -14,7 +14,7 @@ Architecture: Living OS is the Module layer; its runtime implements Subsystem â†
 
 Database Foundation: Database and Database Management are independent peer Subsystems under Settings/Admin. The app exposes the v1.7 Stable management surface; real user database migration is explicit and never runs on startup.
 
-Development additions: Knowledge Subsystem v1.0.0 and Routine Subsystem v1.0.0 are independent data owners registered through the common Database Foundation adapter, registry, execution database, health, backup, and restore contracts.
+Stable additions: Knowledge Subsystem v1.0.0 and Routine Subsystem v1.0.0 are independent data owners registered through the common Database Foundation adapter, registry, execution database, health, backup, and restore contracts.
 
 All public behavior and data contracts on the v1.1 stable baseline are retained. Code, docs, compilation, unit, integration, architecture, and Streamlit smoke verification are complete.
 
