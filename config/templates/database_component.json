@@ -1,0 +1,15 @@
+{
+  "component_id": "REPLACE-WITH-UNIQUE-ID",
+  "display_name": "REPLACE-WITH-DISPLAY-NAME",
+  "layer": "Subsystem",
+  "owner": "REPLACE-WITH-DATA-OWNER",
+  "database_path": "data/REPLACE-WITH-COMPONENT/component.sqlite3",
+  "schema_version": 1,
+  "migration_id": "REPLACE-WITH-MIGRATION-ID",
+  "integration_mode": "record-repository",
+  "execution_enabled": true,
+  "backup_enabled": true,
+  "restore_enabled": true,
+  "integrity_enabled": true,
+  "status": "ACTIVE"
+}

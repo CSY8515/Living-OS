@@ -135,6 +135,8 @@ Test Report에는 다음을 포함한다.
 
 v1.7 Stable은 Database Foundation 전용 10개 테스트를 포함한 전체 98개 테스트를 통과했다. 전용 테스트는 초기화·중복 초기화·Schema·Index·CRUD·Search·Archive·Transaction Rollback·optimistic concurrency·Migration 성공/실패 Rollback·Backup 성공/실패·Restore 성공/실패·Integrity·손상 파일·Health·Schema Registry·Capacity warning·운영 보고·기존 5개 Subsystem 독립성을 검증한다.
 
+v1.7.1은 전체 104개 테스트와 compile validation을 통과해야 한다. 추가 통합 테스트는 다섯 기존 Subsystem의 계약 등록, 공통 Adapter 쓰기, Execution 기록, 전체 Schema 초기화, 실제/선언 Schema 비교, Integrity, 구성요소별 verified Backup/Restore, 신규·상위 계층 Template, 직접 `sqlite3.connect` 금지를 검증한다.
+
 전체 Suite는 Architecture dependency, 기존 Module, Security, Migration, Backup/Restore, Streamlit 모든 페이지와 no-write page-load 회귀를 포함한다. 결과는 [v1.7 Test Report](../releases/v1.7/TEST_REPORT.md)에 기록한다.
 
 ## Related Documents

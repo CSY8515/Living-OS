@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from subsystems.health.engines.body_composition import BodyCompositionEngine
 from subsystems.health.engines.exercise import ExerciseEngine
@@ -15,6 +15,9 @@ from subsystems.health.engines.storage import HealthStorageEngine
 from subsystems.health.engines.trend import TrendEngine
 from subsystems.health.engines.weight import WeightEngine
 
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
+
 
 class HealthSubsystem:
     """The only supported Living OS boundary for Health Subsystem v1.0."""
@@ -23,10 +26,12 @@ class HealthSubsystem:
     LIVING_OS_COMPATIBILITY = ">=1.3,<2.0"
     PRIVACY_CLASS = "sensitive"
 
-    def __init__(self, root: Path, database_path: Path | None = None) -> None:
+    def __init__(self, root: Path, database_path: Path | None = None,
+                 database_foundation: DatabaseSubsystem | None = None) -> None:
         self.root = Path(root)
         path = Path(database_path) if database_path is not None else self.root / "data" / "health" / "health.sqlite3"
-        store = HealthStorageEngine(path)
+        store = HealthStorageEngine(path, database_foundation)
+        store.register_contract(schema_version=1, migration_id="health-schema-v1")
         weight = WeightEngine(store)
         body = BodyCompositionEngine(store)
         checkup = HealthCheckupEngine(store)

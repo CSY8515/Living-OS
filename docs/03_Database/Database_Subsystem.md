@@ -91,6 +91,7 @@ Engine 경로:
 
 - `engines/connection.py`: SQLite connection과 transaction
 - `engines/migrations.py`: Schema v2 Migration Registry와 history
+- `engines/component.py`: v1.7.1 공통 Database Integration Contract와 compatibility Adapter
 - `engines/repository.py`: CRUD, Search, Archive, Version check
 - `engines/execution.py`: Execution Database record
 - `engines/integrity.py`: Integrity, Foreign Key, Table, Index, Version check

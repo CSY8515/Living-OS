@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from subsystems.food.engines.cooking import CookingEngine
 from subsystems.food.engines.ingredient import IngredientEngine
@@ -11,6 +11,9 @@ from subsystems.food.engines.recipe import RecipeEngine
 from subsystems.food.engines.report import FoodReportEngine
 from subsystems.food.engines.storage import FoodStorageEngine
 
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
+
 
 class FoodSubsystem:
     """The only supported Living OS boundary for Food Subsystem v1.0."""
@@ -19,11 +22,13 @@ class FoodSubsystem:
     LIVING_OS_COMPATIBILITY = ">=1.6,<2.0"
     PRIVACY_CLASS = "sensitive"
 
-    def __init__(self, root: Path, database_path: Path | None = None) -> None:
+    def __init__(self, root: Path, database_path: Path | None = None,
+                 database_foundation: DatabaseSubsystem | None = None) -> None:
         self.root = Path(root)
         path = (Path(database_path) if database_path is not None
                 else self.root / "data" / "food" / "food.sqlite3")
-        store = FoodStorageEngine(path)
+        store = FoodStorageEngine(path, database_foundation)
+        store.register_contract(schema_version=1, migration_id="food-schema-v1")
         ingredients = IngredientEngine(store)
         recipes = RecipeEngine(store, ingredients)
         cooking = CookingEngine(store, recipes)

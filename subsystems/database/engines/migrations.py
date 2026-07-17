@@ -81,6 +81,14 @@ V17_MIGRATIONS = (
             )""",
         ),
     ),
+    DatabaseMigration(
+        3,
+        "v1_7_1_database_foundation_integration",
+        (
+            "CREATE INDEX IF NOT EXISTS ix_records_component_registry ON records(module_id, entity_type, status, record_id)",
+            "CREATE INDEX IF NOT EXISTS ix_execution_component ON execution_records(subsystem, status, started_at)",
+        ),
+    ),
 )
 
 
@@ -139,7 +147,7 @@ class MigrationRegistry:
                         (str(migration.version), utc_now_iso()),
                     )
                     connection.execute(
-                        """INSERT INTO system_meta(key,value,updated_at) VALUES('product_version','v1.7',?)
+                        """INSERT INTO system_meta(key,value,updated_at) VALUES('product_version','v1.7.1',?)
                            ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
                         (utc_now_iso(),),
                     )

@@ -504,13 +504,13 @@ def render_settings(hub: LivingHub) -> None:
     status_columns[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
 
     if migration["pending"]:
-        st.warning("A reviewed v1.7 additive database migration is pending. No migration runs on page load.")
+        st.warning("A reviewed v1.7.1 additive Database Foundation migration is pending.")
         st.json(migration["pending"])
         migration_approval = st.checkbox(
-            "I reviewed the pending v1.7 database migration and approve applying it.",
+            "I reviewed the pending v1.7.1 database migration and approve applying it.",
             key="v17_database_migration_approval",
         )
-        if st.button("Apply Approved v1.7 Database Migration"):
+        if st.button("Apply Approved v1.7.1 Database Migration"):
             if not migration_approval:
                 st.error("Explicit migration approval is required.")
             else:
@@ -522,7 +522,96 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for v1.7 Stable.")
+        st.success("Database schema is current for v1.7.1 Integration Candidate.")
+
+    st.markdown("#### Registered component databases")
+    component_status = management.component_status()
+    if component_status:
+        st.dataframe(
+            [
+                {
+                    "Component": item["display_name"],
+                    "Layer": item["layer"],
+                    "Owner": item["owner"],
+                    "Mode": item["integration_mode"],
+                    "Initialized": item["initialized"],
+                    "Schema": f"{item['actual_schema_version']} / {item['schema_version']}",
+                    "Migration": item["migration_status"],
+                    "Integrity": item["integrity"],
+                    "Executions": item["execution_count"],
+                    "Status": item["status"],
+                }
+                for item in component_status
+            ],
+            width="stretch",
+            hide_index=True,
+        )
+        by_name = {item["display_name"]: item for item in component_status}
+        selected_component_name = st.selectbox(
+            "Component database", list(by_name), key="database_component_selection"
+        )
+        selected_component = by_name[selected_component_name]
+        if selected_component["initialized"]:
+            if st.button("Create and Verify Component Backup"):
+                try:
+                    path = management.request_component_backup(
+                        selected_component["component_id"], actor="owner"
+                    )
+                except (OSError, ValueError, RuntimeError):
+                    st.error("The component backup failed integrity verification.")
+                else:
+                    st.success(f"Verified component backup created: {path.name}")
+                    st.rerun()
+            component_backups = management.component_backups(
+                selected_component["component_id"]
+            )
+            if component_backups:
+                backup_by_name = {
+                    Path(str(item["path"])).name: item for item in component_backups
+                }
+                component_backup_name = st.selectbox(
+                    "Verified component restore candidate",
+                    list(backup_by_name),
+                    key="component_restore_candidate",
+                )
+                component_restore_approval = st.checkbox(
+                    "I approve a safety backup and restore for this component database.",
+                    key="component_restore_approval",
+                )
+                if st.button("Restore Selected Component Backup"):
+                    if not component_restore_approval:
+                        st.error("Explicit component restore approval is required.")
+                    else:
+                        try:
+                            result = management.request_component_restore(
+                                selected_component["component_id"],
+                                Path(str(backup_by_name[component_backup_name]["path"])),
+                                actor="owner",
+                            )
+                        except (OSError, ValueError, RuntimeError):
+                            st.error("Component restore failed; the safety copy was retained.")
+                        else:
+                            st.success(
+                                "Component restore complete. Safety backup: "
+                                f"{Path(result['safety_backup']).name}"
+                            )
+                            st.rerun()
+        else:
+            st.info("This registered component has no data file yet; it will be created on its first write.")
+            if st.button("Initialize and Verify Component Schema"):
+                try:
+                    initialized = management.request_component_initialization(
+                        selected_component["component_id"], actor="owner"
+                    )
+                except (OSError, ValueError, RuntimeError):
+                    st.error("Component schema initialization failed and requires review.")
+                else:
+                    st.success(
+                        f"{initialized['display_name']} schema initialized and verified."
+                    )
+                    st.rerun()
+    else:
+        st.info("No component database contracts are registered yet.")
 
     if st.button("Run and Record Database Health Check"):
         recorded_health = management.health_check(record=True, actor="owner")

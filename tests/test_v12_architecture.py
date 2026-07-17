@@ -47,11 +47,13 @@ class SubsystemArchitectureTests(unittest.TestCase):
             "operations": {"operations", "foundation"},
             "insight": {"insight", "foundation"},
             "experience": {"experience", "foundation", "operations", "insight", "compatibility", "finance", "food", "health", "housing", "vehicle"},
-            "finance": {"finance"},
-            "health": {"health"},
-            "housing": {"housing"},
-            "vehicle": {"vehicle"},
-            "food": {"food"},
+            # Data-owning domain Subsystems may depend only on their own code and
+            # the public shared Database Foundation contract/adapter.
+            "finance": {"finance", "database"},
+            "health": {"health", "database"},
+            "housing": {"housing", "database"},
+            "vehicle": {"vehicle", "database"},
+            "food": {"food", "database"},
             "compatibility": {"compatibility", "insight"},
         }
         violations: list[str] = []

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from subsystems.housing.engines.candidate import HousingCandidateEngine
 from subsystems.housing.engines.comparison import HousingComparisonEngine
@@ -9,6 +9,9 @@ from subsystems.housing.engines.migration import HousingMigrationEngine
 from subsystems.housing.engines.report import HousingReportEngine
 from subsystems.housing.engines.scoring import HousingScoringEngine
 from subsystems.housing.engines.storage import HousingStorageEngine
+
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
 
 
 class HousingSubsystem:
@@ -18,10 +21,12 @@ class HousingSubsystem:
     LIVING_OS_COMPATIBILITY = ">=1.4,<2.0"
     PRIVACY_CLASS = "sensitive"
 
-    def __init__(self, root: Path, database_path: Path | None = None) -> None:
+    def __init__(self, root: Path, database_path: Path | None = None,
+                 database_foundation: DatabaseSubsystem | None = None) -> None:
         self.root = Path(root)
         path = Path(database_path) if database_path is not None else self.root / "data" / "housing" / "housing.sqlite3"
-        store = HousingStorageEngine(path)
+        store = HousingStorageEngine(path, database_foundation)
+        store.register_contract(schema_version=1, migration_id="housing-schema-v1")
         scoring = HousingScoringEngine()
         candidates = HousingCandidateEngine(store, scoring)
         comparison = HousingComparisonEngine(candidates)

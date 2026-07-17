@@ -10,6 +10,7 @@ from typing import Any, Iterator
 from uuid import uuid4
 
 from subsystems.database.engines.connection import SQLiteConnectionLayer
+from subsystems.database.engines.component import DatabaseIntegrationContract
 from subsystems.database.engines.contracts import IntegrityResult, RestoreCandidate
 from subsystems.database.engines.execution import ExecutionRecorder
 from subsystems.database.engines.integrity import IntegrityEngine
@@ -24,8 +25,8 @@ class DatabaseSubsystem:
     """Living OS v1.7 data-plane facade for the canonical SQLite database."""
 
     subsystem_id = "SUB-DATABASE"
-    version = "1.7.0"
-    expected_schema_version = 2
+    version = "1.7.1"
+    expected_schema_version = 3
 
     def __init__(
         self,
@@ -45,6 +46,13 @@ class DatabaseSubsystem:
         self.integrity = IntegrityEngine(self.connections)
         self.executions = ExecutionRecorder(self.connections)
         self.backups = BackupService(self.database_path, self.backup_root, self.repository_root)
+        self._component_adapters: dict[str, Any] = {}
+
+    def attach_component_adapter(self, adapter: Any) -> None:
+        component_id = str(getattr(adapter, "component_id", "")).strip()
+        if not component_id or not callable(getattr(adapter, "initialize", None)):
+            raise ValueError("A component adapter must expose component_id and initialize().")
+        self._component_adapters[component_id] = adapter
 
     def initialize(self, *, apply_migrations: bool = False, actor: str = "system") -> dict[str, Any]:
         self.store.initialize()
@@ -431,6 +439,259 @@ class DatabaseSubsystem:
             actor=actor,
             result=result,
         )
+
+    def register_component(
+        self,
+        contract: DatabaseIntegrationContract,
+        *,
+        actor: str = "system",
+    ) -> dict[str, Any]:
+        """Persist an integration contract through the canonical RecordRepository."""
+        payload = contract.to_payload()
+        target = Path(contract.database_path).resolve()
+        try:
+            target.relative_to(self.repository_root)
+        except ValueError as exc:
+            raise ValueError("Component databases must remain inside the repository root.") from exc
+        if self.current_schema_version() < self.expected_schema_version:
+            raise RuntimeError("Database Foundation migration v3 is required before registration.")
+        existing = self.repository.read(
+            self.subsystem_id, "component_registration", contract.component_id
+        )
+        if existing:
+            if all(existing.get(key) == value for key, value in payload.items()):
+                return existing
+            result = self.repository.update(
+                self.subsystem_id,
+                "component_registration",
+                contract.component_id,
+                payload,
+                expected_version=int(existing["_version"]),
+                source="database-foundation",
+            )
+        else:
+            result = self.repository.create(
+                self.subsystem_id,
+                "component_registration",
+                contract.component_id,
+                payload,
+                owner=contract.owner,
+                source="database-foundation",
+                privacy_class="system",
+            )
+        self.record_execution(
+            contract.component_id,
+            "database_contract_registration",
+            actor=actor,
+            result={"schema_version": contract.schema_version, "mode": contract.integration_mode},
+        )
+        return result
+
+    def registered_components(self) -> list[dict[str, Any]]:
+        if self.current_schema_version() < self.expected_schema_version:
+            return []
+        return self.repository.list(
+            self.subsystem_id, "component_registration", limit=1000
+        )
+
+    def component_status(self) -> list[dict[str, Any]]:
+        executions = self.execution_records(1000)
+        statuses: list[dict[str, Any]] = []
+        for registration in self.registered_components():
+            path = Path(str(registration["database_path"]))
+            initialized = path.is_file()
+            integrity = "not-initialized"
+            foreign_keys = 0
+            actual_schema_version: int | None = None
+            tables: list[str] = []
+            size_bytes = path.stat().st_size if initialized else 0
+            if initialized:
+                layer = SQLiteConnectionLayer(path)
+                try:
+                    with layer.connection(read_only=True) as connection:
+                        row = connection.execute("PRAGMA integrity_check").fetchone()
+                        integrity = str(row[0]) if row else "unknown"
+                        foreign_keys = len(connection.execute("PRAGMA foreign_key_check").fetchall())
+                        tables = [
+                            str(item[0])
+                            for item in connection.execute(
+                                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+                            ).fetchall()
+                        ]
+                        for table in (name for name in tables if name.endswith("_meta")):
+                            safe_table = table.replace('"', '""')
+                            version_row = connection.execute(
+                                f'SELECT value FROM "{safe_table}" WHERE key=?',
+                                ("schema_version",),
+                            ).fetchone()
+                            if version_row:
+                                actual_schema_version = int(version_row[0])
+                                break
+                except (OSError, sqlite3.Error, ValueError) as exc:
+                    integrity = f"error:{type(exc).__name__}"
+            component_executions = [
+                item for item in executions if item.get("subsystem") == registration["component_id"]
+            ]
+            statuses.append(
+                {
+                    "component_id": registration["component_id"],
+                    "display_name": registration["display_name"],
+                    "layer": registration["layer"],
+                    "owner": registration["owner"],
+                    "integration_mode": registration["integration_mode"],
+                    "database_path": str(path),
+                    "initialized": initialized,
+                    "schema_version": registration["schema_version"],
+                    "actual_schema_version": actual_schema_version,
+                    "tables": tables,
+                    "migration_id": registration["migration_id"],
+                    "integrity": integrity,
+                    "foreign_key_violations": foreign_keys,
+                    "size_bytes": size_bytes,
+                    "execution_count": len(component_executions),
+                    "last_execution": component_executions[0] if component_executions else None,
+                    "migration_status": (
+                        "PENDING_INITIALIZATION"
+                        if not initialized
+                        else "CURRENT"
+                        if actual_schema_version == int(registration["schema_version"])
+                        else "SCHEMA_MISMATCH"
+                    ),
+                    "status": (
+                        "READY"
+                        if not initialized
+                        else "HEALTHY"
+                        if (
+                            integrity == "ok"
+                            and not foreign_keys
+                            and actual_schema_version == int(registration["schema_version"])
+                        )
+                        else "DEGRADED"
+                    ),
+                }
+            )
+        return statuses
+
+    def initialize_component(self, component_id: str, *, actor: str) -> dict[str, Any]:
+        self._registered_component(component_id)
+        adapter = self._component_adapters.get(component_id)
+        if adapter is None:
+            raise RuntimeError("The component adapter is not attached to this runtime.")
+        adapter.initialize()
+        status = next(
+            item for item in self.component_status() if item["component_id"] == component_id
+        )
+        if status["status"] != "HEALTHY":
+            raise RuntimeError("Component schema initialization failed health verification.")
+        self.record_execution(
+            component_id,
+            "component_schema_initialize",
+            actor=actor,
+            result={"schema_version": status["schema_version"]},
+        )
+        return status
+
+    def create_component_backup(self, component_id: str, *, actor: str) -> Path:
+        component = self._registered_component(component_id)
+        source_path = Path(str(component["database_path"]))
+        if not source_path.is_file():
+            raise FileNotFoundError(source_path)
+        destination_root = self.backup_root / "components" / component_id.lower()
+        destination_root.mkdir(parents=True, exist_ok=True)
+        destination = destination_root / (
+            f"{component_id.lower()}-{utc_now_iso().replace(':', '')}-{uuid4().hex[:8]}.sqlite3"
+        )
+        source = SQLiteConnectionLayer(source_path)
+        target = SQLiteConnectionLayer(destination)
+        with source.connection(read_only=True) as source_connection:
+            with target.connection() as target_connection:
+                source_connection.backup(target_connection)
+        with target.connection(read_only=True) as verification:
+            check = verification.execute("PRAGMA integrity_check").fetchone()
+        if not check or check[0] != "ok":
+            destination.unlink(missing_ok=True)
+            raise RuntimeError("Component backup integrity verification failed.")
+        backup_id = f"{component_id}-{uuid4()}"
+        self.repository.create(
+            self.subsystem_id,
+            "component_backup",
+            backup_id,
+            {
+                "component_id": component_id,
+                "path": str(destination),
+                "checksum": sha256_file(destination),
+                "size_bytes": destination.stat().st_size,
+                "status": "VERIFIED",
+            },
+            owner=component["owner"],
+            source="database-management",
+            privacy_class="system",
+        )
+        self.record_execution(
+            component_id,
+            "component_backup",
+            actor=actor,
+            result={"backup_id": backup_id, "path": str(destination)},
+        )
+        return destination
+
+    def component_backups(self, component_id: str | None = None) -> list[dict[str, Any]]:
+        if self.current_schema_version() < self.expected_schema_version:
+            return []
+        records = self.repository.list(
+            self.subsystem_id, "component_backup", limit=1000
+        )
+        if component_id is not None:
+            records = [item for item in records if item.get("component_id") == component_id]
+        return records
+
+    def restore_component_backup(
+        self, component_id: str, backup_path: Path, *, actor: str
+    ) -> dict[str, Any]:
+        component = self._registered_component(component_id)
+        candidate = Path(backup_path).resolve()
+        allowed_root = (self.backup_root / "components" / component_id.lower()).resolve()
+        try:
+            candidate.relative_to(allowed_root)
+        except ValueError as exc:
+            raise ValueError("Backup is outside the registered component backup root.") from exc
+        if not candidate.is_file():
+            raise FileNotFoundError(candidate)
+        with SQLiteConnectionLayer(candidate).connection(read_only=True) as connection:
+            check = connection.execute("PRAGMA integrity_check").fetchone()
+        if not check or check[0] != "ok":
+            raise RuntimeError("Component restore candidate failed integrity validation.")
+        safety = self.create_component_backup(component_id, actor=actor)
+        target_path = Path(str(component["database_path"]))
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with SQLiteConnectionLayer(candidate).connection(read_only=True) as source:
+                with SQLiteConnectionLayer(target_path).connection() as target:
+                    source.backup(target)
+            with SQLiteConnectionLayer(target_path).connection(read_only=True) as verification:
+                restored_check = verification.execute("PRAGMA integrity_check").fetchone()
+            if not restored_check or restored_check[0] != "ok":
+                raise RuntimeError("Restored component failed integrity verification.")
+        except Exception:
+            with SQLiteConnectionLayer(safety).connection(read_only=True) as source:
+                with SQLiteConnectionLayer(target_path).connection() as target:
+                    source.backup(target)
+            raise
+        self.record_execution(
+            component_id,
+            "component_restore",
+            actor=actor,
+            result={"backup_path": str(candidate), "safety_backup": str(safety)},
+        )
+        return {"component_id": component_id, "restored_from": str(candidate), "safety_backup": str(safety)}
+
+    def _registered_component(self, component_id: str) -> dict[str, Any]:
+        record = self.repository.read(
+            self.subsystem_id, "component_registration", component_id
+        )
+        if record is None or record.get("_status") == "ARCHIVED":
+            raise KeyError(f"Unregistered database component: {component_id}")
+        return record
 
     def _control_plane_history(self) -> dict[str, list[dict[str, Any]]]:
         if self.current_schema_version() < self.expected_schema_version:

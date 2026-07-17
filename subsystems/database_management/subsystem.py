@@ -13,7 +13,7 @@ class DatabaseManagementSubsystem:
     """Control-plane facade; it never edits business records directly."""
 
     subsystem_id = "SUB-DATABASE-MANAGEMENT"
-    version = "1.7.0"
+    version = "1.7.1"
     statuses = ("HEALTHY", "WARNING", "DEGRADED", "FAILED", "MAINTENANCE")
 
     def __init__(
@@ -70,6 +70,28 @@ class DatabaseManagementSubsystem:
     def request_backup(self, *, actor: str, correlation_id: str = "") -> Path:
         return self.database.create_backup(actor=actor, correlation_id=correlation_id)
 
+    def registered_components(self) -> list[dict[str, Any]]:
+        return self.database.registered_components()
+
+    def component_status(self) -> list[dict[str, Any]]:
+        return self.database.component_status()
+
+    def request_component_initialization(
+        self, component_id: str, *, actor: str
+    ) -> dict[str, Any]:
+        return self.database.initialize_component(component_id, actor=actor)
+
+    def request_component_backup(self, component_id: str, *, actor: str) -> Path:
+        return self.database.create_component_backup(component_id, actor=actor)
+
+    def component_backups(self, component_id: str | None = None) -> list[dict[str, Any]]:
+        return self.database.component_backups(component_id)
+
+    def request_component_restore(
+        self, component_id: str, backup_path: Path, *, actor: str
+    ) -> dict[str, Any]:
+        return self.database.restore_component_backup(component_id, backup_path, actor=actor)
+
     def restore_candidates(self) -> list[RestoreCandidate]:
         return [
             self.database.validate_restore(Path(item["path"]))
@@ -93,6 +115,7 @@ class DatabaseManagementSubsystem:
         restores = self.database.restore_history()
         failures = self.database.failed_migrations()
         report = build_management_report(health, schema, backups, restores, failures)
+        report["registered_components"] = self.component_status()
         if record and self.database.current_schema_version() >= self.database.expected_schema_version:
             self.database.record_execution(
                 self.subsystem_id,

@@ -84,6 +84,8 @@ Index는 실제 Query와 측정 결과를 근거로 추가한다.
 
 Foundation Schema Registry는 `(module_id, entity_type, version)`으로 Validator를 등록한다. Schema v2는 기존 Table을 보존하고 다음을 추가한다.
 
+Schema v3는 component registration 및 Execution 조회 Index를 추가하고, 등록 계약을 canonical `RecordRepository`의 `component_registration` record로 관리한다. 각 도메인 Schema의 실제 version은 해당 `*_meta` Table에서 읽어 선언 version과 비교한다.
+
 - `records`: `status`, `owner`, `source`, `archived_at`, `correlation_id`
 - `database_migrations`
 - `execution_records`

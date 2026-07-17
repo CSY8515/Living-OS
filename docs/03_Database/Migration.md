@@ -98,6 +98,10 @@ COMPLETED
 
 v1.7 Migration Registry는 additive Schema Version `1 → 2`를 순차 Transaction으로 적용하고 `database_migrations`에 결과를 기록한다. 실패한 Migration은 전체 Rollback 후 `database_migration_failures`에 유형을 기록한다. Startup에서는 Migration을 적용하지 않으며 Settings의 명시적 승인 작업으로만 실행한다.
 
+## v1.7.1 Integration Migration
+
+v1.7.1은 additive Schema Version `2 → 3`을 적용하고 Product Version을 `v1.7.1`로 동기화한다. Foundation schema migration은 bootstrap에서 멱등 적용해 Execution Database를 항상 활성 상태로 유지한다. 기존 v1 업무 데이터 이관은 별도 검증 백업, dry run, checksum, 격리 검증 후 명시적으로 실행한다. Finance와 Housing의 도메인 migration ledger는 중앙 migration 기록과 함께 유지한다.
+
 실제 사용자 Database에는 이 Migration을 실행하지 않았다. 테스트에서는 격리된 임시 Database에 성공, 중복 방지, 실패 Rollback을 검증했다.
 
 ## Test Requirements

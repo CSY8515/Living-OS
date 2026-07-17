@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from subsystems.vehicle.engines.energy import EnergyEngine
 from subsystems.vehicle.engines.maintenance import MaintenanceEngine
@@ -11,6 +11,9 @@ from subsystems.vehicle.engines.schedule import ScheduleEngine
 from subsystems.vehicle.engines.storage import VehicleStorageEngine
 from subsystems.vehicle.engines.vehicle import VehicleEngine
 
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
+
 
 class VehicleSubsystem:
     """The only supported Living OS boundary for Vehicle Subsystem v1.0."""
@@ -19,11 +22,13 @@ class VehicleSubsystem:
     LIVING_OS_COMPATIBILITY = ">=1.5,<2.0"
     PRIVACY_CLASS = "sensitive"
 
-    def __init__(self, root: Path, database_path: Path | None = None) -> None:
+    def __init__(self, root: Path, database_path: Path | None = None,
+                 database_foundation: DatabaseSubsystem | None = None) -> None:
         self.root = Path(root)
         path = (Path(database_path) if database_path is not None
                 else self.root / "data" / "vehicle" / "vehicle.sqlite3")
-        store = VehicleStorageEngine(path)
+        store = VehicleStorageEngine(path, database_foundation)
+        store.register_contract(schema_version=1, migration_id="vehicle-schema-v1")
         vehicles = VehicleEngine(store)
         odometer = OdometerEngine(store, vehicles)
         maintenance = MaintenanceEngine(store, vehicles)

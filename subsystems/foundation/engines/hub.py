@@ -43,10 +43,9 @@ class LivingHub:
     def bootstrap(self, manifests: Iterable[ModuleManifest] = ()) -> None:
         if self._bootstrapped:
             return
-        # Existing user databases are not migrated as a side effect of app
-        # startup. The Database Management control plane exposes the explicit
-        # reviewed migration action.
-        self.database.initialize(apply_migrations=False)
+        # Foundation schema migrations are idempotent and activate the Execution
+        # Database. Legacy business-data migration remains an explicit operation.
+        self.database.initialize(apply_migrations=True, actor="living-os-bootstrap")
         self.modules.register_all(manifests)
         self._bootstrapped = True
 

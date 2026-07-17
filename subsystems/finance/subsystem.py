@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from subsystems.finance.engines.budget import BudgetEngine
 from subsystems.finance.engines.cash_flow import CashFlowEngine
@@ -11,6 +11,9 @@ from subsystems.finance.engines.report import ReportEngine
 from subsystems.finance.engines.savings import SavingsEngine
 from subsystems.finance.engines.storage import FinanceStorageEngine
 
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
+
 
 class FinanceSubsystem:
     """The only supported external facade for Finance Subsystem v1.0."""
@@ -18,13 +21,15 @@ class FinanceSubsystem:
     VERSION = "1.0.0"
     LIVING_OS_COMPATIBILITY = ">=1.2,<2.0"
 
-    def __init__(self, root: Path, database_path: Path | None = None) -> None:
+    def __init__(self, root: Path, database_path: Path | None = None,
+                 database_foundation: DatabaseSubsystem | None = None) -> None:
         self.root = Path(root)
         path = (
             Path(database_path) if database_path is not None
             else self.root / "data" / "finance" / "finance.sqlite3"
         )
-        store = FinanceStorageEngine(path)
+        store = FinanceStorageEngine(path, database_foundation)
+        store.register_contract(schema_version=1, migration_id="finance-schema-v1")
         ledger = LedgerEngine(store)
         budget = BudgetEngine(store, ledger)
         cash_flow = CashFlowEngine(ledger)

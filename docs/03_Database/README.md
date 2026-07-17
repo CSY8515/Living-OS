@@ -46,11 +46,14 @@ Database Subsystem과 Database Management Subsystem은 Settings/Admin Module이 
 
 ## Implemented Structure
 
-현재 v1.7 Stable에는 다음 구조가 구현되어 있다.
+현재 v1.7.1 Stable에는 다음 구조가 구현되어 있다.
 
 - `subsystems/database/`: Data Plane facade와 Connection, Migration, Repository, Execution, Integrity engines
 - `subsystems/database_management/`: Control Plane facade와 Health, Report engines
-- additive Schema v2 Migration과 Migration history
+- additive Schema v2/v3 Migration과 Migration history
+- Finance, Health, Vehicle, Housing, Food 공통 Component Adapter 및 RecordRepository 계약 등록
+- 등록 구성요소 통합 Schema/Migration/Health/Integrity/Backup/Restore/Execution 관리
+- 신규 및 상위 Architecture 계층용 Database Integration Contract와 Bootstrap Template
 - CRUD, Search, Soft Archive, Transaction, optimistic concurrency
 - Execution, Backup, Restore history와 required indexes
 - checksum·Manifest 검증 Backup과 staging·safety backup·Integrity Restore
@@ -74,5 +77,5 @@ Database Subsystem과 Database Management Subsystem은 Settings/Admin Module이 
 - Version: `1.7.0-rc`
 - Status: `REVIEW`
 - Scope: Implementation, Validation, Testing, Release Preparation
-- Production: v1.6 Stable 유지
-- Pending: User Approval, Commit, Push, Release, Deploy, Stable Verification, Archive
+- Production target: v1.7.1 Stable
+- Release workflow: approved; Commit, Push, Release, Deploy, Stable Verification, Archive 진행

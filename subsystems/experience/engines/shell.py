@@ -32,7 +32,7 @@ from subsystems.foundation.engines.hub import LivingHub
 from subsystems.operations.engines.catalog import V17_STABLE_MANIFESTS
 
 
-VERSION = "v1.7 Stable"
+VERSION = "v1.7.1 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -53,7 +53,7 @@ def _finance() -> FinanceSubsystem:
 
     @st.cache_resource
     def build_finance() -> FinanceSubsystem:
-        return FinanceSubsystem(ROOT)
+        return FinanceSubsystem(ROOT, database_foundation=_hub().database)
 
     return build_finance()
 
@@ -63,7 +63,7 @@ def _food() -> FoodSubsystem:
 
     @st.cache_resource
     def build_food() -> FoodSubsystem:
-        return FoodSubsystem(ROOT)
+        return FoodSubsystem(ROOT, database_foundation=_hub().database)
 
     return build_food()
 
@@ -73,7 +73,7 @@ def _health() -> HealthSubsystem:
 
     @st.cache_resource
     def build_health() -> HealthSubsystem:
-        return HealthSubsystem(ROOT)
+        return HealthSubsystem(ROOT, database_foundation=_hub().database)
 
     return build_health()
 
@@ -83,7 +83,7 @@ def _housing() -> HousingSubsystem:
 
     @st.cache_resource
     def build_housing() -> HousingSubsystem:
-        return HousingSubsystem(ROOT)
+        return HousingSubsystem(ROOT, database_foundation=_hub().database)
 
     return build_housing()
 
@@ -93,7 +93,7 @@ def _vehicle() -> VehicleSubsystem:
 
     @st.cache_resource
     def build_vehicle() -> VehicleSubsystem:
-        return VehicleSubsystem(ROOT)
+        return VehicleSubsystem(ROOT, database_foundation=_hub().database)
 
     return build_vehicle()
 

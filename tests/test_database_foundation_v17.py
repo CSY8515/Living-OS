@@ -35,7 +35,7 @@ class DatabaseFoundationTests(unittest.TestCase):
 
     def initialize(self) -> None:
         result = self.database.initialize(apply_migrations=True, actor="test")
-        self.assertEqual(result["schema_version"], 2)
+        self.assertEqual(result["schema_version"], 3)
 
     def test_initialization_is_idempotent_and_creates_required_schema(self) -> None:
         self.initialize()
@@ -98,7 +98,7 @@ class DatabaseFoundationTests(unittest.TestCase):
             SQLiteConnectionLayer(self.database_path),
             (
                 DatabaseMigration(
-                    3,
+                    4,
                     "forced_failure",
                     (
                         "CREATE TABLE should_rollback(id INTEGER PRIMARY KEY)",
@@ -114,8 +114,8 @@ class DatabaseFoundationTests(unittest.TestCase):
                 "SELECT 1 FROM sqlite_master WHERE type='table' AND name='should_rollback'"
             ).fetchone()
         self.assertIsNone(table)
-        self.assertEqual(registry.failures()[0]["version"], 3)
-        self.assertEqual(self.database.current_schema_version(), 2)
+        self.assertEqual(registry.failures()[0]["version"], 4)
+        self.assertEqual(self.database.current_schema_version(), 3)
 
     def test_backup_restore_and_failure_recording(self) -> None:
         self.initialize()
@@ -201,7 +201,7 @@ class DatabaseManagementTests(unittest.TestCase):
         after = self.management.health_check(record=True, actor="test")
         self.assertEqual(after["status"], "HEALTHY")
         registry = self.management.schema_registry()
-        self.assertEqual(registry["schema_version"], 2)
+        self.assertEqual(registry["schema_version"], 3)
         self.assertEqual(self.management.migration_status()["pending"], [])
 
     def test_backup_listing_restore_preflight_and_management_report(self) -> None:
@@ -213,7 +213,7 @@ class DatabaseManagementTests(unittest.TestCase):
         self.assertTrue(any(candidate.path.resolve() == backup.resolve() for candidate in candidates))
         report = self.management.operational_report(record=True, actor="test")
         self.assertEqual(report["database_status"], "HEALTHY")
-        self.assertEqual(report["schema_status"]["current"], 2)
+        self.assertEqual(report["schema_status"]["current"], 3)
         self.assertIn("recommendations", report)
         self.assertIn(
             "management_report",

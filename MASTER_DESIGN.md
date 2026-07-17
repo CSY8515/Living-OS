@@ -2,6 +2,8 @@
 
 Mission: synchronize the shared Architecture foundation and complete the Database and Database Management Subsystems without adding v1.8 features or removing stable behavior.
 
+Release status: Living OS v1.7.1 Database Foundation Integration Candidate. GitHub publication and Production deployment require separate user approval.
+
 Living OS is one Module. Its implementation unit is the Subsystem; Subsystems contain Engines; behavior is expressed by Functions and methods.
 
 Contracts: preserve features, public imports, JSON/JSONL/report/settings/registry/Finance/Housing structures, explicit writes, draft-only AI, verified migration/restore, matching docs, and runtime placement below subsystems/.
@@ -16,9 +18,15 @@ Database and Database Management are independent peer Subsystems owned by the Se
 
 The Database Subsystem provides the SQLite connection and transaction boundary, additive versioned migrations, canonical Record Repository, Metadata, Integrity checks, verified Backup/Restore, and Execution records. Schema v2 adds record lifecycle metadata, migration history, execution records, backup history, restore history, and required indexes without deleting existing data.
 
-The Database Management Subsystem provides read-only Health, Schema Registry, Migration state, Backup state, Restore preflight, Performance/Capacity observations, explicit maintenance requests, and operational reports. Startup never applies the v1.7 migration automatically. Migration, Backup, Restore, recorded Health Check, and Report generation are explicit owner actions in Settings.
+The Database Management Subsystem provides read-only Health, Schema Registry, Migration state, Backup state, Restore preflight, Performance/Capacity observations, explicit maintenance requests, and operational reports. In v1.7.1, additive Foundation schema migrations run idempotently at bootstrap to keep the Execution Database operational; legacy business-data migration and every Backup/Restore remain explicit reviewed operations.
 
-Finance, Health, Housing, Vehicle, and Food retain their independent SQLite stores and public facades in v1.7. Their full conversion to the common Repository is a later, separately approved migration; v1.7 verifies compatibility and preserves all existing data paths.
+The v1.7 statement that these stores were independent is retained as historical context; v1.7.1 supersedes it with the integration contract below.
+
+## Database Foundation Integration v1.7.1
+
+Finance, Health, Housing, Vehicle, and Food retain domain-owned schemas and public facades but use the shared `ComponentDatabaseAdapter` for SQLite connections and transactions. Their contracts are persisted through the canonical `RecordRepository`; the Execution Database records component writes. Database Management provides a unified control plane for registration, schema, migration, health, integrity, backup, restore, and execution state without owning business logic.
+
+Schema v3 is the v1.7.1 integration marker. New Knowledge, Routine, Investment, Job, Personal Growth, and Collaboration components, and every data-owning OS System, Capability, Module, Subsystem, Engine Group, Engine, or Function, must satisfy `docs/03_Database/Database_Integration_Contract.md` at bootstrap. Direct component-level SQLite connections are prohibited. v1.8 work is outside this release.
 
 ## Official reference subsystem
 

@@ -1,30 +1,26 @@
 from __future__ import annotations
 
-import sqlite3
-from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import TYPE_CHECKING, Any
 
+from subsystems.database.engines.component import ComponentDatabaseAdapter
 from subsystems.vehicle.engines.validation import utc_now_iso
+
+if TYPE_CHECKING:
+    from subsystems.database.subsystem import DatabaseSubsystem
 
 
 SCHEMA_VERSION = 1
 
 
-class VehicleStorageEngine:
-    def __init__(self, database_path: Path) -> None:
-        self.database_path = Path(database_path)
-
-    @property
-    def initialized(self) -> bool:
-        return self.database_path.is_file()
-
-    def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.database_path, timeout=30)
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA foreign_keys = ON")
-        connection.execute("PRAGMA journal_mode = WAL")
-        return connection
+class VehicleStorageEngine(ComponentDatabaseAdapter):
+    def __init__(self, database_path: Path, foundation: DatabaseSubsystem | None = None) -> None:
+        super().__init__(
+            database_path,
+            component_id="SUB-VEHICLE",
+            display_name="Vehicle Subsystem",
+            foundation=foundation,
+        )
 
     def initialize(self) -> None:
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
@@ -91,21 +87,7 @@ class VehicleStorageEngine:
             raise
         finally:
             connection.close()
-
-    @contextmanager
-    def transaction(self) -> Iterator[sqlite3.Connection]:
-        if not self.initialized:
-            self.initialize()
-        connection = self._connect()
-        try:
-            connection.execute("BEGIN IMMEDIATE")
-            yield connection
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            raise
-        finally:
-            connection.close()
+        self.register_contract(schema_version=SCHEMA_VERSION, migration_id="vehicle-schema-v1")
 
     def query(self, sql: str, parameters: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         if not self.initialized:
