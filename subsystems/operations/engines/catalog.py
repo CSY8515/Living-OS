@@ -120,6 +120,23 @@ V18_STABLE_MANIFESTS = V17_STABLE_MANIFESTS + (
 
 V18_DEVELOPMENT_MANIFESTS = V18_STABLE_MANIFESTS
 
+V19_STABLE_MANIFESTS = V18_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "investment", "Investment Subsystem", "1.0.0", ">=1.9,<2.0",
+        "Independent investment positions, valuation, lifecycle, and management.",
+        status="enabled", capabilities=("crud", "valuation", "portfolio", "management"),
+        privacy_class="sensitive",
+    ),
+    ModuleManifest(
+        "job", "Job Subsystem", "1.0.0", ">=1.9,<2.0",
+        "Independent job opportunity pipeline, actions, lifecycle, and management.",
+        status="enabled", capabilities=("crud", "search", "pipeline", "management"),
+        privacy_class="sensitive",
+    ),
+)
+
+V19_DEVELOPMENT_MANIFESTS = V19_STABLE_MANIFESTS
+
 # Compatibility alias for the approved pre-release name.
 V17_RELEASE_CANDIDATE_MANIFESTS = V17_STABLE_MANIFESTS
 

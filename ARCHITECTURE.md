@@ -32,6 +32,12 @@ Existing Module databases remain independently owned and unchanged. v1.7 perform
 
 Previous public paths alias the same canonical Python module objects, preserving public/private symbols, monkeypatching, and exception identity. V2_STABLE_MANIFESTS remains an alias of V12_STABLE_MANIFESTS. This move performs no data migration.
 
+## Investment and Job Subsystems v1.9
+
+Investment and Job are independent data-owning Subsystems below Living OS. Their only supported external objects are `InvestmentSubsystem` and `JobSubsystem`. Each owns its validation, lifecycle, schema meaning, and management projection while using the shared Database Foundation adapter for connections, transactions, registration, integrity, execution records, backup, and restore.
+
+Investment and Job may depend only on their own code plus Database and Foundation contracts. They do not import one another or Finance, Health, Vehicle, Housing, Food, Knowledge, or Routine. Experience may call their public facades, but UI code owns no persistence. Reads are lazy, writes are transactional, schemas and migrations are additive and idempotent, and no legacy data migration runs automatically.
+
 ## Finance Subsystem v1.0 reference architecture
 
 Finance is an independently mountable subsystem below Living OS. Its only supported external object is FinanceSubsystem. Storage, Validation, Ledger, Budget, Cash Flow, Savings, Report, and Migration Engines are composed internally.

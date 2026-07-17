@@ -1,20 +1,22 @@
 # Living OS Version
 
-Workspace version: Living OS v1.8 Stable
+Workspace version: Living OS v1.9 Stable
 
-Stable verification date: 2026-07-17
+Implementation verification date: 2026-07-17
 
-Production version: Living OS v1.8 Stable
+Production version: Living OS v1.9 Stable
 
-Status: Living OS v1.8 Stable is committed, pushed, published as GitHub Release v1.8, archived, deployed to Streamlit Production, and production-smoke verified.
+Status: Living OS v1.9 Stable adds Investment and Job, preserves the v1.8 Stable baseline, and is approved for GitHub publication and Streamlit Production deployment.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
 
-Database Foundation: Database and Database Management are independent peer Subsystems under Settings/Admin. The app exposes the v1.8 Stable management surface; real user database migration is explicit and never runs on startup.
+Database Foundation: Database and Database Management are independent peer Subsystems under Settings/Admin. The app exposes the v1.9 Stable management surface; real user database migration is explicit and never runs on startup.
 
 Stable additions: Knowledge Subsystem v1.0.0 and Routine Subsystem v1.0.0 are independent data owners registered through the common Database Foundation adapter, registry, execution database, health, backup, and restore contracts.
+
+Stable additions: Investment Subsystem v1.0.0 and Job Subsystem v1.0.0 are independent data owners with management surfaces, registered through the unchanged Database Foundation adapter, registry, Execution Database, integrity, backup, and restore contracts.
 
 All public behavior and data contracts on the v1.1 stable baseline are retained. Code, docs, compilation, unit, integration, architecture, and Streamlit smoke verification are complete.
 

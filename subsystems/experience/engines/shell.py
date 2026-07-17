@@ -25,6 +25,10 @@ from subsystems.experience.engines.pages import (
     render_knowledge_management,
     render_routine_subsystem,
     render_routine_management,
+    render_investment_subsystem,
+    render_investment_management,
+    render_job_subsystem,
+    render_job_management,
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
@@ -34,11 +38,13 @@ from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
 from subsystems.knowledge import KnowledgeSubsystem
 from subsystems.routine import RoutineSubsystem
+from subsystems.investment import InvestmentSubsystem
+from subsystems.job import JobSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V18_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V19_STABLE_MANIFESTS
 
 
-VERSION = "v1.8 Stable"
+VERSION = "v1.9 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -48,7 +54,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V18_STABLE_MANIFESTS)
+        hub.bootstrap(V19_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -118,11 +124,26 @@ def _routine_subsystem() -> RoutineSubsystem:
     return build()
 
 
+def _investment_subsystem() -> InvestmentSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> InvestmentSubsystem: return InvestmentSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
+def _job_subsystem() -> JobSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> JobSubsystem: return JobSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
 def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
                      health: HealthSubsystem,
                      housing: HousingSubsystem,
                      vehicle: VehicleSubsystem, knowledge: KnowledgeSubsystem,
-                     routine: RoutineSubsystem) -> dict[str, Callable[[], None]]:
+                     routine: RoutineSubsystem, investment: InvestmentSubsystem,
+                     job: JobSubsystem) -> dict[str, Callable[[], None]]:
     return {
         "Dashboard": lambda: render_dashboard(hub),
         "Daily Log": lambda: render_journal(hub),
@@ -142,6 +163,10 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
         "Routine": lambda: render_routine_subsystem(routine),
         "Knowledge Management": lambda: render_knowledge_management(knowledge),
         "Routine Management": lambda: render_routine_management(routine),
+        "Investment": lambda: render_investment_subsystem(investment),
+        "Job": lambda: render_job_subsystem(job),
+        "Investment Management": lambda: render_investment_management(investment),
+        "Job Management": lambda: render_job_management(job),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -199,7 +224,8 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
                          health: HealthSubsystem,
                          housing: HousingSubsystem,
                          vehicle: VehicleSubsystem, knowledge: KnowledgeSubsystem,
-                         routine: RoutineSubsystem) -> dict[str, Callable[[], None]]:
+                         routine: RoutineSubsystem, investment: InvestmentSubsystem,
+                         job: JobSubsystem) -> dict[str, Callable[[], None]]:
     from subsystems.compatibility.engines.ai_analysis import render_ai_analysis
     from subsystems.compatibility.engines.analytics import render_analytics as render_legacy_analytics
     from subsystems.compatibility.engines.archive import render_archive
@@ -229,6 +255,10 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
         "Routine": lambda: render_routine_subsystem(routine),
         "Knowledge Management": lambda: render_knowledge_management(knowledge),
         "Routine Management": lambda: render_routine_management(routine),
+        "Investment": lambda: render_investment_subsystem(investment),
+        "Job": lambda: render_job_subsystem(job),
+        "Investment Management": lambda: render_investment_management(investment),
+        "Job Management": lambda: render_job_management(job),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -247,11 +277,13 @@ def main() -> None:
     vehicle = _vehicle()
     knowledge = _knowledge_subsystem()
     routine = _routine_subsystem()
+    investment = _investment_subsystem()
+    job = _job_subsystem()
     if not _authorize(hub):
         return
     migrated = hub.v1_migration_complete
-    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine) if migrated
-             else _compatibility_pages(hub, finance, food, health, housing, vehicle, knowledge, routine))
+    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job) if migrated
+             else _compatibility_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job))
 
     module_by_page = {
         "Dashboard": "dashboard",
@@ -272,6 +304,10 @@ def main() -> None:
         "Routine": "routine",
         "Knowledge Management": "knowledge_subsystem",
         "Routine Management": "routine",
+        "Investment": "investment",
+        "Job": "job",
+        "Investment Management": "investment",
+        "Job Management": "job",
         "Module Manager": "module_manager",
         "Settings": "settings",
     }

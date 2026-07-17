@@ -111,8 +111,9 @@ class DatabaseIntegrationV171Tests(unittest.TestCase):
         self.assertEqual(set(registry["contract_required_layers"]), ALLOWED_COMPONENT_LAYERS)
         self.assertEqual(
             set(registry["required_future_components"]),
-            {"Investment", "Job", "Personal Growth", "Collaboration"},
+            {"Personal Growth", "Collaboration"},
         )
+        self.assertTrue({"SUB-INVESTMENT", "SUB-JOB"}.issubset(registry["runtime_components"]))
         self.assertTrue({"SUB-KNOWLEDGE", "SUB-ROUTINE"}.issubset(registry["runtime_components"]))
         template = json.loads(
             (Path(__file__).parents[1] / "config" / "templates" / "database_component.json").read_text(

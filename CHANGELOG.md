@@ -2,7 +2,16 @@
 
 All notable Living OS changes are recorded in this file.
 
-## v1.8 Development
+## v1.9 Stable
+
+- Added independent Investment and Job Subsystems using the common versioned RecordRepository and Database Contract.
+- Added investment positions, valuation, lifecycle, currency-separated portfolio management, and administration.
+- Added job opportunities, search, pipeline transitions, due actions, and administration.
+- Registered `SUB-INVESTMENT` and `SUB-JOB` with Execution Database, integrity, backup, restore, and Database Management.
+- Added Investment, Job, Investment Management, and Job Management Streamlit pages.
+- Preserved the complete v1.8 Stable baseline and passed 116 automated tests.
+
+## v1.8 Stable
 
 - Added independent Knowledge and Routine Subsystems with dedicated SQLite schemas behind the shared Database Foundation adapter.
 - Added Knowledge CRUD, search, classification, archive, validation, health, execution logging, and management metrics.

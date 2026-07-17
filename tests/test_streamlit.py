@@ -19,6 +19,8 @@ PERSISTED_FILES = [
     ROOT / "data" / "food" / "food.sqlite3",
     ROOT / "data" / "knowledge" / "knowledge.sqlite3",
     ROOT / "data" / "routine" / "routine.sqlite3",
+    ROOT / "data" / "investment" / "investment.sqlite3",
+    ROOT / "data" / "job" / "job.sqlite3",
     ROOT / "data" / "housing_candidates.json",
     ROOT / "logs" / "decision_log.jsonl",
     ROOT / "reports" / "report_index.json",
@@ -44,6 +46,10 @@ PAGES = [
     "Routine",
     "Knowledge Management",
     "Routine Management",
+    "Investment",
+    "Job",
+    "Investment Management",
+    "Job Management",
     "Module Manager",
     "Settings",
 ]
@@ -61,7 +67,7 @@ class StreamlitPageSmokeTests(unittest.TestCase):
     def test_every_page_renders_without_errors_or_page_load_writes(self) -> None:
         before = fingerprints()
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
-        self.assertEqual(app.sidebar.caption[0].value, "v1.8 Stable")
+        self.assertEqual(app.sidebar.caption[0].value, "v1.9 Stable")
         self.assertFalse(app.exception)
 
         for page in PAGES:

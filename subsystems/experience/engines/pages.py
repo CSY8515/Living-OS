@@ -12,6 +12,8 @@ from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
 from subsystems.knowledge import KnowledgeSubsystem
 from subsystems.routine import RoutineSubsystem
+from subsystems.investment import InvestmentSubsystem
+from subsystems.job import JobSubsystem
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -34,6 +36,124 @@ from subsystems.operations.engines.reports import ReportsService
 
 def _tags(raw: str) -> list[str]:
     return [tag.strip() for tag in raw.split(",") if tag.strip()]
+
+
+def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
+    import streamlit as st
+    st.title("Investment")
+    st.caption("Owner-managed investment positions and valuations. Values are grouped by currency.")
+    with st.expander("Add Investment"):
+        with st.form("investment_create"):
+            name = st.text_input("Name")
+            symbol = st.text_input("Symbol")
+            asset_type = st.selectbox("Asset Type", ["STOCK", "ETF", "FUND", "BOND", "CRYPTO", "CASH", "OTHER"])
+            quantity = st.number_input("Quantity", min_value=0.0, value=0.0)
+            unit_cost = st.number_input("Unit Cost", min_value=0.0, value=0.0)
+            current_price = st.number_input("Current Price", min_value=0.0, value=0.0)
+            currency = st.text_input("Currency", value="KRW")
+            active = st.checkbox("Active position", value=True)
+            submitted = st.form_submit_button("Add")
+        if submitted:
+            try:
+                investment.create(name, symbol=symbol, asset_type=asset_type, quantity=quantity,
+                                  unit_cost=unit_cost, current_price=current_price, currency=currency.upper(),
+                                  status="ACTIVE" if active else "WATCHLIST")
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Investment added.")
+                st.rerun()
+    records = investment.list(include_archived=True)
+    for item in records:
+        value = item["quantity"] * item["current_price"]
+        with st.expander(f"{item['name']} · {item['status']} · {value:,.2f} {item['currency']}"):
+            st.caption(f"{item['asset_type']} · {item['symbol'] or 'no symbol'}")
+            price = st.number_input("Current Price", min_value=0.0, value=float(item["current_price"]),
+                                    key=f"investment_price_{item['investment_id']}")
+            actions = st.columns(2)
+            if actions[0].button("Save Valuation", key=f"investment_value_{item['investment_id']}"):
+                investment.update_valuation(item["investment_id"], price)
+                st.rerun()
+            if actions[1].button("Archive", key=f"investment_archive_{item['investment_id']}"):
+                investment.archive(item["investment_id"])
+                st.rerun()
+    if not records:
+        st.info("No investment records yet.")
+
+
+def render_investment_management(investment: InvestmentSubsystem) -> None:
+    import streamlit as st
+    st.title("Investment Management")
+    summary = investment.management_summary()
+    cols = st.columns(5)
+    cols[0].metric("Total", summary["total"])
+    cols[1].metric("Active", summary["active"])
+    cols[2].metric("Archived", summary["archived"])
+    cols[3].metric("Executions", summary["execution_success"])
+    cols[4].metric("Registry", "REGISTERED" if summary["registry_registered"] else "MISSING")
+    st.write("Portfolio valuation by currency")
+    st.json(summary["valuation_by_currency"])
+    st.write("Status and asset allocation")
+    st.json({"status": summary["by_status"], "asset_type": summary["by_asset_type"]})
+    st.write("Database Adapter")
+    st.json(summary["health"])
+
+
+def render_job_subsystem(job: JobSubsystem) -> None:
+    import streamlit as st
+    st.title("Job")
+    st.caption("Job opportunities, applications, interviews, offers, and next actions.")
+    query = st.text_input("Search Jobs", key="job_search")
+    with st.expander("Add Job"):
+        with st.form("job_create"):
+            company = st.text_input("Company")
+            title = st.text_input("Title")
+            employment_type = st.selectbox("Employment Type", ["FULL_TIME", "PART_TIME", "CONTRACT", "FREELANCE", "INTERNSHIP", "OTHER"])
+            location = st.text_input("Location")
+            source = st.text_input("Source")
+            notes = st.text_area("Notes")
+            submitted = st.form_submit_button("Add")
+        if submitted:
+            try:
+                job.create(company, title, employment_type=employment_type, location=location, source=source, notes=notes)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                st.success("Job added.")
+                st.rerun()
+    records = job.search(query, include_archived=True) if query else job.list(include_archived=True)
+    statuses = ["SAVED", "APPLIED", "INTERVIEW", "OFFER", "ACCEPTED", "REJECTED", "WITHDRAWN", "ARCHIVED"]
+    for item in records:
+        with st.expander(f"{item['company']} · {item['title']} · {item['status']}"):
+            st.caption(f"{item['employment_type']} · {item['location'] or 'location not set'}")
+            new_status = st.selectbox("Status", statuses, index=statuses.index(item["status"]),
+                                      key=f"job_status_{item['job_id']}")
+            if st.button("Save Status", key=f"job_save_{item['job_id']}"):
+                job.transition(item["job_id"], new_status)
+                st.rerun()
+            if item["notes"]:
+                st.write(item["notes"])
+    if not records:
+        st.info("No job records match this view.")
+
+
+def render_job_management(job: JobSubsystem) -> None:
+    import streamlit as st
+    st.title("Job Management")
+    summary = job.management_summary()
+    cols = st.columns(6)
+    cols[0].metric("Total", summary["total"])
+    cols[1].metric("Pipeline", summary["active_pipeline"])
+    cols[2].metric("Due Actions", summary["due_actions"])
+    cols[3].metric("Offers", summary["offers"])
+    cols[4].metric("Accepted", summary["accepted"])
+    cols[5].metric("Registry", "REGISTERED" if summary["registry_registered"] else "MISSING")
+    st.write("Pipeline status")
+    st.json(summary["by_status"])
+    st.write("Upcoming actions")
+    st.dataframe(summary["upcoming_actions"])
+    st.write("Database Adapter")
+    st.json(summary["health"])
 
 
 def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
@@ -588,7 +708,7 @@ def render_settings(hub: LivingHub) -> None:
     status_columns[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
 
     if migration["pending"]:
-        st.warning("A reviewed additive Database Foundation migration is pending for v1.8 Stable.")
+        st.warning("A reviewed additive Database Foundation migration is pending for v1.9 Stable.")
         st.json(migration["pending"])
         migration_approval = st.checkbox(
             "I reviewed the pending database migration and approve applying it.",
@@ -606,7 +726,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for v1.8 Stable.")
+        st.success("Database schema is current for v1.9 Stable.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()

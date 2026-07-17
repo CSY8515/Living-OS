@@ -1,5 +1,9 @@
 # Database Integration Contract — Living OS v1.7.1
 
+## v1.9 contract addendum
+
+`SUB-INVESTMENT` and `SUB-JOB` are active runtime components. Each declares its own database path, schema version 1, unique migration ID, owner, and `record-repository` integration mode. Their adapters attach to the unchanged Database Foundation control contract so Database Management can inspect, initialize, back up, and restore them without reading or changing business rows.
+
 ## Purpose
 
 Every data-owning Living OS component uses the Database Foundation from its creation. This contract applies to OS System, Capability, Module, Subsystem, Engine Group, Engine, and Function layers. It does not transfer domain ownership to the Database Subsystem.
