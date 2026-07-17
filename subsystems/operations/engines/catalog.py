@@ -105,6 +105,21 @@ V16_STABLE_MANIFESTS = V15_STABLE_MANIFESTS + (
 # The Module catalog therefore remains compatible with the v1.6 Stable set.
 V17_STABLE_MANIFESTS = V16_STABLE_MANIFESTS
 
+V18_STABLE_MANIFESTS = V17_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "knowledge_subsystem", "Knowledge Subsystem", "1.0.0", ">=1.8,<2.0",
+        "Independent structured knowledge records, search, lifecycle, and management.",
+        status="enabled", capabilities=("crud", "search", "classification", "management"),
+    ),
+    ModuleManifest(
+        "routine", "Routine Subsystem", "1.0.0", ">=1.8,<2.0",
+        "Independent recurring schedules, executions, streaks, and management.",
+        status="enabled", capabilities=("crud", "schedule", "execute", "management"),
+    ),
+)
+
+V18_DEVELOPMENT_MANIFESTS = V18_STABLE_MANIFESTS
+
 # Compatibility alias for the approved pre-release name.
 V17_RELEASE_CANDIDATE_MANIFESTS = V17_STABLE_MANIFESTS
 

@@ -1,6 +1,14 @@
-# Living OS v1.7.1 Master Design — Stable
+# Living OS v1.8 Master Design — Stable
 
-Mission: synchronize the shared Architecture foundation and complete the Database and Database Management Subsystems without adding v1.8 features or removing stable behavior.
+## v1.8 development increment
+
+Living OS v1.8 adds Knowledge and Routine as independent Subsystems. Each owns its domain model, business rules, repository, schema, migration ledger, health response, execution outcomes, and management projection. Neither subsystem accesses another domain's private storage.
+
+Both depend downward on the public Database Foundation adapter. Database owns shared connection and transaction mechanics; Database Management owns registry, integrity, migration visibility, backup, restore, and common operational status. Domain data ownership remains with Knowledge and Routine.
+
+The Streamlit shell adds Knowledge, Routine, Knowledge Management, and Routine Management while retaining all existing pages and contracts. This increment is additive and backward compatible.
+
+Mission: extend the shared Architecture foundation with Knowledge and Routine without removing stable behavior.
 
 Release status: Living OS v1.7.1 Database Foundation Integration Stable. Publication and Production deployment approved on 2026-07-17.
 

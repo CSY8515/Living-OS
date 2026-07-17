@@ -10,6 +10,8 @@ from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
+from subsystems.knowledge import KnowledgeSubsystem
+from subsystems.routine import RoutineSubsystem
 
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
@@ -34,12 +36,94 @@ def _tags(raw: str) -> list[str]:
     return [tag.strip() for tag in raw.split(",") if tag.strip()]
 
 
+def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
+    import streamlit as st
+    st.title("Knowledge")
+    st.caption("Structured information, notes, learning material, ideas, and sources.")
+    search, status = st.columns([3, 1])
+    query = search.text_input("Search Knowledge", key="knowledge_subsystem_search")
+    selected_status = status.selectbox("Status", ["All", "NEW", "REVIEW", "ORGANIZED", "ACTIVE", "ARCHIVED"])
+    with st.expander("Create Knowledge", expanded=False):
+        with st.form("knowledge_subsystem_create"):
+            title = st.text_input("Title")
+            content = st.text_area("Content")
+            summary = st.text_input("Summary")
+            category = st.text_input("Category", value="General")
+            tags = st.text_input("Tags", placeholder="comma, separated")
+            importance = st.slider("Importance", 1, 5, 3)
+            submitted = st.form_submit_button("Create")
+        if submitted:
+            try: knowledge.create(title, content, summary=summary, category=category, tags=_tags(tags), importance=importance)
+            except ValueError as exc: st.error(str(exc))
+            else: st.success("Knowledge created."); st.rerun()
+    records = knowledge.search(query, include_archived=True) if query else knowledge.list(include_archived=True)
+    if selected_status != "All": records = [item for item in records if item["status"] == selected_status]
+    for item in records:
+        with st.expander(f"{item['title']} · {item['status']} · importance {item['importance']}"):
+            st.write(item["content"]); st.caption(f"{item['category']} · {', '.join(item['tags']) or 'no tags'}")
+            new_status = st.selectbox("Update status", ["NEW", "REVIEW", "ORGANIZED", "ACTIVE", "ARCHIVED"], index=["NEW", "REVIEW", "ORGANIZED", "ACTIVE", "ARCHIVED"].index(item["status"]), key=f"knowledge_status_{item['record_id']}")
+            if st.button("Save Status", key=f"knowledge_save_{item['record_id']}"):
+                if new_status == "ARCHIVED": knowledge.archive(item["record_id"])
+                else: knowledge.update(item["record_id"], status=new_status)
+                st.rerun()
+    if not records: st.info("No Knowledge records match this view.")
+
+
+def render_knowledge_management(knowledge: KnowledgeSubsystem) -> None:
+    import streamlit as st
+    st.title("Knowledge Management")
+    summary = knowledge.management_summary(); cols = st.columns(5)
+    cols[0].metric("Total", summary["total"]); cols[1].metric("Archived", summary["archived"])
+    cols[2].metric("Execution Success", summary["execution_success"]); cols[3].metric("Execution Failure", summary["execution_failure"])
+    cols[4].metric("Registry", "REGISTERED" if summary["registry_registered"] else "MISSING")
+    st.write("Status"); st.json(summary["by_status"]); st.write("Categories"); st.json(summary["by_category"])
+    st.write("Database Adapter"); st.json(summary["health"])
+
+
+def render_routine_subsystem(routine: RoutineSubsystem) -> None:
+    import streamlit as st
+    st.title("Routine")
+    st.caption("Recurring personal, work, learning, and health routines.")
+    with st.expander("Create Routine"):
+        with st.form("routine_subsystem_create"):
+            name = st.text_input("Name"); description = st.text_area("Description"); category = st.text_input("Category", value="General")
+            frequency = st.selectbox("Frequency", ["DAILY", "WEEKLY", "MONTHLY", "INTERVAL"]); schedule_rule = st.text_input("Interval days", value="1")
+            priority = st.slider("Priority", 1, 5, 3); active = st.checkbox("Activate now", value=True); submitted = st.form_submit_button("Create")
+        if submitted:
+            try: routine.create(name, description=description, category=category, frequency=frequency, schedule_rule=schedule_rule if frequency == "INTERVAL" else "", priority=priority, status="ACTIVE" if active else "DRAFT")
+            except ValueError as exc: st.error(str(exc))
+            else: st.success("Routine created."); st.rerun()
+    routines = routine.list(include_archived=True)
+    for item in routines:
+        with st.expander(f"{item['name']} · {item['status']} · streak {item['streak']}"):
+            st.write(item["description"]); st.caption(f"{item['frequency']} · next due {item.get('next_due_at') or '-'}")
+            actions = st.columns(5)
+            if actions[0].button("Schedule", key=f"routine_schedule_{item['routine_id']}"): routine.schedule(item["routine_id"]); st.rerun()
+            if actions[1].button("Pause", key=f"routine_pause_{item['routine_id']}"): routine.pause(item["routine_id"]); st.rerun()
+            if actions[2].button("Archive", key=f"routine_archive_{item['routine_id']}"): routine.archive(item["routine_id"]); st.rerun()
+            pending = [entry for entry in routine.executions(routine_id=item["routine_id"]) if entry["status"] == "PENDING"]
+            if pending:
+                execution_id = pending[0]["execution_id"]
+                if actions[3].button("Complete", key=f"routine_complete_{execution_id}"): routine.complete(execution_id); st.rerun()
+                if actions[4].button("Skip", key=f"routine_skip_{execution_id}"): routine.skip(execution_id); st.rerun()
+    if not routines: st.info("No routines yet.")
+
+
+def render_routine_management(routine: RoutineSubsystem) -> None:
+    import streamlit as st
+    st.title("Routine Management")
+    summary = routine.management_summary(); cols = st.columns(6)
+    cols[0].metric("Total", summary["total"]); cols[1].metric("Due", summary["due"]); cols[2].metric("Completed", summary["completion_count"])
+    cols[3].metric("Failed", summary["failure_count"]); cols[4].metric("Best Streak", summary["max_streak"]); cols[5].metric("Registry", "REGISTERED" if summary["registry_registered"] else "MISSING")
+    st.json(summary["by_status"]); st.write("Database Adapter"); st.json(summary["health"]); st.write("Recent execution results"); st.dataframe(summary["recent_executions"])
+
+
 def render_dashboard(hub: LivingHub) -> None:
     import streamlit as st
 
     data = dashboard_projection(hub)
     st.title("Living OS")
-    st.caption("v1.2 · Subsystem Architecture · compatible canonical state")
+    st.caption("Subsystem Architecture · compatible canonical state")
     st.success("System Status: NORMAL")
     cols = st.columns(5)
     cols[0].metric("Journal", data["journal_count"])
@@ -465,9 +549,9 @@ def render_settings(hub: LivingHub) -> None:
                     st.rerun()
         st.caption("Encrypted transport must be provided by the selected deployment profile for remote access.")
     st.divider()
-    st.subheader("Living OS v1 Compatibility Migration")
+    st.subheader("Living OS Compatibility Migration")
     if hub.v1_migration_complete:
-        st.success("v1 compatibility migration is complete. The v1.2 Hub store is canonical.")
+        st.success("Compatibility migration is complete. The Hub store is canonical.")
     else:
         st.warning("The application is operating in v1 compatibility mode. Migration requires review and explicit approval.")
         if st.button("Run Migration Dry Run"):
@@ -522,7 +606,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for v1.7.1 Stable.")
+        st.success("Database schema is current for the v1.8 development baseline.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()

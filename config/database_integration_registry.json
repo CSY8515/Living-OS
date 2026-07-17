@@ -1,8 +1,8 @@
 {
-  "version": "1.7.1",
+  "version": "1.8",
   "contract": "docs/03_Database/Database_Integration_Contract.md",
-  "runtime_components": ["SUB-FINANCE", "SUB-HEALTH", "SUB-VEHICLE", "SUB-HOUSING", "SUB-FOOD"],
-  "required_future_components": ["Knowledge", "Routine", "Investment", "Job", "Personal Growth", "Collaboration"],
+  "runtime_components": ["SUB-FINANCE", "SUB-HEALTH", "SUB-VEHICLE", "SUB-HOUSING", "SUB-FOOD", "SUB-KNOWLEDGE", "SUB-ROUTINE"],
+  "required_future_components": ["Investment", "Job", "Personal Growth", "Collaboration"],
   "contract_required_layers": ["OS System", "Capability", "Module", "Subsystem", "Engine Group", "Engine", "Function"],
   "rules": {
     "record_repository_required": true,

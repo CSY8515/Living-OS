@@ -2,6 +2,15 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.8 Development
+
+- Added independent Knowledge and Routine Subsystems with dedicated SQLite schemas behind the shared Database Foundation adapter.
+- Added Knowledge CRUD, search, classification, archive, validation, health, execution logging, and management metrics.
+- Added Routine CRUD, scheduling, due calculation, completion/failure/skip outcomes, streaks, history, validation, health, execution logging, and management metrics.
+- Registered both subsystems in the common database registry and Streamlit module catalog.
+- Added four Streamlit surfaces and removed obsolete version-specific compatibility notices from active UI.
+- Added v1.8 unit, integration, regression, UI, and architecture coverage.
+
 ## v1.7 Stable — Database Foundation
 
 ### Added

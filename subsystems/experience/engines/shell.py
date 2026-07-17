@@ -21,6 +21,10 @@ from subsystems.experience.engines.pages import (
     render_reports,
     render_review,
     render_settings,
+    render_knowledge_subsystem,
+    render_knowledge_management,
+    render_routine_subsystem,
+    render_routine_management,
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
@@ -28,11 +32,13 @@ from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
+from subsystems.knowledge import KnowledgeSubsystem
+from subsystems.routine import RoutineSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V17_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V18_STABLE_MANIFESTS
 
 
-VERSION = "v1.7.1 Stable"
+VERSION = "v1.8 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -42,7 +48,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V17_STABLE_MANIFESTS)
+        hub.bootstrap(V18_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -98,10 +104,25 @@ def _vehicle() -> VehicleSubsystem:
     return build_vehicle()
 
 
+def _knowledge_subsystem() -> KnowledgeSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> KnowledgeSubsystem: return KnowledgeSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
+def _routine_subsystem() -> RoutineSubsystem:
+    import streamlit as st
+    @st.cache_resource
+    def build() -> RoutineSubsystem: return RoutineSubsystem(ROOT, database_foundation=_hub().database)
+    return build()
+
+
 def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
                      health: HealthSubsystem,
                      housing: HousingSubsystem,
-                     vehicle: VehicleSubsystem) -> dict[str, Callable[[], None]]:
+                     vehicle: VehicleSubsystem, knowledge: KnowledgeSubsystem,
+                     routine: RoutineSubsystem) -> dict[str, Callable[[], None]]:
     return {
         "Dashboard": lambda: render_dashboard(hub),
         "Daily Log": lambda: render_journal(hub),
@@ -117,6 +138,10 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
         "Health": lambda: render_health(health),
         "Housing": lambda: render_housing(housing),
         "Vehicle": lambda: render_vehicle(vehicle),
+        "Knowledge": lambda: render_knowledge_subsystem(knowledge),
+        "Routine": lambda: render_routine_subsystem(routine),
+        "Knowledge Management": lambda: render_knowledge_management(knowledge),
+        "Routine Management": lambda: render_routine_management(routine),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -173,7 +198,8 @@ def _authorize(hub: LivingHub) -> bool:
 def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
                          health: HealthSubsystem,
                          housing: HousingSubsystem,
-                         vehicle: VehicleSubsystem) -> dict[str, Callable[[], None]]:
+                         vehicle: VehicleSubsystem, knowledge: KnowledgeSubsystem,
+                         routine: RoutineSubsystem) -> dict[str, Callable[[], None]]:
     from subsystems.compatibility.engines.ai_analysis import render_ai_analysis
     from subsystems.compatibility.engines.analytics import render_analytics as render_legacy_analytics
     from subsystems.compatibility.engines.archive import render_archive
@@ -199,6 +225,10 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
         "Health": lambda: render_health(health),
         "Housing": lambda: render_housing(housing),
         "Vehicle": lambda: render_vehicle(vehicle),
+        "Knowledge": lambda: render_knowledge_subsystem(knowledge),
+        "Routine": lambda: render_routine_subsystem(routine),
+        "Knowledge Management": lambda: render_knowledge_management(knowledge),
+        "Routine Management": lambda: render_routine_management(routine),
         "Module Manager": lambda: render_module_manager(hub),
         "Settings": lambda: render_settings(hub),
     }
@@ -215,11 +245,13 @@ def main() -> None:
     health = _health()
     housing = _housing()
     vehicle = _vehicle()
+    knowledge = _knowledge_subsystem()
+    routine = _routine_subsystem()
     if not _authorize(hub):
         return
     migrated = hub.v1_migration_complete
-    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle) if migrated
-             else _compatibility_pages(hub, finance, food, health, housing, vehicle))
+    pages = (_canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine) if migrated
+             else _compatibility_pages(hub, finance, food, health, housing, vehicle, knowledge, routine))
 
     module_by_page = {
         "Dashboard": "dashboard",
@@ -236,6 +268,10 @@ def main() -> None:
         "Health": "health",
         "Housing": "housing",
         "Vehicle": "vehicle",
+        "Knowledge": "knowledge_subsystem",
+        "Routine": "routine",
+        "Knowledge Management": "knowledge_subsystem",
+        "Routine Management": "routine",
         "Module Manager": "module_manager",
         "Settings": "settings",
     }
@@ -253,9 +289,9 @@ def main() -> None:
     with st.sidebar:
         st.title("Living OS")
         st.caption(VERSION)
-        st.caption("Canonical Hub" if migrated else "v1 Compatibility Mode")
+        st.caption("Canonical Hub" if migrated else "Compatibility Mode")
         page = st.radio("Menu", visible_pages, label_visibility="collapsed")
 
     if not migrated and page != "Settings":
-        st.info("Living OS v1.2 preserves existing v1 data in compatibility mode. Review and approve migration in Settings when ready.")
+        st.info("Living OS preserves existing data in compatibility mode. Review and approve migration in Settings when ready.")
     pages[page]()
