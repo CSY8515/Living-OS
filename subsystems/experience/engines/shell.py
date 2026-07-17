@@ -29,10 +29,10 @@ from subsystems.health import HealthSubsystem
 from subsystems.housing import HousingSubsystem
 from subsystems.vehicle import VehicleSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V16_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V17_STABLE_MANIFESTS
 
 
-VERSION = "v1.6 Stable"
+VERSION = "v1.7 Stable"
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -42,7 +42,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V16_STABLE_MANIFESTS)
+        hub.bootstrap(V17_STABLE_MANIFESTS)
         return hub
 
     return build_hub()

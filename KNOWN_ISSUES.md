@@ -1,4 +1,12 @@
-# Living OS v1.6 Known Issues
+# Living OS v1.7 Stable Known Issues
+
+## Database Foundation v1.7
+
+- The real workspace Hub database remains on its existing Schema until the owner explicitly approves the additive v1.7 Migration in Settings.
+- Finance, Health, Housing, Vehicle, and Food retain independent SQLite storage in v1.7; conversion to the common Repository is intentionally deferred to separately approved incremental migrations.
+- Health performance currently measures explicit check duration; continuous query telemetry and automated optimization are deferred.
+- Capacity warning uses a configurable local file-size threshold. Distributed storage and automatic scaling are outside v1.7.
+- Local Streamlit storage, including backups, is not durable on ephemeral hosting. Production requires an approved durable storage and backup profile.
 
 - `app/`, `core/`, `modules/`, and `shared/` remain compatibility aliases; removing them would be a breaking change.
 - Canonical Hub and flat-file workflows coexist; startup does not migrate data.

@@ -101,5 +101,12 @@ V16_STABLE_MANIFESTS = V15_STABLE_MANIFESTS + (
     ),
 )
 
+# v1.7 adds two Settings/Admin-owned Subsystems rather than new user Modules.
+# The Module catalog therefore remains compatible with the v1.6 Stable set.
+V17_STABLE_MANIFESTS = V16_STABLE_MANIFESTS
+
+# Compatibility alias for the approved pre-release name.
+V17_RELEASE_CANDIDATE_MANIFESTS = V17_STABLE_MANIFESTS
+
 # Kept for callers that adopted the unreleased implementation-candidate name.
 V2_STABLE_MANIFESTS = V12_STABLE_MANIFESTS

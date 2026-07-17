@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from subsystems.foundation.engines.backup import BackupService
 from subsystems.foundation.engines.commands import CommandBus
 from subsystems.foundation.engines.contracts import ModuleManifest
 from subsystems.foundation.engines.documents import DocumentService
@@ -13,6 +12,8 @@ from subsystems.foundation.engines.relationships import RelationshipService
 from subsystems.foundation.engines.security import OwnerSecurityService
 from subsystems.foundation.engines.schemas import SchemaRegistry
 from subsystems.foundation.engines.storage import HubStore
+from subsystems.database import DatabaseSubsystem
+from subsystems.database_management import DatabaseManagementSubsystem
 
 
 class LivingHub:
@@ -22,24 +23,30 @@ class LivingHub:
         self.repository_root = repository_root.resolve()
         self.data_root = self.repository_root / "data" / "hub"
         self.store = HubStore(self.data_root / "living_os.sqlite3")
+        self.database = DatabaseSubsystem(
+            self.store.database_path,
+            self.repository_root / "backups" / "v1.7" / "database",
+            self.repository_root,
+            store=self.store,
+        )
+        self.database_management = DatabaseManagementSubsystem(self.database)
         self.schemas = SchemaRegistry()
         self.commands = CommandBus(self.store)
         self.relationships = RelationshipService(self.store)
         self.security = OwnerSecurityService(self.store)
         self.modules = ModuleRuntime(self.store)
         self.documents = DocumentService(self.store, self.data_root / "documents")
-        self.backups = BackupService(
-            self.store.database_path,
-            self.repository_root / "backups" / "v2",
-            self.repository_root,
-        )
+        self.backups = self.database.backups
         self.migration = V1MigrationService(self.store, self.repository_root, self.backups)
         self._bootstrapped = False
 
     def bootstrap(self, manifests: Iterable[ModuleManifest] = ()) -> None:
         if self._bootstrapped:
             return
-        self.store.initialize()
+        # Existing user databases are not migrated as a side effect of app
+        # startup. The Database Management control plane exposes the explicit
+        # reviewed migration action.
+        self.database.initialize(apply_migrations=False)
         self.modules.register_all(manifests)
         self._bootstrapped = True
 

@@ -1,5 +1,11 @@
 # Living OS Roadmap
 
+## v1.7 Stable — Database Foundation
+
+Implemented: peer Database and Database Management Subsystems, explicit additive Schema v2 Migration, versioned canonical Repository, Transaction/Rollback, Metadata and Archive lifecycle, Execution Database records, verified Backup/Restore, Integrity/Foreign Key/required-structure checks, Health/Schema/Migration/Backup/Restore/Performance/Capacity status, operational reports, Settings management controls, focused tests, full regression, and documentation synchronization.
+
+The real workspace database has not been migrated automatically. User Approval is complete and the official release workflow is in progress. v1.8 work has not started and remains outside this release.
+
 ## v1.6 Stable - Food Subsystem v1.0
 
 The approved scope in `docs/roadmap/Living_OS_v1.6_SCOPE.md` is implemented and verified. Compilation, seven focused Food tests, the complete 88-test regression suite, architecture enforcement, SQLite integrity, and every-page no-write smoke checks pass. Official commit, GitHub Release, Streamlit deployment, and production verification are complete. No migration was performed. Current status: Stable, production.

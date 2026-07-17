@@ -41,7 +41,9 @@ class SubsystemArchitectureTests(unittest.TestCase):
 
     def test_subsystem_dependencies_follow_the_allowed_direction(self) -> None:
         allowed = {
-            "foundation": {"foundation"},
+            "foundation": {"foundation", "database", "database_management"},
+            "database": {"database", "foundation"},
+            "database_management": {"database_management", "database", "foundation"},
             "operations": {"operations", "foundation"},
             "insight": {"insight", "foundation"},
             "experience": {"experience", "foundation", "operations", "insight", "compatibility", "finance", "food", "health", "housing", "vehicle"},

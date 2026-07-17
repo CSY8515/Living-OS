@@ -1,6 +1,6 @@
-# Living OS v1.6 Stable
+# Living OS v1.7 Stable
 
-> Living OS v1.6 Stable is released and production verified. See `docs/releases/v1.6/DEPLOYMENT_REPORT.md`.
+> Living OS v1.7 Stable is user-approved and release verification is in progress. Production remains v1.6 until v1.7 deployment verification is complete.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -103,4 +103,4 @@ Streamlit Community Cloud coordinates:
 - Python: 3.12 recommended
 - Secrets: none required
 
-The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance, Food, Health, Housing, or Vehicle storage. The listed deployment now serves Living OS v1.6 Stable.
+The current file-backed stores are intended for a single-owner runtime. Community Cloud's local filesystem is not durable Finance, Food, Health, Housing, or Vehicle storage. The listed deployment remains v1.6 Stable until v1.7 production verification is recorded.

@@ -1,16 +1,18 @@
 # Living OS Version
 
-Workspace version: Living OS v1.6 Stable
+Workspace version: Living OS v1.7 Stable
 
 Stable verification date: 2026-07-16
 
 Production version: Living OS v1.6 Stable
 
-Status: official v1.6 Stable commit, GitHub Release, Streamlit production deployment, and production verification are complete.
+Status: Living OS v1.7 Stable is user-approved and release verification is in progress. Production remains v1.6 Stable until the v1.7 deployment is verified.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
+
+Database Foundation: Database and Database Management are independent peer Subsystems under Settings/Admin. The app exposes the v1.7 Stable management surface; real user database migration is explicit and never runs on startup.
 
 All public behavior and data contracts on the v1.1 stable baseline are retained. Code, docs, compilation, unit, integration, architecture, and Streamlit smoke verification are complete.
 

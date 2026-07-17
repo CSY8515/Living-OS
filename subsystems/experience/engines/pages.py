@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import Counter
 from datetime import date
 from pathlib import Path
-import tempfile
 from typing import Any
 
 from subsystems.finance import FinanceSubsystem
@@ -490,40 +489,103 @@ def render_settings(hub: LivingHub) -> None:
                         st.success(f"Migrated {applied.accepted_total} records. Backup: {applied.backup_path}")
                         st.rerun()
     st.divider()
-    st.subheader("Hub Backup")
-    if st.button("Create Verified v1.2 Backup"):
-        try:
-            path = hub.backups.create(hub.migration.legacy_paths)
-            verified = hub.backups.verify(path)
-        except (OSError, ValueError):
-            st.error("The Hub backup could not be created.")
-        else:
-            if verified:
-                st.success(f"Backup created and verified: {path.name}")
+    st.subheader("Database Management")
+    management = hub.database_management
+    health = management.health_check(record=False)
+    schema = management.schema_registry()
+    migration = management.migration_status()
+    status_columns = st.columns(4)
+    status_columns[0].metric("Database", str(health.get("status", "UNKNOWN")))
+    status_columns[1].metric(
+        "Schema",
+        f"{schema.get('schema_version', 0)} / {schema.get('expected_schema_version', 0)}",
+    )
+    status_columns[2].metric("Integrity", str(health.get("integrity_status", "unknown")))
+    status_columns[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
+
+    if migration["pending"]:
+        st.warning("A reviewed v1.7 additive database migration is pending. No migration runs on page load.")
+        st.json(migration["pending"])
+        migration_approval = st.checkbox(
+            "I reviewed the pending v1.7 database migration and approve applying it.",
+            key="v17_database_migration_approval",
+        )
+        if st.button("Apply Approved v1.7 Database Migration"):
+            if not migration_approval:
+                st.error("Explicit migration approval is required.")
             else:
-                st.error("Backup was created but verification failed. Do not use it for restore.")
-    restore_file = st.file_uploader("Select a Living OS v1.2 backup", type=["zip"], key="v2_restore_file")
-    restore_approval = st.checkbox("I approve a safety backup followed by restoring this verified archive.")
-    if st.button("Restore Verified v1.2 Backup"):
-        if restore_file is None or not restore_approval:
-            st.error("Choose a backup and provide explicit restore approval.")
-        else:
+                try:
+                    applied = management.request_migration(actor="owner")
+                except (OSError, ValueError) as exc:
+                    st.error(f"Database migration failed and was rolled back: {type(exc).__name__}")
+                else:
+                    st.success(f"Applied {len(applied)} database migration(s).")
+                    st.rerun()
+    else:
+        st.success("Database schema is current for v1.7 Stable.")
+
+    if st.button("Run and Record Database Health Check"):
+        recorded_health = management.health_check(record=True, actor="owner")
+        st.session_state.v17_database_health = recorded_health
+    if st.session_state.get("v17_database_health"):
+        st.json(st.session_state.v17_database_health)
+
+    if not migration["pending"]:
+        if st.button("Create and Verify v1.7 Database Backup"):
             try:
-                with tempfile.TemporaryDirectory() as directory:
-                    uploaded_path = Path(directory) / "uploaded_backup.zip"
-                    uploaded_path.write_bytes(restore_file.getvalue())
-                    safety = hub.backups.restore(uploaded_path)
+                backup_path = management.request_backup(actor="owner")
             except (OSError, ValueError):
-                st.error("Restore was rejected or failed. Existing data was preserved or rolled back.")
+                st.error("The database backup failed or could not be verified.")
             else:
-                st.success(f"Restore complete. Pre-restore safety backup: {safety.name}")
+                st.success(f"Verified backup created: {backup_path.name}")
                 st.rerun()
+
+        backups = management.backup_status()
+        if backups:
+            st.caption(f"Last backup: {backups[0].get('created_at', '-')} · {backups[0].get('status', '-')}")
+            valid_candidates = [
+                candidate for candidate in management.restore_candidates() if candidate.valid
+            ]
+            if valid_candidates:
+                candidate_by_name = {candidate.path.name: candidate for candidate in valid_candidates}
+                selected_name = st.selectbox("Verified restore candidate", list(candidate_by_name))
+                restore_approval = st.checkbox(
+                    "I approve a safety backup followed by restoring this verified v1.7 archive.",
+                    key="v17_restore_approval",
+                )
+                if st.button("Restore Selected v1.7 Backup"):
+                    if not restore_approval:
+                        st.error("Explicit restore approval is required.")
+                    else:
+                        try:
+                            result = management.request_restore(
+                                candidate_by_name[selected_name].path, actor="owner"
+                            )
+                        except (OSError, ValueError):
+                            st.error("Restore failed. The original database was preserved or rolled back.")
+                        else:
+                            st.success(
+                                "Restore complete. Safety backup: "
+                                f"{Path(result['safety_backup_path']).name}"
+                            )
+                            st.rerun()
+        else:
+            st.info("No registered v1.7 database backup exists yet.")
+
+        if st.button("Generate Database Management Report"):
+            st.session_state.v17_database_report = management.operational_report(
+                record=True, actor="owner"
+            )
+        if st.session_state.get("v17_database_report"):
+            st.json(st.session_state.v17_database_report)
+
     st.divider()
     st.subheader("Core Status")
     st.write(f"Canonical store: {hub.store.database_path}")
     st.write(f"Records: {hub.store.count('records')}")
     st.write(f"Events: {hub.store.count('domain_events')}")
     st.write(f"Audit entries: {hub.store.count('audit_entries')}")
+    st.write(f"Execution records: {len(hub.database.execution_records(500))}")
 
 
 

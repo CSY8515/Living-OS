@@ -1,4 +1,4 @@
-# Living OS v1.6 Repository Structure
+# Living OS v1.7 Repository Structure — Stable
 
     subsystems/
       foundation/engines/    platform and state
@@ -6,6 +6,13 @@
       insight/engines/       projections and explicit AI
       experience/engines/    shell, pages, responsive layout
       compatibility/engines/ stable historical workflows
+      database/              Database Data Plane public facade
+        subsystem.py
+        engines/             connection, migrations, repository,
+                             execution, integrity, contracts
+      database_management/   Database Control Plane public facade
+        subsystem.py
+        engines/             health, operational report
 
 app/, core/, modules/, and shared/ contain compatibility aliases. Tests may use public or canonical paths. Runtime data stays in data/, logs/, reports/, state/, config/, and backups/.
 
@@ -18,6 +25,18 @@ app/, core/, modules/, and shared/ contain compatibility aliases. Tests may use 
 | legacy flat modules | compatibility/engines |
 
 All previous public paths remain available.
+
+## Database Foundation v1.7
+
+Runtime canonical database: `data/hub/living_os.sqlite3`.
+
+Verified v1.7 backups: `backups/v1.7/database/`.
+
+Database Foundation documents: `docs/03_Database/`.
+
+Release-preparation evidence: `docs/releases/v1.7/`.
+
+The existing Finance, Health, Housing, Vehicle, and Food database paths remain unchanged. No startup path performs the v1.7 Schema migration automatically.
 
 ## Finance Subsystem v1.0
 

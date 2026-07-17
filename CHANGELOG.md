@@ -2,6 +2,22 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v1.7 Stable — Database Foundation
+
+### Added
+
+- Added peer `DatabaseSubsystem` and `DatabaseManagementSubsystem` facades with explicit Data Plane and Control Plane separation.
+- Added SQLite connection/transaction contracts, Schema v2 Migration Registry, canonical CRUD/Search/Archive Repository, shared Metadata, Integrity checks, Execution records, Backup/Restore history, Health checks, Performance/Capacity observations, and operational reports.
+- Added explicit Settings controls for reviewed Migration, recorded Health Check, verified Backup, Restore preflight/approval, warning display, and Database Management Report generation.
+- Added the v1.7 Architecture and Database documentation packs and release-preparation evidence.
+
+### Compatibility and safety
+
+- Preserved Finance, Health, Housing, Vehicle, Food, Hub, JSON/JSONL, and compatibility paths.
+- Startup does not apply the v1.7 Migration. Real user data has not been migrated or deleted.
+- Backup and Restore use checksums, staging, SQLite Integrity checks, a pre-restore safety backup, rollback behavior, and preserved control-plane history.
+- User Approval and the final 98-test release gate are complete. Official GitHub and production verification coordinates are recorded after deployment.
+
 ## v1.6 Stable - Food Subsystem v1.0
 
 ### Added

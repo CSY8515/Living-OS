@@ -2,7 +2,7 @@
 
 Canonical documents are `../MASTER_DESIGN.md`, `../ARCHITECTURE.md`, `../STRUCTURE.md`, `../ROADMAP.md`, `../VERSION.md`, `../CHANGELOG.md`, and the current version release notes.
 
-The approved v1.6 scope is in `roadmap/Living_OS_v1.6_SCOPE.md`. Food Subsystem v1.0 is implemented, released, and production-verified as Living OS v1.6 Stable.
+Living OS v1.7 Database Foundation architecture, implementation, test, migration, release, and review evidence is under `01_Architecture/`, `03_Database/`, and `releases/v1.7/`.
 
 v1.2 evidence lives under `docs/v1.2/`: `ARCHITECTURE_REVIEW.md`, `MIGRATION_PLAN.md`, `REFACTORING_RESULT.md`, `COMPATIBILITY_REPORT.md`, `REGRESSION_REPORT.md`, and `CHANGED_FILES.md`.
 
@@ -20,4 +20,4 @@ Vehicle Subsystem v1.0 evidence is under `vehicle-subsystem-v1.0/`; its release 
 
 Food Subsystem v1.0 implementation and verification evidence is under `food-subsystem-v1.0/`. Versioned v1.6 release and deployment evidence is under `releases/v1.6/`.
 
-Versioned release evidence is under `releases/v1.2/` through `releases/v1.6/`. Current production deployment evidence is `releases/v1.6/DEPLOYMENT_REPORT.md`.
+Versioned release evidence is under `releases/v1.2/` through `releases/v1.7/`. Current production deployment evidence remains `releases/v1.6/DEPLOYMENT_REPORT.md` until v1.7 production verification completes.

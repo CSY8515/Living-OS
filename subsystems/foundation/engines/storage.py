@@ -154,8 +154,10 @@ class HubStore:
                 );
                 """
             )
-            self._set_meta(connection, "schema_version", str(SCHEMA_VERSION))
-            self._set_meta(connection, "product_version", "v1.2")
+            # Bootstrap metadata is never allowed to downgrade an explicitly
+            # migrated database on a later initialize call.
+            self._set_meta_default(connection, "schema_version", str(SCHEMA_VERSION))
+            self._set_meta_default(connection, "product_version", "v1.2")
 
     def _set_meta(self, connection: sqlite3.Connection, key: str, value: str) -> None:
         connection.execute(
@@ -163,6 +165,12 @@ class HubStore:
             INSERT INTO system_meta (key, value, updated_at) VALUES (?, ?, ?)
             ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at
             """,
+            (key, value, utc_now_iso()),
+        )
+
+    def _set_meta_default(self, connection: sqlite3.Connection, key: str, value: str) -> None:
+        connection.execute(
+            "INSERT OR IGNORE INTO system_meta (key, value, updated_at) VALUES (?, ?, ?)",
             (key, value, utc_now_iso()),
         )
 

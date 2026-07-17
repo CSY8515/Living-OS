@@ -1,8 +1,8 @@
-# Living OS v1.6 Architecture
+# Living OS v1.7 Architecture — Stable
 
 ## Official placement
 
-Ultra Brain → Meta OS Ecosystem → OS Ecosystem → Capability → Module → Subsystem → Engine → Function
+User → Ultra Brain → Meta OS Ecosystem → OS Ecosystem → OS System → Capability → Module → Subsystem → Engine Group → Engine → Function
 
 Living OS occupies the Module layer. Internally it implements Living OS → Subsystem → Engine → Function.
 
@@ -13,12 +13,22 @@ Living OS occupies the Module layer. Internally it implements Living OS → Subs
 - Insight: read-only projections and explicitly requested, provider-isolated, draft-only AI processing.
 - Experience: Streamlit shell, pages, navigation, and responsive layout; no persistence ownership.
 - Compatibility: unchanged v0.8–v1.1 flat-file workflows and public API continuity.
+- Database: SQLite Data Plane, Schema, Migration, Transaction, Repository, Metadata, Backup/Restore, Integrity, and Execution records.
+- Database Management: Control Plane for Health, Schema Registry, Migration, Backup, Restore, Performance, Capacity, warnings, and operational reports.
 
 ## Dependencies
 
-Experience → Foundation, Operations, Insight, Compatibility; Operations → Foundation; Insight → Foundation; Compatibility → Compatibility, Insight; Foundation → Foundation.
+Experience → Foundation, Operations, Insight, Compatibility and public domain facades; Operations → Foundation; Insight → Foundation; Compatibility → Compatibility, Insight; Database → Database, Foundation; Database Management → Database public control contract, Foundation. The Hub composition root wires the two peer Database Subsystems without making either one the child of the other.
 
-Canonical subsystem code may not import app.*, core.*, modules.*, shared.*, or expansion.*. Foundation may not import another subsystem. UI cannot own canonical persistence. AI cannot directly mutate records.
+Canonical subsystem code may not import app.*, core.*, modules.*, shared.*, or expansion.*. UI cannot own canonical persistence. AI cannot directly mutate records. Database Management cannot directly mutate business records.
+
+## Database Foundation v1.7
+
+`DatabaseSubsystem` is the only supported v1.7 canonical Database facade. It owns `SQLiteConnectionLayer`, `MigrationRegistry`, `RecordRepository`, `IntegrityEngine`, `ExecutionRecorder`, and the verified shared Backup adapter.
+
+`DatabaseManagementSubsystem` depends on the `DatabaseControlInterface` protocol. Its Health and Report engines are read-only unless an owner explicitly requests Migration, Backup, Restore, recorded Health Check, or Report generation.
+
+Existing Module databases remain independently owned and unchanged. v1.7 performs no automatic real-data migration and adds no direct cross-domain database access.
 
 Previous public paths alias the same canonical Python module objects, preserving public/private symbols, monkeypatching, and exception identity. V2_STABLE_MANIFESTS remains an alias of V12_STABLE_MANIFESTS. This move performs no data migration.
 

@@ -29,10 +29,25 @@ class BackupService:
     def create(self, legacy_paths: list[Path] | None = None) -> Path:
         self.backup_root.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
-        archive_path = self.backup_root / f"living_os_v2_backup_{stamp}.zip"
+        archive_path = self.backup_root / f"living_os_v1_7_database_{stamp}.zip"
         snapshot_path = self.backup_root / f".{archive_path.stem}.sqlite3"
+        schema_version = "0"
+        if self.database_path.exists():
+            metadata_connection = sqlite3.connect(self.database_path)
+            try:
+                row = metadata_connection.execute(
+                    "SELECT value FROM system_meta WHERE key='schema_version'"
+                ).fetchone()
+                schema_version = str(row[0]) if row else "0"
+            except sqlite3.Error:
+                schema_version = "0"
+            finally:
+                metadata_connection.close()
         manifest: dict[str, object] = {
-            "format": "living-os-v2-backup",
+            "format": "living-os-database-backup",
+            "format_version": 1,
+            "product_version": "v1.7",
+            "schema_version": schema_version,
             "created_at": utc_now_iso(),
             "files": {},
         }
