@@ -15,7 +15,7 @@ from modules.storage import APP_VERSION, DEFAULT_SETTINGS, read_json, write_json
 class VersionConsistencyTests(unittest.TestCase):
     def test_v19_stable_shell_and_v12_compatibility_versions(self) -> None:
         self.assertEqual(APP_VERSION, "v1.2 Stable")
-        self.assertEqual(app.VERSION, "v2.0")
+        self.assertEqual(app.VERSION, "v2.0.1")
         self.assertEqual(DEFAULT_SETTINGS["version"], APP_VERSION)
 
     def test_generated_report_uses_v10_stable(self) -> None:

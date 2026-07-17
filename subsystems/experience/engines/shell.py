@@ -53,8 +53,20 @@ from subsystems.foundation.engines.hub import LivingHub
 from subsystems.operations.engines.catalog import V20_STABLE_MANIFESTS
 
 
-VERSION = "v2.0"
+VERSION = "v2.0.1"
 ROOT = Path(__file__).resolve().parents[3]
+
+NAV_ICONS = {
+    "Command Center": "◈", "Daily Log": "✦", "Decision Log": "◇", "Reports": "▤",
+    "Archive": "▣", "Analytics": "⌁", "Review": "◎", "AI Analysis": "✧",
+    "Documents": "▧", "Finance": "◐", "Food": "◒", "Health": "♡",
+    "Housing": "⌂", "Vehicle": "▷", "Knowledge": "◫", "Routine": "↻",
+    "Investment": "↗", "Job": "▱", "Personal Growth": "△", "Collaboration": "◉",
+    "Knowledge Management": "◫", "Routine Management": "↻",
+    "Investment Management": "↗", "Job Management": "▱",
+    "Personal Growth Management": "△", "Collaboration Management": "◉",
+    "Database": "▦", "Database Management": "▦", "Module Manager": "⬡", "Settings": "⚙",
+}
 
 
 def _hub() -> LivingHub:
@@ -189,15 +201,15 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
         "Vehicle": lambda: render_vehicle(vehicle),
         "Knowledge": lambda: render_knowledge_subsystem(knowledge),
         "Routine": lambda: render_routine_subsystem(routine),
-        "Knowledge Management": lambda: render_knowledge_management(knowledge),
-        "Routine Management": lambda: render_routine_management(routine),
         "Investment": lambda: render_investment_subsystem(investment),
         "Job": lambda: render_job_subsystem(job),
+        "Personal Growth": lambda: render_personal_growth(growth),
+        "Collaboration": lambda: render_collaboration(collaboration),
+        "Knowledge Management": lambda: render_knowledge_management(knowledge),
+        "Routine Management": lambda: render_routine_management(routine),
         "Investment Management": lambda: render_investment_management(investment),
         "Job Management": lambda: render_job_management(job),
-        "Personal Growth": lambda: render_personal_growth(growth),
         "Personal Growth Management": lambda: render_personal_growth_management(growth),
-        "Collaboration": lambda: render_collaboration(collaboration),
         "Collaboration Management": lambda: render_collaboration_management(collaboration),
         "Database": lambda: render_database(hub),
         "Database Management": lambda: render_database_management(hub),
@@ -301,7 +313,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 def main() -> None:
     import streamlit as st
 
-    st.set_page_config(page_title="Living OS v2.0", page_icon="◈", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title="Living OS v2.0.1", page_icon="◈", layout="wide", initial_sidebar_state="auto")
     apply_responsive_layout()
     hub = _hub()
     finance = _finance()
@@ -366,6 +378,9 @@ def main() -> None:
         st.title("LIVING OS")
         st.caption(VERSION)
         st.caption("PERSONAL COMMAND SYSTEM")
-        page = st.radio("Menu", visible_pages, label_visibility="collapsed", key="nav_page")
+        page = st.radio(
+            "Menu", visible_pages, label_visibility="collapsed", key="nav_page",
+            format_func=lambda name: f"{NAV_ICONS.get(name, '◇')}  {name}",
+        )
     system_banner(version=VERSION, status="ONLINE", detail=f"{len(enabled)} modules active · {page}")
     pages[page]()

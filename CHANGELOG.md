@@ -2,6 +2,14 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.1 — 2026-07-18
+
+- Redesigned the official Streamlit visual layer as a premium dark AI command center with glass panels, restrained cyan/blue glow, and subtle purple depth.
+- Grouped the unchanged navigation routes into scannable Overview, Capture & Insight, Life Systems, Management, and System sections with consistent icons.
+- Strengthened Command Center hierarchy, KPI presence, System Health visibility, Priority Stream empty state, and layout balance.
+- Standardized typography, spacing, radii, borders, shadows, buttons, forms, tables, tabs, badges, alerts, and shared loading/error/empty states.
+- Improved desktop, tablet, and mobile behavior without changing schemas, database logic, registry contracts, routes, or subsystem behavior.
+
 ## v2.0 — 2026-07-18
 
 - Added the official responsive Living OS command-center theme and reusable UI component layer.

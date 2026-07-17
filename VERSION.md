@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0
+Workspace version: Living OS v2.0.1
 
 Implementation verification date: 2026-07-18
 
-Production release: Living OS v2.0
+Production release: Living OS v2.0.1
 
-Status: Living OS v2.0 passed implementation, responsive UI validation, architecture checks, Database Integrity, backup/restore coverage, Streamlit smoke testing, and the complete 119-test regression suite.
+Status: Living OS v2.0.1 is the UI-only hotfix release. It preserves v2.0 behavior and data contracts while upgrading the official command-center visual system, responsive navigation, and shared component styling.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 

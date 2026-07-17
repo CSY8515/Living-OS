@@ -278,7 +278,7 @@ def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> N
         backups = management.backup_status()
         health_row("Backup", "HEALTHY" if backups else "WARNING", backups[0].get("created_at", "No verified backup") if backups else "No verified backup")
     if systems:
-        st.divider(); panel_header("Subsystem Matrix", "Operational status and immediate priorities", "V2.0")
+        st.divider(); panel_header("Subsystem Matrix", "Operational status and immediate priorities", "V2.0.1")
         rows = []
         for name, subsystem in systems.items():
             summary = subsystem.management_summary()
@@ -840,7 +840,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for Living OS v2.0.")
+        st.success("Database schema is current for Living OS v2.0.1.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()

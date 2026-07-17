@@ -1,8 +1,8 @@
-# Living OS v2.0
+# Living OS v2.0.1
 
-> Living OS v2.0 is a personal command system with a unified responsive interface, Personal Growth, Collaboration, and first-class Database control surfaces. It preserves the v1.9 Stable data and architecture contracts.
+> Living OS v2.0.1 is the UI hotfix for the v2.0 personal command system. It preserves every v2.0 feature, route, subsystem, and data contract while refining the official responsive command-center interface.
 
-The official v2.0 interface uses a restrained dark command-center design with cyan/blue signals, reusable status components, responsive layouts, and one visual language across every subsystem.
+The official v2.0.1 interface uses a premium deep-navy command-center design with glass panels, restrained cyan/blue signals, subtle purple depth, reusable status components, and one responsive visual language across every subsystem.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
