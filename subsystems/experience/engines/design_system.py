@@ -41,6 +41,20 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
     )
 
 
+def command_status(*, date_label: str, state: str, state_detail: str, ai_status: str) -> None:
+    """Command Center status strip composed only from existing runtime state."""
+    import streamlit as st
+
+    st.markdown(
+        f'''<section class="los-today">
+          <div class="los-today-primary"><span>TODAY</span><b>{escape(date_label)}</b><small>{escape(state_detail)}</small></div>
+          <div class="los-today-signal"><span class="los-dot good"></span><div><small>SYSTEM STATE</small><b>{escape(state)}</b></div></div>
+          <div class="los-today-signal"><span class="los-ai-mark">AI</span><div><small>AI STATUS</small><b>{escape(ai_status)}</b></div></div>
+        </section>''',
+        unsafe_allow_html=True,
+    )
+
+
 def status_card(label: str, value: Any, detail: str = "", status: str = "INFO") -> None:
     import streamlit as st
 

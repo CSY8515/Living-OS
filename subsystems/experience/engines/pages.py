@@ -18,6 +18,7 @@ from subsystems.personal_growth import PersonalGrowthSubsystem
 from subsystems.collaboration import CollaborationSubsystem
 from subsystems.experience.engines.design_system import (
     activity_feed,
+    command_status,
     health_row,
     page_header,
     panel_header,
@@ -257,41 +258,58 @@ def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> N
     component_status = management.component_status()
     unhealthy = [item for item in component_status if item.get("status") not in {"HEALTHY", "READY"}]
     overall = "NORMAL" if database_health.get("status") == "HEALTHY" and not unhealthy else "ATTENTION"
-    page_header("Command Center", "Living OS / Overview", "Your operating picture, priorities, signals, and infrastructure health.", overall)
+    modules = {str(item["module_id"]): item for item in hub.modules.list_modules()}
+    ai_status = str(modules.get("ai_briefing", {}).get("status", "ready")).upper()
+    today_detail = f"{data['review_count']} items need review" if data["review_count"] else "No urgent review signals"
+    page_header("Command Center", "Personal Operating System", "Everything important, in one calm view.", overall)
+    command_status(
+        date_label=date.today().strftime("%A · %B %d"),
+        state=overall,
+        state_detail=today_detail,
+        ai_status=ai_status,
+    )
     cols = st.columns(5)
     with cols[0]: status_card("Journal", data["journal_count"], "captured entries", "HEALTHY")
     with cols[1]: status_card("Decisions", data["decision_count"], "tracked decisions", "HEALTHY")
     with cols[2]: status_card("Review Queue", data["review_count"], "requires attention", "WARNING" if data["review_count"] else "HEALTHY")
     with cols[3]: status_card("Knowledge", data["knowledge_count"], "active records", "HEALTHY")
     with cols[4]: status_card("Reports", data["report_count"], "generated artifacts", "HEALTHY")
-    left, right = st.columns([1.45, 1])
+    left, right = st.columns([1.55, 1])
     with left:
-        panel_header("Priority Stream", "Recent journal and decision signals", "LIVE FEED")
+        panel_header("Recent Activity", "Journal and decision signals", "LIVE")
         feed = [{"title": item.get("title", "Journal"), "detail": "Journal entry", "time": item.get("date", "")} for item in data["recent_journals"]]
         feed += [{"title": item.get("decision", "Decision"), "detail": f"Decision · {item.get('status', 'draft')}", "time": ""} for item in data["recent_decisions"]]
         activity_feed(feed[:8], empty="Capture a journal entry or decision to begin the activity stream.")
     with right:
-        panel_header("System Health", "Database, registry, backup, integrity", "CONTROL PLANE")
-        health_row("Database", str(database_health.get("status", "UNKNOWN")), f"Schema {database_health.get('schema_version', '-')}")
-        health_row("Integrity", "HEALTHY" if database_health.get("integrity_status") == "ok" else "WARNING", str(database_health.get("integrity_status", "unknown")))
-        health_row("Registry", "HEALTHY" if component_status else "READY", f"{len(component_status)} components")
-        backups = management.backup_status()
-        health_row("Backup", "HEALTHY" if backups else "WARNING", backups[0].get("created_at", "No verified backup") if backups else "No verified backup")
-    if systems:
-        st.divider(); panel_header("Subsystem Matrix", "Operational status and immediate priorities", "V2.0.1")
-        rows = []
-        for name, subsystem in systems.items():
-            summary = subsystem.management_summary()
-            health = summary.get("health", {})
-            rows.append({"Subsystem": name, "Status": health.get("status", "READY"), "Records": summary.get("total", 0), "Active": summary.get("active", summary.get("active_pipeline", 0)), "Priority / Due": summary.get("overdue", summary.get("due", summary.get("due_actions", 0))), "Registry": "REGISTERED" if summary.get("registry_registered") else "MISSING"})
-        st.dataframe(rows, width="stretch", hide_index=True)
-    st.divider(); panel_header("Quick Actions", "Move directly to a focused workspace", "NAVIGATION")
+        panel_header("AI Status", "Source-attributed analysis workspace", "READ ONLY")
+        health_row("AI Core", ai_status, "Analysis module available")
+        health_row("Context", "READY", "Owner-selected records only")
+        health_row("System", overall, f"{len(component_status)} services connected")
+    panel_header("Quick Actions", "Open a focused workspace", "COMMANDS")
     actions = st.columns(4)
     targets = [("Open Growth", "Personal Growth"), ("Open Collaboration", "Collaboration"), ("Review Database", "Database"), ("System Settings", "Settings")]
     def navigate(target: str) -> None:
         st.session_state.nav_page = target
     for column, (label, target) in zip(actions, targets):
         column.button(label, key=f"quick_{target}", on_click=navigate, args=(target,))
+    with st.expander("System details"):
+        detail_health, detail_matrix = st.columns([1, 1.8])
+        with detail_health:
+            panel_header("System Health", "Database and control plane", "STATUS")
+            health_row("Database", str(database_health.get("status", "UNKNOWN")), f"Schema {database_health.get('schema_version', '-')}")
+            health_row("Integrity", "HEALTHY" if database_health.get("integrity_status") == "ok" else "WARNING", str(database_health.get("integrity_status", "unknown")))
+            health_row("Registry", "HEALTHY" if component_status else "READY", f"{len(component_status)} components")
+            backups = management.backup_status()
+            health_row("Backup", "HEALTHY" if backups else "WARNING", backups[0].get("created_at", "No verified backup") if backups else "No verified backup")
+        if systems:
+            with detail_matrix:
+                panel_header("Subsystem Matrix", "Operational state", "V2.0.1")
+                rows = []
+                for name, subsystem in systems.items():
+                    summary = subsystem.management_summary()
+                    health = summary.get("health", {})
+                    rows.append({"Subsystem": name, "Status": health.get("status", "READY"), "Records": summary.get("total", 0), "Active": summary.get("active", summary.get("active_pipeline", 0)), "Priority / Due": summary.get("overdue", summary.get("due", summary.get("due_actions", 0))), "Registry": "REGISTERED" if summary.get("registry_registered") else "MISSING"})
+                st.dataframe(rows, width="stretch", hide_index=True)
 
 
 def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
