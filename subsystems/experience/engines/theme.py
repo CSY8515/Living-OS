@@ -34,6 +34,10 @@ def apply_living_os_theme() -> None:
         /* Navigation rail */
         [data-testid="stSidebar"] { width:290px!important;background:linear-gradient(180deg,rgba(12,14,20,.97),rgba(7,8,12,.99));border-right:1px solid var(--los-line);box-shadow:none; }
         [data-testid="stSidebarContent"] { padding:1rem .7rem 2rem; }
+        /* Keep the route widget mounted, but remove Streamlit navigation chrome
+           only while the Home Orbit surface is present. */
+        .stApp:has(.st-key-home_orbit) [data-testid="stSidebar"],
+        .stApp:has(.st-key-home_orbit) [data-testid="stSidebarCollapsedControl"] { display:none!important; }
         [data-testid="stSidebar"] h1 { font-size:1.08rem!important;letter-spacing:.2em!important;margin-bottom:.05rem!important;color:var(--los-text)!important; }
         [data-testid="stSidebar"] [data-testid="stCaptionContainer"] { font-size:.61rem;letter-spacing:.13em;text-transform:uppercase;margin-bottom:.05rem; }
         [data-testid="stSidebar"] div[role="radiogroup"] { gap:2px;padding-top:.75rem; }
@@ -98,8 +102,8 @@ def apply_living_os_theme() -> None:
         .st-key-home_orbit .stButton>button:hover{transform:scale(1.035);border-color:rgba(100,220,255,.38)!important;color:var(--los-text)!important;box-shadow:0 0 28px rgba(100,220,255,.10)!important}
         @keyframes los-orbit-spin{to{transform:rotate(360deg)}}@keyframes los-orbit-reverse{to{transform:rotate(-360deg)}}@keyframes los-float{0%,100%{translate:0 0}50%{translate:0 -7px}}
 
-        @media(min-width:1201px){.block-container:has(.st-key-home_orbit){box-sizing:border-box!important;width:calc(100vw - 500px)!important;max-width:calc(100vw - 500px)!important;margin-left:0!important;margin-right:0!important;transform:translateX(-150px)}}
-        @media(min-width:761px) and (max-width:1200px){.block-container:has(.st-key-home_orbit){box-sizing:border-box!important;width:calc(100vw - 390px)!important;max-width:calc(100vw - 390px)!important;margin-left:0!important;margin-right:0!important;transform:translateX(-80px)}}
+        @media(min-width:1201px){.block-container:has(.st-key-home_orbit){box-sizing:border-box!important;width:min(calc(100vw - 4rem),1400px)!important;max-width:1400px!important;margin-left:auto!important;margin-right:auto!important;transform:none!important}}
+        @media(min-width:761px) and (max-width:1200px){.block-container:has(.st-key-home_orbit){box-sizing:border-box!important;width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;transform:none!important}}
 
         /* Cards, panels, and shared states */
         [data-testid="stMetric"],.los-card { position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(24,27,36,.78),rgba(11,13,19,.76));border:1px solid var(--los-line);border-radius:var(--los-radius);padding:19px;box-shadow:var(--los-glow);backdrop-filter:blur(18px); }

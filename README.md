@@ -1,8 +1,8 @@
-# Living OS v2.0.3
+# Living OS v2.0.4
 
-> Living OS v2.0.3 reworks Home as a minimal Today-focused Living OS Core surrounded by six existing life-system launch points while preserving every feature, route, subsystem, and data contract.
+> Living OS v2.0.4 presents Home as a distraction-free Personal Operating System surface by hiding Streamlit's navigation rail there while preserving every route and subsystem.
 
-The v2.0.3 release keeps the premium dark glass interface while removing dashboard and management surfaces from Home in favor of a spacious Personal Operating System entry experience.
+The v2.0.4 UI hotfix keeps the premium dark glass Home and six Orbit launch points, removes the visible vertical menu from Home only, and restores the unchanged navigation rail on Subsystem screens.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

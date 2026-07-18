@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.3
+Workspace version: Living OS v2.0.4
 
 Implementation verification date: 2026-07-18
 
-Production release: Living OS v2.0.3
+Production release: Living OS v2.0.4
 
-Status: Living OS v2.0.3 is the stable Home Orbit UI hotfix. It preserves architecture, backend behavior, database contracts, business logic, navigation routes, and subsystem ownership.
+Status: Living OS v2.0.4 is the stable Home-only Sidebar visibility UI hotfix. The navigation remains mounted and functional while its Streamlit rail is hidden only on Home. Architecture, backend behavior, database contracts, business logic, routes, and subsystem ownership are unchanged.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 

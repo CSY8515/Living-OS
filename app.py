@@ -1,4 +1,4 @@
-"""Living OS v2.0.3 Streamlit entry point."""
+"""Living OS v2.0.4 Streamlit entry point."""
 
 from app.shell import VERSION, main
 

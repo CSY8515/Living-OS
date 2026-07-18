@@ -2,6 +2,13 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.4 — 2026-07-18
+
+- Hid the Streamlit Sidebar, vertical navigation list, and collapsed Sidebar control on Home only.
+- Recentered the Home Orbit surface after removing the visible navigation rail.
+- Kept all six Orbit routes, Subsystem navigation, and the Home return path unchanged.
+- Preserved architecture, backend behavior, database structure, business logic, and subsystem ownership.
+
 ## v2.0.3 — 2026-07-18
 
 - Reworked Home into a single Today-focused Living OS Core with spacious operating-system presentation.
