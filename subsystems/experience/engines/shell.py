@@ -53,7 +53,7 @@ from subsystems.foundation.engines.hub import LivingHub
 from subsystems.operations.engines.catalog import V20_STABLE_MANIFESTS
 
 
-VERSION = "v2.0.1"
+VERSION = "v2.0.2"
 ROOT = Path(__file__).resolve().parents[3]
 
 NAV_ICONS = {
@@ -313,7 +313,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 def main() -> None:
     import streamlit as st
 
-    st.set_page_config(page_title="Living OS v2.0.1", page_icon="◈", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title="Living OS v2.0.2", page_icon="◈", layout="wide", initial_sidebar_state="auto")
     apply_responsive_layout()
     hub = _hub()
     finance = _finance()

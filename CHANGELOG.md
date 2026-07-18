@@ -2,6 +2,13 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.2 — 2026-07-18
+
+- Rebuilt Home/Command Center as a welcome surface and today-focused personal operating hub.
+- Removed dashboard KPI and internal-system card emphasis from Home.
+- Added a calmer Today overview, read-only AI Brief, and seven-route Quick Launch surface using existing data and navigation only.
+- Preserved architecture, backend behavior, database contracts, registry, routes, and subsystem ownership.
+
 ## v2.0.1 — 2026-07-18
 
 - Redesigned the official Streamlit visual layer as a premium dark AI command center with glass panels, restrained cyan/blue glow, and subtle purple depth.

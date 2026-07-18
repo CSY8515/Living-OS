@@ -41,16 +41,42 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
     )
 
 
-def command_status(*, date_label: str, state: str, state_detail: str, ai_status: str) -> None:
-    """Command Center status strip composed only from existing runtime state."""
+def home_welcome(*, greeting: str, date_label: str, message: str, status: str) -> None:
+    """Welcome surface for the personal operating system home."""
     import streamlit as st
 
     st.markdown(
-        f'''<section class="los-today">
-          <div class="los-today-primary"><span>TODAY</span><b>{escape(date_label)}</b><small>{escape(state_detail)}</small></div>
-          <div class="los-today-signal"><span class="los-dot good"></span><div><small>SYSTEM STATE</small><b>{escape(state)}</b></div></div>
-          <div class="los-today-signal"><span class="los-ai-mark">AI</span><div><small>AI STATUS</small><b>{escape(ai_status)}</b></div></div>
+        f'''<section class="los-home-welcome">
+          <div class="los-home-kicker">LIVING OS · PERSONAL OPERATING SYSTEM</div>
+          <h1>{escape(greeting)}</h1>
+          <p>{escape(message)}</p>
+          <div class="los-home-date"><span>{escape(date_label)}</span><i></i><b>{escape(status)}</b></div>
         </section>''',
+        unsafe_allow_html=True,
+    )
+
+
+def home_today_cards(items: Iterable[dict[str, Any]]) -> None:
+    import streamlit as st
+
+    cards = []
+    for item in items:
+        cards.append(
+            '<article class="los-home-card">'
+            f'<span>{escape(str(item.get("label", "Today")))}</span>'
+            f'<b>{escape(str(item.get("value", "Ready")))}</b>'
+            f'<p>{escape(str(item.get("detail", "")))}</p></article>'
+        )
+    st.markdown('<div class="los-home-grid">' + ''.join(cards) + '</div>', unsafe_allow_html=True)
+
+
+def home_ai_brief(*, status: str, detail: str) -> None:
+    import streamlit as st
+
+    st.markdown(
+        f'''<article class="los-home-brief"><div class="los-home-brief-mark">AI</div>
+          <div><span>AI BRIEF · {escape(status)}</span><h3>Your context is ready.</h3>
+          <p>{escape(detail)}</p></div></article>''',
         unsafe_allow_html=True,
     )
 

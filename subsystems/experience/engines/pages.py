@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -18,11 +18,12 @@ from subsystems.personal_growth import PersonalGrowthSubsystem
 from subsystems.collaboration import CollaborationSubsystem
 from subsystems.experience.engines.design_system import (
     activity_feed,
-    command_status,
+    home_ai_brief,
+    home_today_cards,
+    home_welcome,
     health_row,
     page_header,
     panel_header,
-    status_card,
 )
 
 from subsystems.foundation.engines.errors import CoreError
@@ -260,38 +261,39 @@ def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> N
     overall = "NORMAL" if database_health.get("status") == "HEALTHY" and not unhealthy else "ATTENTION"
     modules = {str(item["module_id"]): item for item in hub.modules.list_modules()}
     ai_status = str(modules.get("ai_briefing", {}).get("status", "ready")).upper()
-    today_detail = f"{data['review_count']} items need review" if data["review_count"] else "No urgent review signals"
-    page_header("Command Center", "Personal Operating System", "Everything important, in one calm view.", overall)
-    command_status(
-        date_label=date.today().strftime("%A · %B %d"),
-        state=overall,
-        state_detail=today_detail,
-        ai_status=ai_status,
+    hour = datetime.now().hour
+    greeting = "Good morning." if hour < 12 else "Good afternoon." if hour < 18 else "Good evening."
+    home_welcome(
+        greeting=greeting,
+        date_label=date.today().strftime("%A, %B %d"),
+        message="Welcome back. Today is yours to shape.",
+        status=overall,
     )
-    cols = st.columns(5)
-    with cols[0]: status_card("Journal", data["journal_count"], "captured entries", "HEALTHY")
-    with cols[1]: status_card("Decisions", data["decision_count"], "tracked decisions", "HEALTHY")
-    with cols[2]: status_card("Review Queue", data["review_count"], "requires attention", "WARNING" if data["review_count"] else "HEALTHY")
-    with cols[3]: status_card("Knowledge", data["knowledge_count"], "active records", "HEALTHY")
-    with cols[4]: status_card("Reports", data["report_count"], "generated artifacts", "HEALTHY")
-    left, right = st.columns([1.55, 1])
-    with left:
-        panel_header("Recent Activity", "Journal and decision signals", "LIVE")
-        feed = [{"title": item.get("title", "Journal"), "detail": "Journal entry", "time": item.get("date", "")} for item in data["recent_journals"]]
-        feed += [{"title": item.get("decision", "Decision"), "detail": f"Decision · {item.get('status', 'draft')}", "time": ""} for item in data["recent_decisions"]]
-        activity_feed(feed[:8], empty="Capture a journal entry or decision to begin the activity stream.")
-    with right:
-        panel_header("AI Status", "Source-attributed analysis workspace", "READ ONLY")
-        health_row("AI Core", ai_status, "Analysis module available")
-        health_row("Context", "READY", "Owner-selected records only")
-        health_row("System", overall, f"{len(component_status)} services connected")
-    panel_header("Quick Actions", "Open a focused workspace", "COMMANDS")
-    actions = st.columns(4)
-    targets = [("Open Growth", "Personal Growth"), ("Open Collaboration", "Collaboration"), ("Review Database", "Database"), ("System Settings", "Settings")]
+    routine_summary = systems.get("Routine").management_summary() if systems.get("Routine") else {}
+    growth_summary = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
+    focus_value = f"{data['review_count']} waiting" if data["review_count"] else "Clear"
+    routine_due = int(routine_summary.get("due", 0))
+    growth_active = int(growth_summary.get("active", 0))
+    panel_header("Today", "A quiet overview of what matters now", "NOW")
+    overview, brief = st.columns([1.55, 1])
+    with overview:
+        home_today_cards([
+            {"label": "Focus", "value": focus_value, "detail": "Priority and review signals"},
+            {"label": "Routine", "value": f"{routine_due} due" if routine_due else "On track", "detail": f"{routine_summary.get('completion_count', 0)} completions recorded"},
+            {"label": "Learning", "value": f"{growth_active} active" if growth_active else "Open space", "detail": f"{growth_summary.get('average_progress', 0)}% average progress"},
+        ])
+    with brief:
+        home_ai_brief(status=ai_status, detail="Open AI Analysis whenever you want a source-attributed brief from owner-selected records.")
+    panel_header("Quick Launch", "Move into the space you need", "LAUNCHER")
+    targets = [("Daily Log", "Daily Log"), ("Finance", "Finance"), ("Health", "Health"), ("Vehicle", "Vehicle"),
+               ("Learning", "Personal Growth"), ("Knowledge", "Knowledge"), ("Reports", "Reports")]
     def navigate(target: str) -> None:
         st.session_state.nav_page = target
-    for column, (label, target) in zip(actions, targets):
-        column.button(label, key=f"quick_{target}", on_click=navigate, args=(target,))
+    with st.container(key="home_quick_launch"):
+        first_row = st.columns(4)
+        second_row = st.columns(3)
+        for column, (label, target) in zip([*first_row, *second_row], targets):
+            column.button(label, key=f"quick_{target}", on_click=navigate, args=(target,), use_container_width=True)
     with st.expander("System details"):
         detail_health, detail_matrix = st.columns([1, 1.8])
         with detail_health:
@@ -858,7 +860,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for Living OS v2.0.1.")
+        st.success("Database schema is current for Living OS v2.0.2.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()
