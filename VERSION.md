@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.2
+Workspace version: Living OS v2.0.3
 
 Implementation verification date: 2026-07-18
 
-Production release: Living OS v2.0.2
+Production release: Living OS v2.0.3
 
-Status: Living OS v2.0.2 is the stable Home Experience UI hotfix. It preserves architecture, backend behavior, database contracts, business logic, navigation routes, and subsystem ownership.
+Status: Living OS v2.0.3 is the stable Home Orbit UI hotfix. It preserves architecture, backend behavior, database contracts, business logic, navigation routes, and subsystem ownership.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 

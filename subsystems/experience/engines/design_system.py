@@ -41,42 +41,35 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
     )
 
 
-def home_welcome(*, greeting: str, date_label: str, message: str, status: str) -> None:
-    """Welcome surface for the personal operating system home."""
+def home_core(
+    *,
+    greeting: str,
+    date_label: str,
+    summary: str,
+    ai_brief: str,
+    schedule: str,
+    priority: str,
+    status: str,
+) -> None:
+    """Render the Home-only Living OS Core using existing read-only state."""
     import streamlit as st
 
     st.markdown(
-        f'''<section class="los-home-welcome">
-          <div class="los-home-kicker">LIVING OS · PERSONAL OPERATING SYSTEM</div>
-          <h1>{escape(greeting)}</h1>
-          <p>{escape(message)}</p>
-          <div class="los-home-date"><span>{escape(date_label)}</span><i></i><b>{escape(status)}</b></div>
+        f'''<section class="los-core-stage">
+          <div class="los-core-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+          <article class="los-core">
+            <div class="los-core-kicker"><span></span>WELCOME TO LIVING OS<span></span></div>
+            <h1>{escape(greeting)}</h1>
+            <time>{escape(date_label)}</time>
+            <p class="los-core-summary">{escape(summary)}</p>
+            <div class="los-core-brief"><b>AI BRIEF</b><p>{escape(ai_brief)}</p></div>
+            <div class="los-core-signals">
+              <div><span>SCHEDULE</span><b>{escape(schedule)}</b></div>
+              <div><span>PRIORITY</span><b>{escape(priority)}</b></div>
+              <div><span>TODAY</span><b>{escape(status)}</b></div>
+            </div>
+          </article>
         </section>''',
-        unsafe_allow_html=True,
-    )
-
-
-def home_today_cards(items: Iterable[dict[str, Any]]) -> None:
-    import streamlit as st
-
-    cards = []
-    for item in items:
-        cards.append(
-            '<article class="los-home-card">'
-            f'<span>{escape(str(item.get("label", "Today")))}</span>'
-            f'<b>{escape(str(item.get("value", "Ready")))}</b>'
-            f'<p>{escape(str(item.get("detail", "")))}</p></article>'
-        )
-    st.markdown('<div class="los-home-grid">' + ''.join(cards) + '</div>', unsafe_allow_html=True)
-
-
-def home_ai_brief(*, status: str, detail: str) -> None:
-    import streamlit as st
-
-    st.markdown(
-        f'''<article class="los-home-brief"><div class="los-home-brief-mark">AI</div>
-          <div><span>AI BRIEF · {escape(status)}</span><h3>Your context is ready.</h3>
-          <p>{escape(detail)}</p></div></article>''',
         unsafe_allow_html=True,
     )
 

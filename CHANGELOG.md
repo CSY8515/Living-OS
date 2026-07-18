@@ -2,6 +2,12 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.3 — 2026-07-18
+
+- Reworked Home into a single Today-focused Living OS Core with spacious operating-system presentation.
+- Replaced dashboard cards and management details with six floating launch points for Finance, Health, Vehicle, Learning, Knowledge, and Routine.
+- Preserved backend behavior, architecture, database contracts, business logic, navigation routes, and subsystem ownership.
+
 ## v2.0.2 — 2026-07-18
 
 - Rebuilt Home/Command Center as a welcome surface and today-focused personal operating hub.

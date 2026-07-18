@@ -17,13 +17,8 @@ from subsystems.job import JobSubsystem
 from subsystems.personal_growth import PersonalGrowthSubsystem
 from subsystems.collaboration import CollaborationSubsystem
 from subsystems.experience.engines.design_system import (
-    activity_feed,
-    home_ai_brief,
-    home_today_cards,
-    home_welcome,
-    health_row,
+    home_core,
     page_header,
-    panel_header,
 )
 
 from subsystems.foundation.engines.errors import CoreError
@@ -41,7 +36,7 @@ from subsystems.operations.engines.decision import DecisionService
 from subsystems.operations.engines.journal import JournalService
 from subsystems.operations.engines.knowledge import KnowledgeService
 from subsystems.operations.engines.settings import HubSettingsService
-from subsystems.insight.engines.projections import analytics_projection, dashboard_projection, review_projection
+from subsystems.insight.engines.projections import analytics_projection, review_projection
 from subsystems.operations.engines.reports import ReportsService
 
 
@@ -252,66 +247,45 @@ def render_routine_management(routine: RoutineSubsystem) -> None:
 def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
     import streamlit as st
 
-    data = dashboard_projection(hub)
     systems = systems or {}
-    management = hub.database_management
-    database_health = management.health_check(record=False)
-    component_status = management.component_status()
-    unhealthy = [item for item in component_status if item.get("status") not in {"HEALTHY", "READY"}]
-    overall = "NORMAL" if database_health.get("status") == "HEALTHY" and not unhealthy else "ATTENTION"
+    database_health = hub.database_management.health_check(record=False)
+    overall = "NORMAL" if database_health.get("status") == "HEALTHY" else "ATTENTION"
     modules = {str(item["module_id"]): item for item in hub.modules.list_modules()}
     ai_status = str(modules.get("ai_briefing", {}).get("status", "ready")).upper()
     hour = datetime.now().hour
     greeting = "Good morning." if hour < 12 else "Good afternoon." if hour < 18 else "Good evening."
-    home_welcome(
-        greeting=greeting,
-        date_label=date.today().strftime("%A, %B %d"),
-        message="Welcome back. Today is yours to shape.",
-        status=overall,
-    )
     routine_summary = systems.get("Routine").management_summary() if systems.get("Routine") else {}
     growth_summary = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
-    focus_value = f"{data['review_count']} waiting" if data["review_count"] else "Clear"
     routine_due = int(routine_summary.get("due", 0))
     growth_active = int(growth_summary.get("active", 0))
-    panel_header("Today", "A quiet overview of what matters now", "NOW")
-    overview, brief = st.columns([1.55, 1])
-    with overview:
-        home_today_cards([
-            {"label": "Focus", "value": focus_value, "detail": "Priority and review signals"},
-            {"label": "Routine", "value": f"{routine_due} due" if routine_due else "On track", "detail": f"{routine_summary.get('completion_count', 0)} completions recorded"},
-            {"label": "Learning", "value": f"{growth_active} active" if growth_active else "Open space", "detail": f"{growth_summary.get('average_progress', 0)}% average progress"},
-        ])
-    with brief:
-        home_ai_brief(status=ai_status, detail="Open AI Analysis whenever you want a source-attributed brief from owner-selected records.")
-    panel_header("Quick Launch", "Move into the space you need", "LAUNCHER")
-    targets = [("Daily Log", "Daily Log"), ("Finance", "Finance"), ("Health", "Health"), ("Vehicle", "Vehicle"),
-               ("Learning", "Personal Growth"), ("Knowledge", "Knowledge"), ("Reports", "Reports")]
+    schedule = f"{routine_due} routine items" if routine_due else "Schedule clear"
+    priority = "Routine first" if routine_due else "Continue learning" if growth_active else "Open focus"
+    summary = f"{routine_due} routines are ready for today." if routine_due else "Your day is open and ready."
+    ai_brief = "Context online. Your day is calm and ready." if ai_status in {"READY", "ENABLED", "ACTIVE"} else "Core available whenever you need it."
+
     def navigate(target: str) -> None:
         st.session_state.nav_page = target
-    with st.container(key="home_quick_launch"):
-        first_row = st.columns(4)
-        second_row = st.columns(3)
-        for column, (label, target) in zip([*first_row, *second_row], targets):
-            column.button(label, key=f"quick_{target}", on_click=navigate, args=(target,), use_container_width=True)
-    with st.expander("System details"):
-        detail_health, detail_matrix = st.columns([1, 1.8])
-        with detail_health:
-            panel_header("System Health", "Database and control plane", "STATUS")
-            health_row("Database", str(database_health.get("status", "UNKNOWN")), f"Schema {database_health.get('schema_version', '-')}")
-            health_row("Integrity", "HEALTHY" if database_health.get("integrity_status") == "ok" else "WARNING", str(database_health.get("integrity_status", "unknown")))
-            health_row("Registry", "HEALTHY" if component_status else "READY", f"{len(component_status)} components")
-            backups = management.backup_status()
-            health_row("Backup", "HEALTHY" if backups else "WARNING", backups[0].get("created_at", "No verified backup") if backups else "No verified backup")
-        if systems:
-            with detail_matrix:
-                panel_header("Subsystem Matrix", "Operational state", "V2.0.1")
-                rows = []
-                for name, subsystem in systems.items():
-                    summary = subsystem.management_summary()
-                    health = summary.get("health", {})
-                    rows.append({"Subsystem": name, "Status": health.get("status", "READY"), "Records": summary.get("total", 0), "Active": summary.get("active", summary.get("active_pipeline", 0)), "Priority / Due": summary.get("overdue", summary.get("due", summary.get("due_actions", 0))), "Registry": "REGISTERED" if summary.get("registry_registered") else "MISSING"})
-                st.dataframe(rows, width="stretch", hide_index=True)
+
+    with st.container(key="home_orbit"):
+        home_core(
+            greeting=greeting,
+            date_label=date.today().strftime("%A, %B %d"),
+            summary=summary,
+            ai_brief=ai_brief,
+            schedule=schedule,
+            priority=priority,
+            status=overall,
+        )
+        targets = [
+            ("◐  Finance", "Finance", "finance"),
+            ("♡  Health", "Health", "health"),
+            ("▷  Vehicle", "Vehicle", "vehicle"),
+            ("△  Learning", "Personal Growth", "learning"),
+            ("◫  Knowledge", "Knowledge", "knowledge"),
+            ("↻  Routine", "Routine", "routine"),
+        ]
+        for label, target, key in targets:
+            st.button(label, key=f"home_orbit_{key}", on_click=navigate, args=(target,))
 
 
 def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:

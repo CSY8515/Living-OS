@@ -1,8 +1,8 @@
-# Living OS v2.0.2
+# Living OS v2.0.3
 
-> Living OS v2.0.2 redesigns Home as a welcome surface and today-focused personal operating hub while preserving every v2.0 feature, route, subsystem, and data contract.
+> Living OS v2.0.3 reworks Home as a minimal Today-focused Living OS Core surrounded by six existing life-system launch points while preserving every feature, route, subsystem, and data contract.
 
-The v2.0.2 release keeps the premium dark glass interface while replacing the dashboard-style Home with a calmer welcome, today overview, AI brief, and Quick Launch experience.
+The v2.0.3 release keeps the premium dark glass interface while removing dashboard and management surfaces from Home in favor of a spacious Personal Operating System entry experience.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
