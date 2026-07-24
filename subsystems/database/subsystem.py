@@ -345,7 +345,7 @@ class DatabaseSubsystem:
             if int(manifest.get("schema_version", -1)) != schema_version:
                 raise ValueError("Backup manifest schema does not match its database.")
             if schema_version not in {3, self.expected_schema_version}:
-                raise ValueError("Backup schema version is not compatible with Living OS v2.0.5.")
+                raise ValueError("Backup schema version is not compatible with Living OS v2.0.6.")
             return RestoreCandidate(
                 archive_path,
                 True,
@@ -378,7 +378,7 @@ class DatabaseSubsystem:
                     )
                 result = self.integrity.check(self.expected_schema_version)
                 if not result.healthy:
-                    raise ValueError("Restored database did not pass v2.0.5 integrity checks.")
+                    raise ValueError("Restored database did not pass v2.0.6 integrity checks.")
                 self._merge_control_plane_history(control_plane_history)
             except Exception:
                 try:

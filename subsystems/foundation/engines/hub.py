@@ -13,6 +13,7 @@ from subsystems.foundation.engines.runtime_config import RuntimeStorageConfig
 from subsystems.foundation.engines.security import OwnerSecurityService
 from subsystems.foundation.engines.schemas import SchemaRegistry
 from subsystems.foundation.engines.storage import HubStore
+from subsystems.foundation.engines.timeline import TimelineService
 from subsystems.database import DatabaseSubsystem
 from subsystems.database_management import DatabaseManagementSubsystem
 
@@ -39,6 +40,7 @@ class LivingHub:
             allowed_storage_roots=(self.runtime_config.data_root,),
         )
         self.database_management = DatabaseManagementSubsystem(self.database)
+        self.timeline = TimelineService(self.database.connections, self.database.executions)
         self.schemas = SchemaRegistry()
         self.commands = CommandBus(self.store)
         self.relationships = RelationshipService(self.store)

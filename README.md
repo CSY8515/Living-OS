@@ -1,8 +1,8 @@
-# Living OS v2.0.5
+# Living OS v2.0.6
 
-> Living OS v2.0.5 is the approved Persistence & Core Stability Release built on the unchanged v2.0.4 Home experience.
+> Living OS v2.0.6 is the Timeline & Report Foundation implementation candidate built on the approved v2.0.5 stability baseline.
 
-v2.0.5 separates development and production storage profiles, blocks unsafe production startup, strengthens backup/recovery and execution records, connects existing Health capabilities to the UI, and establishes the official design-document foundation. It does not begin the future full UI redesign.
+v2.0.6 adds a common Timeline contract, Subsystem and Global Timeline queries, status/archive history, and a deterministic Daily/Weekly/Monthly Report lifecycle. It connects existing and basic new Report sources without adding AI, automation, scheduling, or an official UI.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

@@ -162,6 +162,23 @@ V20_STABLE_MANIFESTS = V19_STABLE_MANIFESTS + (
 
 V20_DEVELOPMENT_MANIFESTS = V20_STABLE_MANIFESTS
 
+V206_STABLE_MANIFESTS = V20_STABLE_MANIFESTS + (
+    ModuleManifest(
+        "timeline", "Timeline Foundation", "1.0.0", ">=2.0.6,<3.0",
+        "Common subsystem and global Timeline contract over records and event history.",
+        status="enabled",
+        capabilities=("timeline", "global-query", "period-filter", "status-history", "archive"),
+    ),
+    ModuleManifest(
+        "reports", "Report Foundation", "2.0.6", ">=2.0.6,<3.0",
+        "Common deterministic Daily, Weekly, and Monthly Report lifecycle.",
+        status="enabled",
+        capabilities=("daily", "weekly", "monthly", "crud", "archive", "source-contract"),
+    ),
+)
+
+V206_DEVELOPMENT_MANIFESTS = V206_STABLE_MANIFESTS
+
 # Compatibility alias for the approved pre-release name.
 V17_RELEASE_CANDIDATE_MANIFESTS = V17_STABLE_MANIFESTS
 

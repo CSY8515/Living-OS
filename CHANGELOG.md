@@ -2,6 +2,17 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.6 — 2026-07-25
+
+- Added the common Timeline record contract and source adapter for Finance, Investment, Job, Health, Vehicle, Housing, Food, Knowledge, Routine, Personal Growth, and Collaboration.
+- Added Global Timeline queries with descending date order, period and Subsystem filters, record references, status history, and Archive distinction.
+- Projected existing Domain Events and Execution Database history without duplicating domain ownership or introducing an automatic migration.
+- Upgraded Reports to a common schema-versioned contract with deterministic Daily, Weekly, and Monthly creation, save, lookup, list, and Archive lifecycle.
+- Connected Journal, Decision, Finance, Health, Vehicle, Housing, and Food report foundations.
+- Added basic report-source contracts for Investment, Job, Knowledge, Routine, Personal Growth, and Collaboration.
+- Added Timeline, Report, CRUD, Archive, Database, regression, and Streamlit smoke coverage.
+- Added no Chat, OCR, Voice, AI Assistant, automation, scheduler, trigger, Wardrobe, official UI, full Korean patch, or advanced Analytics.
+
 ## v2.0.5 — 2026-07-25
 
 - Added separate development and production storage profiles with path validation.

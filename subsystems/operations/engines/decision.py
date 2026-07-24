@@ -46,7 +46,14 @@ class DecisionService:
         version = self.hub.store.put_record(ref, payload, expected_version=0, connection=connection)
         return CommandResult(
             {**payload, "_version": version},
-            (DomainEvent(self.module_id, "DecisionCreated", ref, {"version": version}),),
+            (
+                DomainEvent(
+                    self.module_id,
+                    "DecisionCreated",
+                    ref,
+                    {"version": version, "status": payload["status"]},
+                ),
+            ),
         )
 
     def _handle_revise(self, command: CommandEnvelope, connection: Any) -> CommandResult:
@@ -73,7 +80,14 @@ class DecisionService:
         )
         return CommandResult(
             {**payload, "_version": version},
-            (DomainEvent(self.module_id, "DecisionRevised", ref, {"version": version}),),
+            (
+                DomainEvent(
+                    self.module_id,
+                    "DecisionStatusChanged",
+                    ref,
+                    {"version": version, "status": payload["status"]},
+                ),
+            ),
         )
 
     def create(

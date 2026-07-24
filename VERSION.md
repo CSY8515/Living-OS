@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.5
+Workspace version: Living OS v2.0.6
 
 Implementation verification date: 2026-07-25
 
 Production release: Living OS v2.0.5
 
-Status: Living OS v2.0.5 is the approved Persistence & Core Stability Release. All 128 automated tests pass. The deployment operator must still verify durable storage, independent backup, Owner Authentication, and the release gate in every target production environment.
+Status: Living OS v2.0.6 Timeline & Report Foundation implementation is complete and awaiting owner approval. The approved production release remains v2.0.5 until Commit, Push, Tag, Release, and Deploy are explicitly authorized. All 134 automated tests pass.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 

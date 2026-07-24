@@ -49,7 +49,7 @@ from subsystems.job import JobSubsystem
 from subsystems.personal_growth import PersonalGrowthSubsystem
 from subsystems.collaboration import CollaborationSubsystem
 from subsystems.foundation.engines.hub import LivingHub
-from subsystems.operations.engines.catalog import V20_STABLE_MANIFESTS
+from subsystems.operations.engines.catalog import V206_STABLE_MANIFESTS
 from subsystems.foundation.engines.runtime_config import RuntimeConfigurationError
 from subsystems.foundation.engines.version import PRODUCT_VERSION
 
@@ -76,7 +76,7 @@ def _hub() -> LivingHub:
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
-        hub.bootstrap(V20_STABLE_MANIFESTS)
+        hub.bootstrap(V206_STABLE_MANIFESTS)
         return hub
 
     return build_hub()
@@ -235,6 +235,76 @@ def _collaboration_subsystem() -> CollaborationSubsystem:
     return build()
 
 
+def _configure_timeline_sources(
+    hub: LivingHub,
+    finance: FinanceSubsystem,
+    food: FoodSubsystem,
+    health: HealthSubsystem,
+    housing: HousingSubsystem,
+    vehicle: VehicleSubsystem,
+    knowledge: KnowledgeSubsystem,
+    routine: RoutineSubsystem,
+    investment: InvestmentSubsystem,
+    job: JobSubsystem,
+    growth: PersonalGrowthSubsystem,
+    collaboration: CollaborationSubsystem,
+) -> None:
+    sources = (
+        ("finance", finance.list_transactions, "transaction", {}),
+        ("investment", lambda: investment.list(include_archived=True, limit=1000), "investment", {}),
+        ("job", lambda: job.list(include_archived=True, limit=1000), "job", {}),
+        ("health", health.list_weights, "weight", {"event_time_field": "measured_on"}),
+        (
+            "health",
+            health.list_health_checkups,
+            "health-checkup",
+            {"event_time_field": "checked_on"},
+        ),
+        (
+            "health",
+            health.list_exercise,
+            "exercise",
+            {"title_field": "activity", "event_time_field": "exercised_on"},
+        ),
+        ("vehicle", vehicle.list_vehicles, "vehicle", {}),
+        ("housing", housing.list_candidates, "housing-candidate", {}),
+        ("food", food.list_ingredients, "ingredient", {}),
+        ("food", food.list_recipes, "recipe", {"id_field": "recipe_id"}),
+        (
+            "knowledge",
+            lambda: knowledge.list(include_archived=True, limit=1000),
+            "knowledge-record",
+            {},
+        ),
+        (
+            "routine",
+            lambda: routine.list(include_archived=True, limit=1000),
+            "routine",
+            {},
+        ),
+        (
+            "personal-growth",
+            lambda: growth.list(include_archived=True, limit=1000),
+            "growth-goal",
+            {},
+        ),
+        (
+            "collaboration",
+            lambda: collaboration.list(include_archived=True, limit=1000),
+            "collaboration",
+            {},
+        ),
+    )
+    for subsystem, loader, record_type, overrides in sources:
+        hub.timeline.register_subsystem_source(
+            subsystem,
+            loader,
+            record_type=record_type,
+            replace=True,
+            **overrides,
+        )
+
+
 def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsystem,
                      health: HealthSubsystem,
                      housing: HousingSubsystem,
@@ -242,6 +312,20 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
                      routine: RoutineSubsystem, investment: InvestmentSubsystem,
                      job: JobSubsystem, growth: PersonalGrowthSubsystem,
                      collaboration: CollaborationSubsystem) -> dict[str, Callable[[], None]]:
+    _configure_timeline_sources(
+        hub,
+        finance,
+        food,
+        health,
+        housing,
+        vehicle,
+        knowledge,
+        routine,
+        investment,
+        job,
+        growth,
+        collaboration,
+    )
     managed = {"Personal Growth": growth, "Collaboration": collaboration,
                "Knowledge": knowledge, "Routine": routine, "Investment": investment, "Job": job}
     return {
