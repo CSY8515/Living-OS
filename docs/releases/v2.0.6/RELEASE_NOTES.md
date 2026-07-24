@@ -1,6 +1,6 @@
 # Living OS v2.0.6 — Timeline & Report Foundation
 
-Status: Implementation complete; owner approval pending.
+Status: Released.
 
 ## Timeline
 
@@ -28,4 +28,4 @@ Analytics is included.
 
 ## Release Control
 
-Commit, Push, Tag, Release, and Deploy require explicit owner approval.
+Commit, Push, Tag, Release, and Deploy were explicitly approved by the owner.

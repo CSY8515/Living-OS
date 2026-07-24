@@ -1,6 +1,6 @@
 # Living OS v2.0.6
 
-> Living OS v2.0.6 is the Timeline & Report Foundation implementation candidate built on the approved v2.0.5 stability baseline.
+> Living OS v2.0.6 is the approved Timeline & Report Foundation Release built on the v2.0.5 stability baseline.
 
 v2.0.6 adds a common Timeline contract, Subsystem and Global Timeline queries, status/archive history, and a deterministic Daily/Weekly/Monthly Report lifecycle. It connects existing and basic new Report sources without adding AI, automation, scheduling, or an official UI.
 
