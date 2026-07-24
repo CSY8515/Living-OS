@@ -2,6 +2,19 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.5 — 2026-07-25
+
+- Added separate development and production storage profiles with path validation.
+- Blocked production startup when durable data, independent backup, or Owner Authentication requirements are missing.
+- Added a release gate for production storage and authentication readiness.
+- Extended Execution Database records with retry, recovery, product version, validation, failure context, and recorded timestamp fields.
+- Recorded failed validation paths and restore rollback outcomes.
+- Preserved restore compatibility for v2.0.4 Schema 3 backups through additive migration to Schema 4.
+- Connected existing Health checkup, exercise, nutrition, trend, goal-progress, and daily/weekly/monthly report capabilities to the UI.
+- Added explicit Archive/Restore lifecycle actions without changing domain ownership.
+- Added the official Design Docs Foundation under `docs/ui/`.
+- Corrected active version, migration, Settings, Report, and deployment documentation.
+
 ## v2.0.4 — 2026-07-18
 
 - Hid the Streamlit Sidebar, vertical navigation list, and collapsed Sidebar control on Home only.

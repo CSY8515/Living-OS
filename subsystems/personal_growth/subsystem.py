@@ -9,6 +9,7 @@ from uuid import uuid4
 from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.personal_growth.models import GrowthGoal
 from subsystems.personal_growth.repository import PersonalGrowthRepository
+from subsystems.database.engines.observability import record_failures
 
 
 class PersonalGrowthSubsystem:
@@ -21,6 +22,7 @@ class PersonalGrowthSubsystem:
         self.repository.register_contract(schema_version=1, migration_id="personal-growth-schema-v1", integration_mode="record-repository")
         self.database_foundation = database_foundation
 
+    @record_failures("create")
     def create(self, title: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso()
         record = GrowthGoal(goal_id=str(fields.pop("goal_id", "") or uuid4()), title=title, created_at=now, updated_at=now, **fields)
@@ -29,6 +31,7 @@ class PersonalGrowthSubsystem:
     def get(self, goal_id: str) -> dict[str, Any] | None:
         return self.repository.get(goal_id)
 
+    @record_failures("update")
     def update(self, goal_id: str, **changes: Any) -> dict[str, Any]:
         current = self.get(goal_id)
         if current is None: raise KeyError(goal_id)
@@ -36,7 +39,10 @@ class PersonalGrowthSubsystem:
         GrowthGoal(**payload).validate()
         result = self.repository.update(goal_id, payload); self._execution("update", goal_id); return result
 
+    @record_failures("archive")
     def archive(self, goal_id: str) -> dict[str, Any]: return self.update(goal_id, status="ARCHIVED")
+    @record_failures("restore")
+    def restore(self, goal_id: str) -> dict[str, Any]: return self.update(goal_id, status="PLANNED")
     def list(self, **filters: Any) -> list[dict[str, Any]]: return self.repository.list(**filters)
     def health(self) -> dict[str, Any]: return self.repository.health()
 

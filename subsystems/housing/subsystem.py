@@ -9,6 +9,7 @@ from subsystems.housing.engines.migration import HousingMigrationEngine
 from subsystems.housing.engines.report import HousingReportEngine
 from subsystems.housing.engines.scoring import HousingScoringEngine
 from subsystems.housing.engines.storage import HousingStorageEngine
+from subsystems.database.engines.observability import record_failures
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -63,6 +64,7 @@ class HousingSubsystem:
     def calculate_candidate(self, **values: Any) -> dict[str, Any]:
         return self._scoring.calculate(**values)
 
+    @record_failures("create_candidate")
     def create_candidate(self, **values: Any) -> dict[str, Any]:
         return self._candidates.create(**values)
 
@@ -72,9 +74,11 @@ class HousingSubsystem:
     def list_candidates(self, status: Any | None = None) -> list[dict[str, Any]]:
         return self._candidates.list(status)
 
+    @record_failures("update_candidate")
     def update_candidate(self, candidate_id: Any, **changes: Any) -> dict[str, Any]:
         return self._candidates.update(candidate_id, **changes)
 
+    @record_failures("delete_candidate")
     def delete_candidate(self, candidate_id: Any) -> bool:
         return self._candidates.delete(candidate_id)
 
@@ -87,6 +91,7 @@ class HousingSubsystem:
     def dry_run_legacy_json(self, source: Path) -> dict[str, Any]:
         return self._migration.dry_run_legacy_json(Path(source))
 
+    @record_failures("migrate_legacy_json")
     def migrate_legacy_json(self, source: Path) -> dict[str, Any]:
         return self._migration.migrate_legacy_json(Path(source))
 

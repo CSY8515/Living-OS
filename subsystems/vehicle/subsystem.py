@@ -10,6 +10,7 @@ from subsystems.vehicle.engines.report import VehicleReportEngine
 from subsystems.vehicle.engines.schedule import ScheduleEngine
 from subsystems.vehicle.engines.storage import VehicleStorageEngine
 from subsystems.vehicle.engines.vehicle import VehicleEngine
+from subsystems.database.engines.observability import record_failures
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -57,6 +58,7 @@ class VehicleSubsystem:
                              "maintenance-schedule", "energy-cost", "vehicle-report"),
         }
 
+    @record_failures("create_vehicle")
     def create_vehicle(self, display_name: Any, manufacturer: Any = "", model: Any = "",
                        model_year: Any = None, powertrain: Any = "other") -> dict[str, Any]:
         return self._vehicles.create(display_name, manufacturer, model, model_year, powertrain)
@@ -67,12 +69,19 @@ class VehicleSubsystem:
     def list_vehicles(self, status: Any | None = None) -> list[dict[str, Any]]:
         return self._vehicles.list(status)
 
+    @record_failures("update_vehicle")
     def update_vehicle(self, vehicle_id: Any, **changes: Any) -> dict[str, Any]:
         return self._vehicles.update(vehicle_id, **changes)
 
+    @record_failures("archive_vehicle")
     def archive_vehicle(self, vehicle_id: Any) -> dict[str, Any]:
         return self._vehicles.archive(vehicle_id)
 
+    @record_failures("restore_vehicle")
+    def restore_vehicle(self, vehicle_id: Any) -> dict[str, Any]:
+        return self._vehicles.update(vehicle_id, status="active")
+
+    @record_failures("record_odometer")
     def record_odometer(self, vehicle_id: Any, odometer_km: Any, recorded_on: Any,
                         note: Any = "") -> dict[str, Any]:
         return self._odometer.record(vehicle_id, odometer_km, recorded_on, note)
@@ -81,6 +90,7 @@ class VehicleSubsystem:
                                end_on: Any = None) -> list[dict[str, Any]]:
         return self._odometer.list(vehicle_id, start_on, end_on)
 
+    @record_failures("record_maintenance")
     def record_maintenance(self, vehicle_id: Any, service_type: Any, serviced_on: Any,
                            odometer_km: Any = None, cost: Any = 0, provider: Any = "",
                            note: Any = "") -> dict[str, Any]:
@@ -92,6 +102,7 @@ class VehicleSubsystem:
                                  end_on: Any = None, service_type: Any = None) -> list[dict[str, Any]]:
         return self._maintenance.list(vehicle_id, start_on, end_on, service_type)
 
+    @record_failures("create_maintenance_schedule")
     def create_maintenance_schedule(self, vehicle_id: Any, service_type: Any,
                                     due_on: Any = None, due_odometer_km: Any = None) -> dict[str, Any]:
         return self._schedules.create(vehicle_id, service_type, due_on, due_odometer_km)
@@ -100,6 +111,7 @@ class VehicleSubsystem:
                                    status: Any | None = None) -> list[dict[str, Any]]:
         return self._schedules.list(vehicle_id, status)
 
+    @record_failures("complete_maintenance_schedule")
     def complete_maintenance_schedule(self, schedule_id: Any,
                                       maintenance_id: Any) -> dict[str, Any]:
         return self._schedules.complete(schedule_id, maintenance_id)
@@ -107,6 +119,7 @@ class VehicleSubsystem:
     def due_maintenance(self, vehicle_id: Any, as_of: Any = None) -> list[dict[str, Any]]:
         return self._schedules.due(vehicle_id, as_of)
 
+    @record_failures("record_energy")
     def record_energy(self, vehicle_id: Any, energy_type: Any, recorded_on: Any,
                       quantity: Any, cost: Any = 0, odometer_km: Any = None,
                       note: Any = "") -> dict[str, Any]:

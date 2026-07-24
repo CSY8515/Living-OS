@@ -47,6 +47,10 @@ class VehicleSubsystemTests(unittest.TestCase):
         self.assertEqual(archived["status"], "archived")
         self.assertEqual(self.vehicle.list_vehicles("active"), [])
         self.assertEqual(len(self.vehicle.list_vehicles("archived")), 1)
+        restored = self.vehicle.restore_vehicle(first["vehicle_id"])
+        self.assertEqual(restored["status"], "active")
+        self.assertEqual(len(self.vehicle.list_vehicles("active")), 1)
+        self.assertEqual(self.vehicle.list_vehicles("archived"), [])
         with self.assertRaises(ValueError):
             self.vehicle.create_vehicle("")
         with self.assertRaises(ValueError):

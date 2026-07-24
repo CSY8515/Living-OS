@@ -10,6 +10,7 @@ from uuid import uuid4
 from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.routine.models import RoutineExecutionRecord, RoutineRecord
 from subsystems.routine.repository import RoutineRepository
+from subsystems.database.engines.observability import record_failures
 
 
 class RoutineSubsystem:
@@ -31,19 +32,26 @@ class RoutineSubsystem:
             except ValueError as exc: raise ValueError("INTERVAL schedule_rule must be a number of days.") from exc
         else: raise ValueError(f"Unsupported frequency: {frequency}")
         return due.isoformat()
+    @record_failures("create")
     def create(self,name:str,**fields:Any)->dict[str,Any]:
         now=utc_now_iso();routine_id=str(fields.pop("routine_id","") or uuid4());frequency=str(fields.get("frequency","DAILY"));status=str(fields.get("status","DRAFT"));fields.setdefault("next_due_at",self.calculate_next_due(frequency,now,str(fields.get("schedule_rule",""))) if status=="ACTIVE" else None);record=RoutineRecord(routine_id=routine_id,name=name,created_at=now,updated_at=now,**fields);result=self.repository.create(record.to_dict());self._record("create",routine_id,"COMPLETED");return result
     def get(self,routine_id:str)->dict[str,Any]|None:return self.repository.get(routine_id)
+    @record_failures("update")
     def update(self,routine_id:str,**changes:Any)->dict[str,Any]:
         current=self.repository.get(routine_id)
         if current is None:raise KeyError(routine_id)
         p={**current,**changes,"routine_id":routine_id,"updated_at":utc_now_iso()};RoutineRecord(**p).validate();result=self.repository.update(routine_id,p);self._record("update",routine_id,"COMPLETED");return result
     def pause(self,routine_id:str)->dict[str,Any]:return self.update(routine_id,status="PAUSED")
+    @record_failures("archive")
     def archive(self,routine_id:str)->dict[str,Any]:result=self.update(routine_id,status="ARCHIVED");self._record("archive",routine_id,"COMPLETED");return result
+    @record_failures("restore")
+    def restore(self,routine_id:str)->dict[str,Any]:result=self.update(routine_id,status="PAUSED");self._record("restore",routine_id,"COMPLETED");return result
+    @record_failures("schedule")
     def schedule(self,routine_id:str,scheduled_at:str|None=None)->dict[str,Any]:
         routine=self.repository.get(routine_id)
         if routine is None:raise KeyError(routine_id)
         now=utc_now_iso();execution=RoutineExecutionRecord(execution_id=str(uuid4()),routine_id=routine_id,scheduled_at=scheduled_at or routine.get("next_due_at") or now,created_at=now);result=self.repository.add_execution(execution.to_dict());self._record("schedule",routine_id,"COMPLETED");return result
+    @record_failures("process")
     def process(self,execution_id:str,status:str,*,result:str="",note:str="",duration:int=0)->dict[str,Any]:
         if status not in {"COMPLETED","FAILED","SKIPPED"}:raise ValueError("Execution outcome must be COMPLETED, FAILED, or SKIPPED.")
         execution=self.repository.execution(execution_id)

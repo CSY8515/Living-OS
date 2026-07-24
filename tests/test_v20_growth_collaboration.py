@@ -29,12 +29,18 @@ class V20GrowthCollaborationTests(unittest.TestCase):
         self.assertEqual(goal["progress"], 25)
         self.assertEqual(self.growth.update("growth-1", progress=60)["progress"], 60)
         self.assertEqual(self.growth.management_summary()["active"], 1)
+        self.assertEqual(self.growth.archive("growth-1")["status"], "ARCHIVED")
+        self.assertEqual(self.growth.restore("growth-1")["status"], "PLANNED")
         with self.assertRaises(ValueError): self.growth.update("growth-1", progress=101)
 
         item = self.collaboration.create("Launch project", "Design team", collaboration_id="collab-1", status="ACTIVE")
         self.assertEqual(item["partner"], "Design team")
         self.assertEqual(self.collaboration.update("collab-1", status="BLOCKED")["status"], "BLOCKED")
         self.assertEqual(self.collaboration.management_summary()["blocked"], 1)
+        self.assertEqual(self.collaboration.archive("collab-1")["status"], "ARCHIVED")
+        self.assertEqual(
+            self.collaboration.restore("collab-1")["status"], "PLANNED"
+        )
 
     def test_registry_execution_integrity_backup_restore(self) -> None:
         self.growth.create("Goal", goal_id="restore-growth")

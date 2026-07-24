@@ -8,6 +8,7 @@ from uuid import uuid4
 from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.investment.models import InvestmentRecord
 from subsystems.investment.repository import InvestmentRepository
+from subsystems.database.engines.observability import record_failures
 
 
 class InvestmentSubsystem:
@@ -22,6 +23,7 @@ class InvestmentSubsystem:
         )
         self.database_foundation = database_foundation
 
+    @record_failures("create")
     def create(self, name: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso()
         record = InvestmentRecord(
@@ -37,6 +39,7 @@ class InvestmentSubsystem:
         self._execution("read", investment_id)
         return result
 
+    @record_failures("update")
     def update(self, investment_id: str, **changes: Any) -> dict[str, Any]:
         current = self.repository.get(investment_id)
         if current is None:
@@ -52,9 +55,16 @@ class InvestmentSubsystem:
         self._execution("valuation", investment_id)
         return result
 
+    @record_failures("archive")
     def archive(self, investment_id: str) -> dict[str, Any]:
         result = self.update(investment_id, status="ARCHIVED")
         self._execution("archive", investment_id)
+        return result
+
+    @record_failures("restore")
+    def restore(self, investment_id: str) -> dict[str, Any]:
+        result = self.update(investment_id, status="WATCHLIST")
+        self._execution("restore", investment_id)
         return result
 
     def list(self, **filters: Any) -> list[dict[str, Any]]:

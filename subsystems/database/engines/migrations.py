@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from subsystems.database.engines.connection import SQLiteConnectionLayer
 from subsystems.foundation.engines.time import utc_now_iso
+from subsystems.foundation.engines.version import PRODUCT_VERSION
 
 
 @dataclass(frozen=True)
@@ -89,6 +90,19 @@ V17_MIGRATIONS = (
             "CREATE INDEX IF NOT EXISTS ix_execution_component ON execution_records(subsystem, status, started_at)",
         ),
     ),
+    DatabaseMigration(
+        4,
+        "v2_0_5_execution_context",
+        (
+            "ALTER TABLE execution_records ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE execution_records ADD COLUMN recovery_result TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE execution_records ADD COLUMN product_version TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE execution_records ADD COLUMN validation_result TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE execution_records ADD COLUMN failure_context_json TEXT NOT NULL DEFAULT '{}'",
+            "ALTER TABLE execution_records ADD COLUMN recorded_at TEXT NOT NULL DEFAULT ''",
+            "CREATE INDEX IF NOT EXISTS ix_execution_product_version ON execution_records(product_version, started_at)",
+        ),
+    ),
 )
 
 
@@ -147,9 +161,9 @@ class MigrationRegistry:
                         (str(migration.version), utc_now_iso()),
                     )
                     connection.execute(
-                        """INSERT INTO system_meta(key,value,updated_at) VALUES('product_version','v1.7.1',?)
+                        """INSERT INTO system_meta(key,value,updated_at) VALUES('product_version',?,?)
                            ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
-                        (utc_now_iso(),),
+                        (PRODUCT_VERSION, utc_now_iso()),
                     )
                 applied.append({"version": migration.version, "name": migration.name, "status": "APPLIED"})
             except Exception as exc:

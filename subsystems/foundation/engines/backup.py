@@ -10,6 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from subsystems.foundation.engines.time import utc_now_iso
+from subsystems.foundation.engines.version import PRODUCT_VERSION
 
 
 def sha256_file(path: Path) -> str:
@@ -29,7 +30,7 @@ class BackupService:
     def create(self, legacy_paths: list[Path] | None = None) -> Path:
         self.backup_root.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
-        archive_path = self.backup_root / f"living_os_v1_7_database_{stamp}.zip"
+        archive_path = self.backup_root / f"living_os_v2_0_5_database_{stamp}.zip"
         snapshot_path = self.backup_root / f".{archive_path.stem}.sqlite3"
         schema_version = "0"
         if self.database_path.exists():
@@ -46,7 +47,7 @@ class BackupService:
         manifest: dict[str, object] = {
             "format": "living-os-database-backup",
             "format_version": 1,
-            "product_version": "v1.7",
+            "product_version": PRODUCT_VERSION,
             "schema_version": schema_version,
             "created_at": utc_now_iso(),
             "files": {},

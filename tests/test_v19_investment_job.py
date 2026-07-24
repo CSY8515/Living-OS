@@ -51,6 +51,9 @@ class V19InvestmentJobTests(unittest.TestCase):
         self.assertEqual(summary["valuation_by_currency"]["USD"]["value"], 1250)
         self.assertEqual(self.investment.archive(created["investment_id"])["status"], "ARCHIVED")
         self.assertEqual(self.investment.list(), [])
+        self.assertEqual(
+            self.investment.restore(created["investment_id"])["status"], "WATCHLIST"
+        )
 
     def test_job_search_transition_due_actions_and_management(self) -> None:
         due = (date.today() - timedelta(days=1)).isoformat()
@@ -62,6 +65,7 @@ class V19InvestmentJobTests(unittest.TestCase):
         self.assertEqual(self.job.management_summary()["due_actions"], 1)
         self.assertEqual(self.job.transition(created["job_id"], "INTERVIEW")["status"], "INTERVIEW")
         self.assertEqual(self.job.archive(created["job_id"])["status"], "ARCHIVED")
+        self.assertEqual(self.job.restore(created["job_id"])["status"], "SAVED")
 
     def test_registry_execution_integrity_backup_and_restore(self) -> None:
         management = DatabaseManagementSubsystem(self.database)

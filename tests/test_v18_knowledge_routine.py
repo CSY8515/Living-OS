@@ -37,6 +37,7 @@ class V18KnowledgeRoutineTests(unittest.TestCase):
         self.assertEqual(updated["status"], "ACTIVE")
         self.assertEqual(self.knowledge.archive(created["record_id"])["status"], "ARCHIVED")
         self.assertEqual(self.knowledge.list(), [])
+        self.assertEqual(self.knowledge.restore(created["record_id"])["status"], "NEW")
         summary = self.knowledge.management_summary()
         self.assertEqual(summary["total"], 1); self.assertTrue(summary["registry_registered"])
 
@@ -50,6 +51,8 @@ class V18KnowledgeRoutineTests(unittest.TestCase):
         after = self.routine.get(item["routine_id"])
         self.assertEqual(after["failure_count"], 1); self.assertEqual(after["streak"], 0)
         third = self.routine.schedule(item["routine_id"]); self.assertEqual(self.routine.skip(third["execution_id"])["status"], "SKIPPED")
+        self.assertEqual(self.routine.archive(item["routine_id"])["status"], "ARCHIVED")
+        self.assertEqual(self.routine.restore(item["routine_id"])["status"], "PAUSED")
 
     def test_due_and_schedule_calculation(self) -> None:
         past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()

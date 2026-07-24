@@ -24,6 +24,8 @@ from subsystems.experience.engines.design_system import (
 from subsystems.foundation.engines.errors import CoreError
 from subsystems.foundation.engines.hub import LivingHub
 from subsystems.foundation.engines.module_runtime import LIFECYCLE_TRANSITIONS
+from subsystems.foundation.engines.release_gate import evaluate_release_gate
+from subsystems.foundation.engines.version import PRODUCT_VERSION
 from subsystems.insight.engines.ai_credentials import resolve_api_key
 from subsystems.insight.engines.ai_service import (
     AI_MODELS,
@@ -80,8 +82,16 @@ def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
             if actions[0].button("Save Valuation", key=f"investment_value_{item['investment_id']}"):
                 investment.update_valuation(item["investment_id"], price)
                 st.rerun()
-            if actions[1].button("Archive", key=f"investment_archive_{item['investment_id']}"):
-                investment.archive(item["investment_id"])
+            lifecycle_label = "Restore" if item["status"] == "ARCHIVED" else "Archive"
+            if actions[1].button(
+                lifecycle_label, key=f"investment_lifecycle_{item['investment_id']}"
+            ):
+                if item["status"] == "ARCHIVED":
+                    investment.restore(item["investment_id"])
+                    st.success("Investment restored to Watchlist.")
+                else:
+                    investment.archive(item["investment_id"])
+                    st.success("Investment archived.")
                 st.rerun()
     if not records:
         st.info("No investment records yet.")
@@ -136,6 +146,15 @@ def render_job_subsystem(job: JobSubsystem) -> None:
                                       key=f"job_status_{item['job_id']}")
             if st.button("Save Status", key=f"job_save_{item['job_id']}"):
                 job.transition(item["job_id"], new_status)
+                st.rerun()
+            lifecycle_label = "Restore" if item["status"] == "ARCHIVED" else "Archive"
+            if st.button(lifecycle_label, key=f"job_lifecycle_{item['job_id']}"):
+                if item["status"] == "ARCHIVED":
+                    job.restore(item["job_id"])
+                    st.success("Job restored to Saved.")
+                else:
+                    job.archive(item["job_id"])
+                    st.success("Job archived.")
                 st.rerun()
             if item["notes"]:
                 st.write(item["notes"])
@@ -192,6 +211,12 @@ def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
                 if new_status == "ARCHIVED": knowledge.archive(item["record_id"])
                 else: knowledge.update(item["record_id"], status=new_status)
                 st.rerun()
+            if item["status"] == "ARCHIVED" and st.button(
+                "Restore", key=f"knowledge_restore_{item['record_id']}"
+            ):
+                knowledge.restore(item["record_id"])
+                st.success("Knowledge record restored to New.")
+                st.rerun()
     if not records: st.info("No Knowledge records match this view.")
 
 
@@ -223,6 +248,12 @@ def render_routine_subsystem(routine: RoutineSubsystem) -> None:
     for item in routines:
         with st.expander(f"{item['name']} · {item['status']} · streak {item['streak']}"):
             st.write(item["description"]); st.caption(f"{item['frequency']} · next due {item.get('next_due_at') or '-'}")
+            if item["status"] == "ARCHIVED":
+                if st.button("Restore", key=f"routine_restore_{item['routine_id']}"):
+                    routine.restore(item["routine_id"])
+                    st.success("Routine restored in Paused state.")
+                    st.rerun()
+                continue
             actions = st.columns(5)
             if actions[0].button("Schedule", key=f"routine_schedule_{item['routine_id']}"): routine.schedule(item["routine_id"]); st.rerun()
             if actions[1].button("Pause", key=f"routine_pause_{item['routine_id']}"): routine.pause(item["routine_id"]); st.rerun()
@@ -312,6 +343,15 @@ def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
                 status = st.selectbox("Status", ["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"], index=["PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"].index(item["status"]), key=f"growth_status_{item['goal_id']}")
                 reflection = st.text_area("Reflection", value=item["last_reflection"], key=f"growth_reflection_{item['goal_id']}")
                 if st.button("Save progress", key=f"growth_save_{item['goal_id']}"): growth.update(item["goal_id"], progress=progress, status=status, last_reflection=reflection); st.rerun()
+                lifecycle_label = "Restore" if item["status"] == "ARCHIVED" else "Archive"
+                if st.button(lifecycle_label, key=f"growth_lifecycle_{item['goal_id']}"):
+                    if item["status"] == "ARCHIVED":
+                        growth.restore(item["goal_id"])
+                        st.success("Growth goal restored to Planned.")
+                    else:
+                        growth.archive(item["goal_id"])
+                        st.success("Growth goal archived.")
+                    st.rerun()
 
 
 def render_personal_growth_management(growth: PersonalGrowthSubsystem) -> None:
@@ -343,6 +383,15 @@ def render_collaboration(collaboration: CollaborationSubsystem) -> None:
                 status = st.selectbox("Status", ["PLANNED", "ACTIVE", "BLOCKED", "COMPLETED", "ARCHIVED"], index=["PLANNED", "ACTIVE", "BLOCKED", "COMPLETED", "ARCHIVED"].index(item["status"]), key=f"collab_status_{item['collaboration_id']}")
                 notes = st.text_area("Coordination notes", value=item["notes"], key=f"collab_notes_{item['collaboration_id']}")
                 if st.button("Save collaboration", key=f"collab_save_{item['collaboration_id']}"): collaboration.update(item["collaboration_id"], status=status, notes=notes); st.rerun()
+                lifecycle_label = "Restore" if item["status"] == "ARCHIVED" else "Archive"
+                if st.button(lifecycle_label, key=f"collab_lifecycle_{item['collaboration_id']}"):
+                    if item["status"] == "ARCHIVED":
+                        collaboration.restore(item["collaboration_id"])
+                        st.success("Collaboration restored to Planned.")
+                    else:
+                        collaboration.archive(item["collaboration_id"])
+                        st.success("Collaboration archived.")
+                    st.rerun()
 
 
 def render_collaboration_management(collaboration: CollaborationSubsystem) -> None:
@@ -693,6 +742,39 @@ def render_settings(hub: LivingHub) -> None:
 
     st.title("Settings / Hub Administration")
     st.caption("Explicit migration, backup, credentials, and storage status.")
+    st.subheader("Runtime Storage and Release Gate")
+    runtime_status = hub.runtime_config.status()
+    release_gate = evaluate_release_gate(
+        hub.runtime_config,
+        owner_security_configured=hub.security.configured,
+    )
+    runtime_columns = st.columns(4)
+    runtime_columns[0].metric("Environment", str(runtime_status["environment"]).upper())
+    runtime_columns[1].metric("Durability", str(runtime_status["durability"]).upper())
+    runtime_columns[2].metric(
+        "Backup",
+        "INDEPENDENT" if runtime_status["backup_independent"] else "LOCAL",
+    )
+    runtime_columns[3].metric(
+        "Authentication",
+        "REQUIRED" if runtime_status["authentication_required"] else "OPTIONAL",
+    )
+    st.caption(f"Data root: {runtime_status['data_root']}")
+    st.caption(f"Backup root: {runtime_status['backup_root']}")
+    if hub.runtime_config.production:
+        if release_gate.passed:
+            st.success(f"Living OS {PRODUCT_VERSION} production release gate is ready.")
+        else:
+            st.error(
+                "Production release gate is blocked: "
+                + ", ".join(release_gate.failures)
+            )
+    else:
+        st.info(
+            "Development storage profile active. Production release requires "
+            "durable data, independent backup, and Owner Authentication."
+        )
+    st.divider()
     st.subheader("Application Preferences")
     if hub.v1_migration_complete:
         settings_service = HubSettingsService(hub)
@@ -834,7 +916,7 @@ def render_settings(hub: LivingHub) -> None:
                     st.success(f"Applied {len(applied)} database migration(s).")
                     st.rerun()
     else:
-        st.success("Database schema is current for Living OS v2.0.2.")
+        st.success(f"Database schema is current for Living OS {PRODUCT_VERSION}.")
 
     st.markdown("#### Registered component databases")
     component_status = management.component_status()
@@ -1118,87 +1200,310 @@ def render_finance(finance: FinanceSubsystem) -> None:
 
 
 def render_health(health: HealthSubsystem) -> None:
+    import json
     import streamlit as st
     from datetime import date
 
     st.title("Health")
-    st.caption("Health Subsystem v1.0 · Sensitive owner data · Informational, not medical advice")
+    st.caption(
+        "Health Subsystem v1.0 · Sensitive owner data · Informational, not medical advice"
+    )
     today = date.today()
     weight_tab, inbody_tab, lifestyle_tab, goal_tab = st.tabs(
         ["Weight", "InBody / Checkup", "Sleep / Exercise / Nutrition", "Goals / Report"]
     )
     with weight_tab:
         with st.form("health_weight_form"):
-            measured_on = st.date_input("Measured on", value=today, key="health_weight_date")
-            weight_kg = st.number_input("Weight (kg)", min_value=20.0, max_value=500.0, value=70.0)
+            measured_on = st.date_input(
+                "Measured on", value=today, key="health_weight_date"
+            )
+            weight_kg = st.number_input(
+                "Weight (kg)", min_value=20.0, max_value=500.0, value=70.0
+            )
             note = st.text_input("Weight note")
             submitted = st.form_submit_button("Record weight")
         if submitted:
             try:
                 health.record_weight(weight_kg, measured_on, note)
             except ValueError as exc:
-                st.error(str(exc))
+                st.error(f"Weight record could not be saved: {exc}")
             else:
                 st.success("Weight recorded.")
                 st.rerun()
-        st.dataframe(health.list_weights(), width="stretch")
+        weights = health.list_weights()
+        st.dataframe(weights, width="stretch")
         st.json(health.weight_baseline_comparison())
+        if weights:
+            labels = {
+                item["record_id"]: f"{item['measured_on']} · {item['weight_kg']} kg"
+                for item in weights
+            }
+            selected_weight_id = st.selectbox(
+                "Weight record to manage",
+                list(labels),
+                format_func=lambda value: labels[value],
+                key="health_weight_manage",
+            )
+            selected_weight = next(
+                item for item in weights if item["record_id"] == selected_weight_id
+            )
+            with st.form("health_weight_update_form"):
+                corrected_date = st.date_input(
+                    "Corrected date",
+                    value=date.fromisoformat(selected_weight["measured_on"]),
+                )
+                corrected_weight = st.number_input(
+                    "Corrected weight (kg)",
+                    min_value=20.0,
+                    max_value=500.0,
+                    value=float(selected_weight["weight_kg"]),
+                )
+                corrected_note = st.text_input(
+                    "Corrected note", value=str(selected_weight["note"])
+                )
+                update_weight = st.form_submit_button("Update weight record")
+            if update_weight:
+                try:
+                    health.update_weight(
+                        selected_weight_id,
+                        measured_on=corrected_date,
+                        weight_kg=corrected_weight,
+                        note=corrected_note,
+                    )
+                except (KeyError, ValueError) as exc:
+                    st.error(f"Weight record could not be updated: {exc}")
+                else:
+                    st.success("Weight record updated.")
+                    st.rerun()
+            with st.expander("Correction-only deletion"):
+                st.caption(
+                    "Health history is retained by default. Physical deletion is reserved "
+                    "for an incorrectly entered weight record."
+                )
+                approve_delete = st.checkbox(
+                    "I confirm this weight entry is incorrect.",
+                    key="health_weight_delete_approval",
+                )
+                if st.button(
+                    "Delete incorrect weight record",
+                    disabled=not approve_delete,
+                    key="health_weight_delete",
+                ):
+                    try:
+                        health.delete_weight(selected_weight_id)
+                    except (KeyError, ValueError) as exc:
+                        st.error(f"Weight record could not be deleted: {exc}")
+                    else:
+                        st.success("Incorrect weight record deleted.")
+                        st.rerun()
+
     with inbody_tab:
         with st.form("health_inbody_form"):
             inbody_on = st.date_input("InBody date", value=today)
-            muscle = st.number_input("Skeletal muscle (kg)", min_value=1.0, max_value=150.0, value=30.0)
-            body_fat = st.number_input("Body fat (%)", min_value=1.0, max_value=75.0, value=20.0)
+            muscle = st.number_input(
+                "Skeletal muscle (kg)", min_value=1.0, max_value=150.0, value=30.0
+            )
+            body_fat = st.number_input(
+                "Body fat (%)", min_value=1.0, max_value=75.0, value=20.0
+            )
             bmi = st.number_input("BMI", min_value=5.0, max_value=100.0, value=22.0)
             inbody_submit = st.form_submit_button("Record InBody")
         if inbody_submit:
             try:
                 health.record_body_composition(inbody_on, muscle, body_fat, bmi)
             except ValueError as exc:
-                st.error(str(exc))
+                st.error(f"InBody record could not be saved: {exc}")
             else:
                 st.success("InBody recorded.")
                 st.rerun()
         st.dataframe(health.body_composition_timeline(), width="stretch")
+        st.json(health.body_composition_baseline_comparison())
         st.subheader("Health checkups")
+        with st.form("health_checkup_form", clear_on_submit=True):
+            checked_on = st.date_input("Checkup date", value=today)
+            checkup_title = st.text_input("Checkup title")
+            assessment = st.text_area("Assessment")
+            has_follow_up = st.checkbox("Follow-up required")
+            follow_up_on = st.date_input("Follow-up date", value=today)
+            metrics_json = st.text_area(
+                "Metrics (optional JSON object)",
+                help='Example: {"fasting_glucose": 95, "blood_pressure": "120/80"}',
+            )
+            checkup_note = st.text_area("Checkup note")
+            checkup_submit = st.form_submit_button("Record health checkup")
+        if checkup_submit:
+            try:
+                metrics = json.loads(metrics_json) if metrics_json.strip() else {}
+                if not isinstance(metrics, dict):
+                    raise ValueError("Metrics must be a JSON object.")
+                health.record_health_checkup(
+                    checked_on,
+                    checkup_title,
+                    assessment,
+                    follow_up_on if has_follow_up else None,
+                    metrics,
+                    checkup_note,
+                )
+            except (json.JSONDecodeError, KeyError, ValueError) as exc:
+                st.error(f"Health checkup could not be recorded: {exc}")
+            else:
+                st.success("Health checkup recorded.")
+                st.rerun()
         st.dataframe(health.list_health_checkups(), width="stretch")
+        st.write("Follow-up queue")
+        st.dataframe(
+            health.health_checkup_follow_ups(), width="stretch", hide_index=True
+        )
+        st.json(health.health_checkup_baseline_comparison())
+
     with lifestyle_tab:
         st.subheader("Sleep")
         with st.form("health_sleep_form"):
-            bedtime = st.text_input("Bedtime (ISO with timezone)", value=f"{today.isoformat()}T23:00:00+09:00")
-            wake_time = st.text_input("Wake time (ISO with timezone)", value=f"{today.isoformat()}T23:30:00+09:00")
+            bedtime = st.text_input(
+                "Bedtime (ISO with timezone)",
+                value=f"{today.isoformat()}T23:00:00+09:00",
+            )
+            wake_time = st.text_input(
+                "Wake time (ISO with timezone)",
+                value=f"{today.isoformat()}T23:30:00+09:00",
+            )
             fatigue = st.slider("Fatigue", 1, 5, 3)
             sleep_submit = st.form_submit_button("Record sleep")
         if sleep_submit:
             try:
                 health.record_sleep(bedtime, wake_time, fatigue)
             except ValueError as exc:
-                st.error(str(exc))
+                st.error(f"Sleep record could not be saved: {exc}")
             else:
+                st.success("Sleep record saved.")
                 st.rerun()
         st.dataframe(health.list_sleep(), width="stretch")
+
         st.subheader("Exercise")
+        with st.form("health_exercise_form", clear_on_submit=True):
+            exercise_on = st.date_input("Exercise date", value=today)
+            activity = st.text_input("Activity")
+            duration = st.number_input(
+                "Duration (minutes)", min_value=1, max_value=1440, value=30
+            )
+            repetitions = st.number_input(
+                "Repetitions (optional)", min_value=0, value=0
+            )
+            exercise_note = st.text_input("Exercise note")
+            exercise_submit = st.form_submit_button("Record exercise")
+        if exercise_submit:
+            try:
+                health.record_exercise(
+                    exercise_on,
+                    activity,
+                    duration,
+                    repetitions if repetitions else None,
+                    exercise_note,
+                )
+            except (KeyError, ValueError) as exc:
+                st.error(f"Exercise could not be recorded: {exc}")
+            else:
+                st.success("Exercise recorded.")
+                st.rerun()
         st.dataframe(health.list_exercise(), width="stretch")
+        st.json(health.exercise_statistics())
+
         st.subheader("Nutrition")
+        goals = health.list_health_goals()
+        goal_labels = {
+            item["goal_id"]: item["name"] for item in goals if item["status"] == "active"
+        }
+        with st.form("health_nutrition_form", clear_on_submit=True):
+            nutrition_on = st.date_input("Meal date", value=today)
+            meal_type = st.selectbox(
+                "Health meal type",
+                ["breakfast", "lunch", "dinner", "snack", "other"],
+            )
+            nutrition_note = st.text_area("Nutrition note")
+            goal_options = [""] + list(goal_labels)
+            nutrition_goal = st.selectbox(
+                "Related Health goal (optional)",
+                goal_options,
+                format_func=lambda value: "No related goal"
+                if not value
+                else goal_labels[value],
+            )
+            nutrition_submit = st.form_submit_button("Record nutrition")
+        if nutrition_submit:
+            try:
+                health.record_nutrition(
+                    nutrition_on,
+                    meal_type,
+                    nutrition_note,
+                    nutrition_goal or None,
+                )
+            except (KeyError, ValueError) as exc:
+                st.error(f"Nutrition could not be recorded: {exc}")
+            else:
+                st.success("Nutrition recorded.")
+                st.rerun()
         st.dataframe(health.list_nutrition(), width="stretch")
+        trend_columns = st.columns(2)
+        trend_columns[0].json(
+            {"weight": health.weight_trend(), "inbody": health.inbody_trend()}
+        )
+        trend_columns[1].json(
+            {"sleep": health.sleep_trend(), "exercise": health.exercise_trend()}
+        )
+
     with goal_tab:
         with st.form("health_goal_form"):
             goal_name = st.text_input("Goal name")
-            target_weight = st.number_input("Target weight (kg)", min_value=20.0, max_value=500.0, value=70.0)
-            target_fat = st.number_input("Target body fat (%)", min_value=1.0, max_value=75.0, value=20.0)
+            target_weight = st.number_input(
+                "Target weight (kg)", min_value=20.0, max_value=500.0, value=70.0
+            )
+            target_fat = st.number_input(
+                "Target body fat (%)", min_value=1.0, max_value=75.0, value=20.0
+            )
             goal_submit = st.form_submit_button("Create Health goal")
         if goal_submit:
             try:
                 health.create_health_goal(goal_name, today, target_weight, target_fat)
             except ValueError as exc:
-                st.error(str(exc))
+                st.error(f"Health goal could not be created: {exc}")
             else:
+                st.success("Health goal created.")
                 st.rerun()
-        st.dataframe(health.list_health_goals(), width="stretch")
-        report_month = st.text_input("Report month", value=today.strftime("%Y-%m"), key="health_report_month")
+        goals = health.list_health_goals()
+        st.dataframe(goals, width="stretch")
+        for goal in goals:
+            with st.expander(f"Goal progress · {goal['name']}"):
+                try:
+                    st.json(health.health_goal_progress(goal["goal_id"]))
+                except (KeyError, ValueError) as exc:
+                    st.error(f"Goal progress is unavailable: {exc}")
+        st.subheader("Health reports")
+        report_kind = st.selectbox(
+            "Report range",
+            ["daily", "weekly", "monthly"],
+            key="health_report_kind",
+        )
+        report_date = st.date_input(
+            "Report date / week ending",
+            value=today,
+            key="health_report_date",
+        )
+        report_month = st.text_input(
+            "Report month",
+            value=today.strftime("%Y-%m"),
+            key="health_report_month",
+            disabled=report_kind != "monthly",
+        )
         try:
-            st.json(health.monthly_report(report_month))
-        except ValueError as exc:
-            st.error(str(exc))
+            if report_kind == "daily":
+                report = health.daily_report(report_date)
+            elif report_kind == "weekly":
+                report = health.weekly_report(report_date)
+            else:
+                report = health.monthly_report(report_month)
+            st.json(report)
+        except (KeyError, ValueError) as exc:
+            st.error(f"Health report could not be generated: {exc}")
 
 
 def render_housing(housing: HousingSubsystem) -> None:
@@ -1256,7 +1561,15 @@ def render_housing(housing: HousingSubsystem) -> None:
                 housing.update_candidate(selected_id, status=status)
                 st.success("Candidate status updated.")
                 st.rerun()
-            if action_col2.button("Delete candidate", key="housing_delete_candidate"):
+            confirm_delete = st.checkbox(
+                "I understand this permanently deletes the selected candidate.",
+                key="housing_confirm_delete",
+            )
+            if action_col2.button(
+                "Delete candidate",
+                key="housing_delete_candidate",
+                disabled=not confirm_delete,
+            ):
                 housing.delete_candidate(selected_id)
                 st.success("Candidate deleted.")
                 st.rerun()
@@ -1333,6 +1646,27 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                 vehicle.archive_vehicle(archive_id)
                 st.success("Vehicle archived.")
                 st.rerun()
+        archived_vehicles = vehicle.list_vehicles("archived")
+        if archived_vehicles:
+            with st.expander("Archived vehicles"):
+                archived_labels = {
+                    item["vehicle_id"]: item["display_name"]
+                    for item in archived_vehicles
+                }
+                restore_vehicle_id = st.selectbox(
+                    "Vehicle to restore",
+                    list(archived_labels),
+                    format_func=lambda value: archived_labels[value],
+                    key="vehicle_restore_select",
+                )
+                if st.button("Restore vehicle", key="vehicle_restore_button"):
+                    try:
+                        vehicle.restore_vehicle(restore_vehicle_id)
+                    except (KeyError, ValueError) as exc:
+                        st.error(f"Vehicle could not be restored: {exc}")
+                    else:
+                        st.success("Vehicle restored.")
+                        st.rerun()
 
     with records_tab:
         vehicles = vehicle.list_vehicles("active")
@@ -1499,7 +1833,30 @@ def render_food(food: FoodSubsystem) -> None:
             )
             if st.button("Archive ingredient", key="food_ingredient_archive_button"):
                 food.archive_ingredient(archive_id)
+                st.success("Ingredient archived.")
                 st.rerun()
+        archived_ingredients = food.list_ingredients("archived")
+        if archived_ingredients:
+            with st.expander("Archived ingredients"):
+                archived_ingredient_labels = {
+                    row["ingredient_id"]: row["name"] for row in archived_ingredients
+                }
+                restore_ingredient_id = st.selectbox(
+                    "Ingredient to restore",
+                    list(archived_ingredient_labels),
+                    format_func=lambda value: archived_ingredient_labels[value],
+                    key="food_ingredient_restore_select",
+                )
+                if st.button(
+                    "Restore ingredient", key="food_ingredient_restore_button"
+                ):
+                    try:
+                        food.restore_ingredient(restore_ingredient_id)
+                    except (KeyError, ValueError) as exc:
+                        st.error(f"Ingredient could not be restored: {exc}")
+                    else:
+                        st.success("Ingredient restored.")
+                        st.rerun()
 
     with recipes_tab:
         with st.form("food_v16_recipe_form", clear_on_submit=True):
@@ -1548,6 +1905,26 @@ def render_food(food: FoodSubsystem) -> None:
                     st.error(str(exc))
                 else:
                     st.rerun()
+        archived_recipes = food.list_recipes("archived")
+        if archived_recipes:
+            with st.expander("Archived recipes"):
+                archived_recipe_labels = {
+                    row["recipe_id"]: row["name"] for row in archived_recipes
+                }
+                restore_recipe_id = st.selectbox(
+                    "Recipe to restore",
+                    list(archived_recipe_labels),
+                    format_func=lambda value: archived_recipe_labels[value],
+                    key="food_recipe_restore_select",
+                )
+                if st.button("Restore recipe", key="food_recipe_restore_button"):
+                    try:
+                        food.restore_recipe(restore_recipe_id)
+                    except (KeyError, ValueError) as exc:
+                        st.error(f"Recipe could not be restored: {exc}")
+                    else:
+                        st.success("Recipe restored.")
+                        st.rerun()
 
     with records_tab:
         recipes = food.list_recipes("active")

@@ -10,6 +10,7 @@ from subsystems.finance.engines.migration import FinanceMigrationEngine
 from subsystems.finance.engines.report import ReportEngine
 from subsystems.finance.engines.savings import SavingsEngine
 from subsystems.finance.engines.storage import FinanceStorageEngine
+from subsystems.database.engines.observability import record_failures
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -54,10 +55,12 @@ class FinanceSubsystem:
             "living_os_compatibility": self.LIVING_OS_COMPATIBILITY,
         }
 
+    @record_failures("record_income")
     def record_income(self, amount: Any, category: Any, occurred_on: Any,
                       description: Any = "", metadata: dict[str, Any] | None = None) -> dict[str, Any]:
         return self._ledger.record_income(amount, category, occurred_on, description, metadata)
 
+    @record_failures("record_expense")
     def record_expense(self, amount: Any, category: Any, occurred_on: Any,
                        description: Any = "", metadata: dict[str, Any] | None = None) -> dict[str, Any]:
         return self._ledger.record_expense(amount, category, occurred_on, description, metadata)
@@ -65,6 +68,7 @@ class FinanceSubsystem:
     def list_transactions(self, **filters: Any) -> list[dict[str, Any]]:
         return self._ledger.list_transactions(**filters)
 
+    @record_failures("create_budget")
     def create_budget(self, month: Any, category: Any, amount: Any) -> dict[str, Any]:
         return self._budget.create_budget(month, category, amount)
 
@@ -80,6 +84,7 @@ class FinanceSubsystem:
     def monthly_cash_flow(self, month: Any) -> dict[str, Any]:
         return self._cash_flow.monthly(month)
 
+    @record_failures("create_installment_savings")
     def create_installment_savings(
         self, name: Any, target_amount: Any, monthly_contribution: Any,
         annual_interest_rate: Any, opened_on: Any, maturity_date: Any,
@@ -89,6 +94,7 @@ class FinanceSubsystem:
             annual_interest_rate, opened_on, maturity_date,
         )
 
+    @record_failures("create_term_deposit")
     def create_term_deposit(
         self, name: Any, principal: Any, annual_interest_rate: Any,
         opened_on: Any, maturity_date: Any,
@@ -97,6 +103,7 @@ class FinanceSubsystem:
             name, principal, annual_interest_rate, opened_on, maturity_date,
         )
 
+    @record_failures("record_savings_contribution")
     def record_savings_contribution(
         self, account_id: Any, amount: Any, contributed_on: Any, note: Any = "",
     ) -> dict[str, Any]:
@@ -111,6 +118,7 @@ class FinanceSubsystem:
     def calculate_maturity(self, account_id: Any, as_of: Any | None = None) -> dict[str, Any]:
         return self._savings.maturity(account_id, as_of)
 
+    @record_failures("monthly_close")
     def monthly_close(self, month: Any) -> dict[str, Any]:
         return self._report.monthly_close(month)
 
@@ -120,6 +128,7 @@ class FinanceSubsystem:
     def render_financial_status(self, month: Any) -> str:
         return self._report.render_status(month)
 
+    @record_failures("migrate_legacy_budget")
     def migrate_legacy_budget(
         self, source: Path | None = None, month: Any | None = None,
     ) -> dict[str, Any]:

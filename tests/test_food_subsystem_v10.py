@@ -67,6 +67,9 @@ class FoodSubsystemTests(unittest.TestCase):
         self.assertEqual(len(self.food.list_ingredients(category="staple")), 1)
         self.assertEqual(self.food.archive_ingredient(item["ingredient_id"])["status"], "archived")
         self.assertEqual(self.food.list_ingredients("active"), [])
+        self.assertEqual(self.food.restore_ingredient(item["ingredient_id"])["status"], "active")
+        self.assertEqual(len(self.food.list_ingredients("active")), 1)
+        self.assertEqual(self.food.list_ingredients("archived"), [])
         with self.assertRaises(ValueError):
             self.food.create_ingredient("", "", 1, "g")
         with self.assertRaises(ValueError):
@@ -95,6 +98,9 @@ class FoodSubsystemTests(unittest.TestCase):
         updated = self.food.update_recipe(recipe["recipe_id"], servings=4, instructions=["Cook slowly"])
         self.assertEqual(updated["servings"], 4)
         self.assertEqual(self.food.archive_recipe(recipe["recipe_id"])["status"], "archived")
+        self.assertEqual(self.food.restore_recipe(recipe["recipe_id"])["status"], "active")
+        self.assertEqual(len(self.food.list_recipes("active")), 1)
+        self.assertEqual(self.food.list_recipes("archived"), [])
         with self.assertRaises(ValueError):
             self.food.create_recipe("Invalid", 0, [])
 

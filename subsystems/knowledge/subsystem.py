@@ -8,6 +8,7 @@ from uuid import uuid4
 from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.knowledge.models import KnowledgeRecord
 from subsystems.knowledge.repository import KnowledgeRepository
+from subsystems.database.engines.observability import record_failures
 
 
 class KnowledgeSubsystem:
@@ -20,6 +21,7 @@ class KnowledgeSubsystem:
         self.repository.register_contract(schema_version=1, migration_id="knowledge-schema-v1")
         self.database_foundation = database_foundation
 
+    @record_failures("create")
     def create(self, title: str, content: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso(); record_id = str(fields.pop("record_id", "") or uuid4())
         record = KnowledgeRecord(record_id=record_id, title=title, content=content, created_at=now, updated_at=now, **fields)
@@ -31,6 +33,7 @@ class KnowledgeSubsystem:
         result = self.repository.get(record_id); self._execution("read", record_id, "COMPLETED")
         return result
 
+    @record_failures("update")
     def update(self, record_id: str, **changes: Any) -> dict[str, Any]:
         current = self.repository.get(record_id)
         if current is None: raise KeyError(record_id)
@@ -39,8 +42,15 @@ class KnowledgeSubsystem:
         result = self.repository.update(record_id, payload); self._execution("update", record_id, "COMPLETED")
         return result
 
+    @record_failures("archive")
     def archive(self, record_id: str) -> dict[str, Any]:
         result = self.update(record_id, status="ARCHIVED", archived_at=utc_now_iso()); self._execution("archive", record_id, "COMPLETED")
+        return result
+
+    @record_failures("restore")
+    def restore(self, record_id: str) -> dict[str, Any]:
+        result = self.update(record_id, status="NEW", archived_at=None)
+        self._execution("restore", record_id, "COMPLETED")
         return result
 
     def list(self, **filters: Any) -> list[dict[str, Any]]: return self.repository.list(**filters)

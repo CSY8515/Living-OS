@@ -1,8 +1,8 @@
-# Living OS v2.0.4
+# Living OS v2.0.5
 
-> Living OS v2.0.4 presents Home as a distraction-free Personal Operating System surface by hiding Streamlit's navigation rail there while preserving every route and subsystem.
+> Living OS v2.0.5 is the approved Persistence & Core Stability Release built on the unchanged v2.0.4 Home experience.
 
-The v2.0.4 UI hotfix keeps the premium dark glass Home and six Orbit launch points, removes the visible vertical menu from Home only, and restores the unchanged navigation rail on Subsystem screens.
+v2.0.5 separates development and production storage profiles, blocks unsafe production startup, strengthens backup/recovery and execution records, connects existing Health capabilities to the UI, and establishes the official design-document foundation. It does not begin the future full UI redesign.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 
@@ -103,6 +103,27 @@ Streamlit Community Cloud coordinates:
 - Branch: `main`
 - Entrypoint: `app.py`
 - Python: 3.12 recommended
-- Secrets: none required
+- Production configuration: required
 
-The current file-backed stores are intended for a single-owner runtime. A hosted local filesystem is not durable Finance, Food, Health, Housing, Vehicle, Knowledge, Routine, Investment, Job, Personal Growth, or Collaboration storage.
+Production must provide:
+
+    LIVING_OS_ENV=production
+    LIVING_OS_DATA_ROOT=/absolute/durable/data/root
+    LIVING_OS_BACKUP_ROOT=/absolute/independent/backup/root
+    LIVING_OS_STORAGE_DURABILITY=durable
+    LIVING_OS_BACKUP_INDEPENDENT=true
+    LIVING_OS_REQUIRE_AUTH=true
+
+Run `python scripts/release_gate.py` in the production profile before release. The
+gate also requires Owner Authentication to be configured in the selected
+production database.
+
+Living OS refuses production startup when data or backup storage is inside the
+application checkout, temporary storage is selected, backup independence is not
+declared, or authentication is not required. See
+`docs/operations/PERSISTENCE_AND_RELEASE_GATE.md`.
+
+## Official UI design documentation
+
+The future official UI implementation is governed by `docs/ui/README.md`. v2.0.5
+stores these design contracts without applying a large visual redesign.

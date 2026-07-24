@@ -14,6 +14,7 @@ from subsystems.health.engines.sleep import SleepEngine
 from subsystems.health.engines.storage import HealthStorageEngine
 from subsystems.health.engines.trend import TrendEngine
 from subsystems.health.engines.weight import WeightEngine
+from subsystems.database.engines.observability import record_failures
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -63,12 +64,15 @@ class HealthSubsystem:
                              "nutrition", "trend", "goal", "health-report", "migration"),
         }
 
+    @record_failures("record_weight")
     def record_weight(self, weight_kg: Any, measured_on: Any, note: Any = "") -> dict[str, Any]:
         return self._weight.record(weight_kg, measured_on, note)
 
+    @record_failures("update_weight")
     def update_weight(self, record_id: Any, **changes: Any) -> dict[str, Any]:
         return self._weight.update(record_id, **changes)
 
+    @record_failures("delete_weight")
     def delete_weight(self, record_id: Any) -> bool:
         return self._weight.delete(record_id)
 
@@ -78,6 +82,7 @@ class HealthSubsystem:
     def weight_baseline_comparison(self, record_id: Any | None = None) -> dict[str, Any]:
         return self._weight.baseline_comparison(record_id)
 
+    @record_failures("record_body_composition")
     def record_body_composition(self, measured_on: Any, skeletal_muscle_kg: Any,
                                 body_fat_percent: Any, bmi: Any, note: Any = "") -> dict[str, Any]:
         return self._body.record(measured_on, skeletal_muscle_kg, body_fat_percent, bmi, note)
@@ -88,6 +93,7 @@ class HealthSubsystem:
     def body_composition_baseline_comparison(self) -> dict[str, Any]:
         return self._body.baseline_comparison()
 
+    @record_failures("record_health_checkup")
     def record_health_checkup(self, checked_on: Any, title: Any, assessment: Any,
                               follow_up_on: Any | None = None, metrics: Any = None,
                               note: Any = "") -> dict[str, Any]:
@@ -102,12 +108,14 @@ class HealthSubsystem:
     def health_checkup_baseline_comparison(self) -> dict[str, Any]:
         return self._checkup.baseline_comparison()
 
+    @record_failures("record_sleep")
     def record_sleep(self, bedtime: Any, wake_time: Any, fatigue: Any, note: Any = "") -> dict[str, Any]:
         return self._sleep.record(bedtime, wake_time, fatigue, note)
 
     def list_sleep(self, **filters: Any) -> list[dict[str, Any]]:
         return self._sleep.list(**filters)
 
+    @record_failures("record_exercise")
     def record_exercise(self, exercised_on: Any, activity: Any, duration_minutes: Any,
                         repetitions: Any | None = None, note: Any = "") -> dict[str, Any]:
         return self._exercise.record(exercised_on, activity, duration_minutes, repetitions, note)
@@ -118,6 +126,7 @@ class HealthSubsystem:
     def exercise_statistics(self, **filters: Any) -> dict[str, Any]:
         return self._exercise.statistics(**filters)
 
+    @record_failures("record_nutrition")
     def record_nutrition(self, eaten_on: Any, meal_type: Any, note: Any,
                          goal_id: Any | None = None) -> dict[str, Any]:
         return self._nutrition.record(eaten_on, meal_type, note, goal_id)
@@ -125,6 +134,7 @@ class HealthSubsystem:
     def list_nutrition(self, **filters: Any) -> list[dict[str, Any]]:
         return self._nutrition.list(**filters)
 
+    @record_failures("create_health_goal")
     def create_health_goal(self, name: Any, start_on: Any, target_weight_kg: Any | None = None,
                            target_body_fat_percent: Any | None = None,
                            target_on: Any | None = None) -> dict[str, Any]:
@@ -160,6 +170,7 @@ class HealthSubsystem:
     def dry_run_legacy_json(self, source: Path) -> dict[str, Any]:
         return self._migration.dry_run_legacy_json(Path(source))
 
+    @record_failures("migrate_legacy_json")
     def migrate_legacy_json(self, source: Path) -> dict[str, Any]:
         return self._migration.migrate_legacy_json(Path(source))
 

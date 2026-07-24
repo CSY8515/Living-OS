@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import os
 from typing import Callable
 
 from subsystems.experience.engines.pages import (
@@ -51,9 +50,11 @@ from subsystems.personal_growth import PersonalGrowthSubsystem
 from subsystems.collaboration import CollaborationSubsystem
 from subsystems.foundation.engines.hub import LivingHub
 from subsystems.operations.engines.catalog import V20_STABLE_MANIFESTS
+from subsystems.foundation.engines.runtime_config import RuntimeConfigurationError
+from subsystems.foundation.engines.version import PRODUCT_VERSION
 
 
-VERSION = "v2.0.4"
+VERSION = PRODUCT_VERSION
 ROOT = Path(__file__).resolve().parents[3]
 
 NAV_ICONS = {
@@ -86,7 +87,12 @@ def _finance() -> FinanceSubsystem:
 
     @st.cache_resource
     def build_finance() -> FinanceSubsystem:
-        return FinanceSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return FinanceSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("finance"),
+            database_foundation=hub.database,
+        )
 
     return build_finance()
 
@@ -96,7 +102,12 @@ def _food() -> FoodSubsystem:
 
     @st.cache_resource
     def build_food() -> FoodSubsystem:
-        return FoodSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return FoodSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("food"),
+            database_foundation=hub.database,
+        )
 
     return build_food()
 
@@ -106,7 +117,12 @@ def _health() -> HealthSubsystem:
 
     @st.cache_resource
     def build_health() -> HealthSubsystem:
-        return HealthSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return HealthSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("health"),
+            database_foundation=hub.database,
+        )
 
     return build_health()
 
@@ -116,7 +132,12 @@ def _housing() -> HousingSubsystem:
 
     @st.cache_resource
     def build_housing() -> HousingSubsystem:
-        return HousingSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return HousingSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("housing"),
+            database_foundation=hub.database,
+        )
 
     return build_housing()
 
@@ -126,7 +147,12 @@ def _vehicle() -> VehicleSubsystem:
 
     @st.cache_resource
     def build_vehicle() -> VehicleSubsystem:
-        return VehicleSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return VehicleSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("vehicle"),
+            database_foundation=hub.database,
+        )
 
     return build_vehicle()
 
@@ -134,28 +160,52 @@ def _vehicle() -> VehicleSubsystem:
 def _knowledge_subsystem() -> KnowledgeSubsystem:
     import streamlit as st
     @st.cache_resource
-    def build() -> KnowledgeSubsystem: return KnowledgeSubsystem(ROOT, database_foundation=_hub().database)
+    def build() -> KnowledgeSubsystem:
+        hub = _hub()
+        return KnowledgeSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("knowledge"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
 def _routine_subsystem() -> RoutineSubsystem:
     import streamlit as st
     @st.cache_resource
-    def build() -> RoutineSubsystem: return RoutineSubsystem(ROOT, database_foundation=_hub().database)
+    def build() -> RoutineSubsystem:
+        hub = _hub()
+        return RoutineSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("routine"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
 def _investment_subsystem() -> InvestmentSubsystem:
     import streamlit as st
     @st.cache_resource
-    def build() -> InvestmentSubsystem: return InvestmentSubsystem(ROOT, database_foundation=_hub().database)
+    def build() -> InvestmentSubsystem:
+        hub = _hub()
+        return InvestmentSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("investment"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
 def _job_subsystem() -> JobSubsystem:
     import streamlit as st
     @st.cache_resource
-    def build() -> JobSubsystem: return JobSubsystem(ROOT, database_foundation=_hub().database)
+    def build() -> JobSubsystem:
+        hub = _hub()
+        return JobSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("job"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
@@ -163,7 +213,12 @@ def _personal_growth_subsystem() -> PersonalGrowthSubsystem:
     import streamlit as st
     @st.cache_resource
     def build() -> PersonalGrowthSubsystem:
-        return PersonalGrowthSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return PersonalGrowthSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("personal-growth"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
@@ -171,7 +226,12 @@ def _collaboration_subsystem() -> CollaborationSubsystem:
     import streamlit as st
     @st.cache_resource
     def build() -> CollaborationSubsystem:
-        return CollaborationSubsystem(ROOT, database_foundation=_hub().database)
+        hub = _hub()
+        return CollaborationSubsystem(
+            ROOT,
+            database_path=hub.component_database_path("collaboration"),
+            database_foundation=hub.database,
+        )
     return build()
 
 
@@ -221,11 +281,16 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
 def _authorize(hub: LivingHub) -> bool:
     import streamlit as st
 
-    remote_required = os.environ.get("LIVING_OS_REMOTE_ACCESS", "").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
+    remote_required = hub.runtime_config.authentication_required
     if not hub.security.configured and not remote_required:
         return True
+    if not hub.security.configured and hub.runtime_config.production:
+        st.title("Living OS Access Locked")
+        st.error(
+            "Owner authentication is not provisioned for this production deployment. "
+            "The release gate must be completed before access is allowed."
+        )
+        return False
     if not hub.security.configured:
         st.title("Living OS Owner Setup")
         st.warning("Remote access requires owner authentication before the Hub can open.")
@@ -313,9 +378,17 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 def main() -> None:
     import streamlit as st
 
-    st.set_page_config(page_title="Living OS v2.0.4", page_icon="◈", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="auto")
     apply_responsive_layout()
-    hub = _hub()
+    try:
+        hub = _hub()
+    except RuntimeConfigurationError as exc:
+        st.error(
+            "Living OS storage or authentication configuration is unsafe. "
+            "The application has been locked before opening owner data."
+        )
+        st.code(str(exc))
+        st.stop()
     finance = _finance()
     food = _food()
     health = _health()

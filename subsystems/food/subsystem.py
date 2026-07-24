@@ -10,6 +10,7 @@ from subsystems.food.engines.nutrition import NutritionEngine
 from subsystems.food.engines.recipe import RecipeEngine
 from subsystems.food.engines.report import FoodReportEngine
 from subsystems.food.engines.storage import FoodStorageEngine
+from subsystems.database.engines.observability import record_failures
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -56,6 +57,7 @@ class FoodSubsystem:
                              "meal-record", "nutrition-summary", "food-report"),
         }
 
+    @record_failures("create_ingredient")
     def create_ingredient(self, name: Any, category: Any, base_quantity: Any,
                           unit: Any, nutrition: Any = None) -> dict[str, Any]:
         return self._ingredients.create(name, category, base_quantity, unit, nutrition)
@@ -66,12 +68,19 @@ class FoodSubsystem:
     def list_ingredients(self, status: Any = None, category: Any = None) -> list[dict[str, Any]]:
         return self._ingredients.list(status, category)
 
+    @record_failures("update_ingredient")
     def update_ingredient(self, ingredient_id: Any, **changes: Any) -> dict[str, Any]:
         return self._ingredients.update(ingredient_id, **changes)
 
+    @record_failures("archive_ingredient")
     def archive_ingredient(self, ingredient_id: Any) -> dict[str, Any]:
         return self._ingredients.archive(ingredient_id)
 
+    @record_failures("restore_ingredient")
+    def restore_ingredient(self, ingredient_id: Any) -> dict[str, Any]:
+        return self._ingredients.update(ingredient_id, status="active")
+
+    @record_failures("create_recipe")
     def create_recipe(self, name: Any, servings: Any, instructions: Any = ()) -> dict[str, Any]:
         return self._recipes.create(name, servings, instructions)
 
@@ -81,15 +90,23 @@ class FoodSubsystem:
     def list_recipes(self, status: Any = None) -> list[dict[str, Any]]:
         return self._recipes.list(status)
 
+    @record_failures("update_recipe")
     def update_recipe(self, recipe_id: Any, **changes: Any) -> dict[str, Any]:
         return self._recipes.update(recipe_id, **changes)
 
+    @record_failures("archive_recipe")
     def archive_recipe(self, recipe_id: Any) -> dict[str, Any]:
         return self._recipes.archive(recipe_id)
 
+    @record_failures("restore_recipe")
+    def restore_recipe(self, recipe_id: Any) -> dict[str, Any]:
+        return self._recipes.update(recipe_id, status="active")
+
+    @record_failures("set_recipe_ingredients")
     def set_recipe_ingredients(self, recipe_id: Any, ingredients: Any) -> list[dict[str, Any]]:
         return self._recipes.set_ingredients(recipe_id, ingredients)
 
+    @record_failures("record_cooking")
     def record_cooking(self, recipe_id: Any, cooked_on: Any, servings_produced: Any,
                        note: Any = "") -> dict[str, Any]:
         return self._cooking.record(recipe_id, cooked_on, servings_produced, note)
@@ -98,6 +115,7 @@ class FoodSubsystem:
                              recipe_id: Any = None) -> list[dict[str, Any]]:
         return self._cooking.list(start_on, end_on, recipe_id)
 
+    @record_failures("record_meal")
     def record_meal(self, eaten_on: Any, meal_type: Any, servings_consumed: Any,
                     recipe_id: Any = None, cooking_id: Any = None,
                     nutrition_override: Any = None, note: Any = "") -> dict[str, Any]:

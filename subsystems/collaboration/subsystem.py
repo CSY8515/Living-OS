@@ -9,6 +9,7 @@ from uuid import uuid4
 from subsystems.collaboration.models import CollaborationItem
 from subsystems.collaboration.repository import CollaborationRepository
 from subsystems.foundation.engines.time import utc_now_iso
+from subsystems.database.engines.observability import record_failures
 
 
 class CollaborationSubsystem:
@@ -18,16 +19,21 @@ class CollaborationSubsystem:
         self.repository = CollaborationRepository(path, database_foundation)
         self.repository.register_contract(schema_version=1, migration_id="collaboration-schema-v1", integration_mode="record-repository")
         self.database_foundation = database_foundation
+    @record_failures("create")
     def create(self, title: str, partner: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso(); record = CollaborationItem(collaboration_id=str(fields.pop("collaboration_id", "") or uuid4()), title=title, partner=partner, created_at=now, updated_at=now, **fields)
         result = self.repository.create(record.to_dict()); self._execution("create", result["collaboration_id"]); return result
     def get(self, item_id: str) -> dict[str, Any] | None: return self.repository.get(item_id)
+    @record_failures("update")
     def update(self, item_id: str, **changes: Any) -> dict[str, Any]:
         current = self.get(item_id)
         if current is None: raise KeyError(item_id)
         payload = {**current, **changes, "collaboration_id": item_id, "updated_at": utc_now_iso()}; CollaborationItem(**payload).validate()
         result = self.repository.update(item_id, payload); self._execution("update", item_id); return result
+    @record_failures("archive")
     def archive(self, item_id: str) -> dict[str, Any]: return self.update(item_id, status="ARCHIVED")
+    @record_failures("restore")
+    def restore(self, item_id: str) -> dict[str, Any]: return self.update(item_id, status="PLANNED")
     def list(self, **filters: Any) -> list[dict[str, Any]]: return self.repository.list(**filters)
     def health(self) -> dict[str, Any]: return self.repository.health()
     def management_summary(self) -> dict[str, Any]:

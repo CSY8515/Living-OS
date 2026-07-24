@@ -9,6 +9,7 @@ from subsystems.foundation.engines.contracts import CommandEnvelope, DomainEvent
 from subsystems.foundation.engines.hub import LivingHub
 from subsystems.foundation.engines.schemas import SchemaDefinition
 from subsystems.foundation.engines.time import utc_now_iso
+from subsystems.foundation.engines.version import PRODUCT_VERSION
 
 
 REPORT_TYPES = ("daily", "weekly", "monthly")
@@ -73,7 +74,7 @@ class ReportsService:
             "",
             f"- Generated At: {utc_now_iso()}",
             f"- Range: {start.isoformat()} to {end.isoformat()}",
-            "- Version: Living OS v1.2",
+            f"- Version: Living OS {PRODUCT_VERSION}",
             "",
             "## Summary",
             "",

@@ -6,7 +6,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterable, Iterator
 from uuid import uuid4
 
 from subsystems.database.engines.connection import SQLiteConnectionLayer
@@ -22,11 +22,11 @@ from subsystems.foundation.engines.time import utc_now_iso
 
 
 class DatabaseSubsystem:
-    """Living OS v1.7 data-plane facade for the canonical SQLite database."""
+    """Living OS data-plane facade for the canonical SQLite database."""
 
     subsystem_id = "SUB-DATABASE"
     version = "1.7.1"
-    expected_schema_version = 3
+    expected_schema_version = 4
 
     def __init__(
         self,
@@ -35,9 +35,16 @@ class DatabaseSubsystem:
         repository_root: Path,
         *,
         store: HubStore | None = None,
+        allowed_storage_roots: Iterable[Path] = (),
     ) -> None:
         self.database_path = Path(database_path)
         self.repository_root = Path(repository_root).resolve()
+        self.allowed_storage_roots = tuple(
+            dict.fromkeys(
+                [self.repository_root]
+                + [Path(path).resolve() for path in allowed_storage_roots]
+            )
+        )
         self.backup_root = Path(backup_root)
         self.store = store or HubStore(self.database_path)
         self.connections = SQLiteConnectionLayer(self.database_path)
@@ -312,6 +319,8 @@ class DatabaseSubsystem:
                 raise ValueError("Backup verification failed.")
             with zipfile.ZipFile(archive_path, "r") as archive:
                 manifest = json.loads(archive.read("manifest.json"))
+                if manifest.get("format") != "living-os-database-backup":
+                    raise ValueError("Backup format is not supported.")
                 if "hub/living_os.sqlite3" not in archive.namelist():
                     raise ValueError("Backup does not contain the canonical database.")
                 with tempfile.TemporaryDirectory() as directory:
@@ -323,13 +332,20 @@ class DatabaseSubsystem:
                         row = connection.execute(
                             "SELECT value FROM system_meta WHERE key='schema_version'"
                         ).fetchone()
+                        foreign_keys = connection.execute(
+                            "PRAGMA foreign_key_check"
+                        ).fetchall()
                     finally:
                         connection.close()
             if not integrity or integrity[0] != "ok":
                 raise ValueError("Backup database failed its integrity check.")
+            if foreign_keys:
+                raise ValueError("Backup database has foreign-key violations.")
             schema_version = int(row[0]) if row else 0
-            if schema_version != self.expected_schema_version:
-                raise ValueError("Backup schema version is not compatible with v1.7.")
+            if int(manifest.get("schema_version", -1)) != schema_version:
+                raise ValueError("Backup manifest schema does not match its database.")
+            if schema_version not in {3, self.expected_schema_version}:
+                raise ValueError("Backup schema version is not compatible with Living OS v2.0.5.")
             return RestoreCandidate(
                 archive_path,
                 True,
@@ -342,29 +358,39 @@ class DatabaseSubsystem:
     def restore(
         self, archive_path: Path, *, actor: str, correlation_id: str = ""
     ) -> dict[str, Any]:
-        candidate = self.validate_restore(archive_path)
-        if not candidate.valid:
-            raise ValueError(f"Restore candidate is invalid: {candidate.error}")
         target = str(Path(archive_path).resolve())
+        restore_id = str(uuid4())
+        started_at = utc_now_iso()
         safety_backup: Path | None = None
+        recovery_result = "NOT_ATTEMPTED"
+        candidate: RestoreCandidate | None = None
         try:
-            restore_id = str(uuid4())
-            started_at = utc_now_iso()
+            candidate = self.validate_restore(archive_path)
+            if not candidate.valid:
+                raise ValueError(f"Restore candidate is invalid: {candidate.error}")
             control_plane_history = self._control_plane_history()
             safety_backup = self.backups.restore(Path(archive_path))
             try:
+                if self.current_schema_version() < self.expected_schema_version:
+                    self.apply_migrations(
+                        actor=actor,
+                        correlation_id=correlation_id or restore_id,
+                    )
                 result = self.integrity.check(self.expected_schema_version)
                 if not result.healthy:
-                    raise ValueError("Restored database did not pass v1.7 integrity checks.")
+                    raise ValueError("Restored database did not pass v2.0.5 integrity checks.")
                 self._merge_control_plane_history(control_plane_history)
-            except Exception as validation_error:
+            except Exception:
                 try:
                     self.backups.restore(safety_backup)
+                    recovery_result = "ROLLED_BACK"
                 except Exception as rollback_error:
+                    recovery_result = "ROLLBACK_FAILED"
                     raise RuntimeError(
                         "Restore validation and safety rollback both failed."
                     ) from rollback_error
                 raise
+            recovery_result = "NOT_REQUIRED"
             execution_id = self.executions.record(
                 self.subsystem_id,
                 "restore",
@@ -372,9 +398,12 @@ class DatabaseSubsystem:
                 "COMPLETED",
                 actor=actor,
                 correlation_id=correlation_id,
+                recovery_result=recovery_result,
+                validation_result="PASSED",
                 result={
                     "restore_id": restore_id,
                     "safety_backup_path": str(safety_backup),
+                    "recovery_result": recovery_result,
                 },
             )
             with self.connections.transaction() as connection:
@@ -398,9 +427,10 @@ class DatabaseSubsystem:
             return {
                 "restore_id": restore_id,
                 "safety_backup_path": str(safety_backup),
+                "recovery_result": recovery_result,
             }
         except Exception as exc:
-            self.executions.record(
+            execution_id = self.executions.record(
                 self.subsystem_id,
                 "restore",
                 target,
@@ -408,7 +438,38 @@ class DatabaseSubsystem:
                 actor=actor,
                 correlation_id=correlation_id,
                 error=exc,
+                recovery_result=recovery_result,
+                validation_result=(
+                    "FAILED" if isinstance(exc, (ValueError, KeyError)) else "NOT_APPLICABLE"
+                ),
+                failure_context={
+                    "restore_id": restore_id,
+                    "backup_path": target,
+                    "safety_backup_path": str(safety_backup or ""),
+                },
             )
+            if self.current_schema_version() >= self.expected_schema_version:
+                try:
+                    with self.connections.transaction() as connection:
+                        connection.execute(
+                            """INSERT OR REPLACE INTO restore_history(
+                                   restore_id,backup_path,safety_backup_path,status,schema_version,
+                                   started_at,completed_at,error,execution_id
+                               ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                            (
+                                restore_id,
+                                target,
+                                str(safety_backup.resolve()) if safety_backup else "",
+                                "FAILED",
+                                candidate.schema_version if candidate else None,
+                                started_at,
+                                utc_now_iso(),
+                                f"{type(exc).__name__}: {str(exc)[:400]}",
+                                execution_id,
+                            ),
+                        )
+                except Exception:
+                    pass
             raise
 
     def restore_history(self) -> list[dict[str, Any]]:
@@ -449,12 +510,14 @@ class DatabaseSubsystem:
         """Persist an integration contract through the canonical RecordRepository."""
         payload = contract.to_payload()
         target = Path(contract.database_path).resolve()
-        try:
-            target.relative_to(self.repository_root)
-        except ValueError as exc:
-            raise ValueError("Component databases must remain inside the repository root.") from exc
+        if not any(self._inside(target, root) for root in self.allowed_storage_roots):
+            raise ValueError(
+                "Component databases must remain inside an approved Living OS storage root."
+            )
         if self.current_schema_version() < self.expected_schema_version:
-            raise RuntimeError("Database Foundation migration v3 is required before registration.")
+            raise RuntimeError(
+                "The current Database Foundation schema is required before registration."
+            )
         existing = self.repository.read(
             self.subsystem_id, "component_registration", contract.component_id
         )
@@ -486,6 +549,14 @@ class DatabaseSubsystem:
             result={"schema_version": contract.schema_version, "mode": contract.integration_mode},
         )
         return result
+
+    @staticmethod
+    def _inside(path: Path, root: Path) -> bool:
+        try:
+            path.relative_to(root)
+        except ValueError:
+            return False
+        return True
 
     def registered_components(self) -> list[dict[str, Any]]:
         if self.current_schema_version() < self.expected_schema_version:
@@ -648,42 +719,116 @@ class DatabaseSubsystem:
     def restore_component_backup(
         self, component_id: str, backup_path: Path, *, actor: str
     ) -> dict[str, Any]:
-        component = self._registered_component(component_id)
         candidate = Path(backup_path).resolve()
-        allowed_root = (self.backup_root / "components" / component_id.lower()).resolve()
+        safety: Path | None = None
+        recovery_result = "NOT_ATTEMPTED"
         try:
-            candidate.relative_to(allowed_root)
-        except ValueError as exc:
-            raise ValueError("Backup is outside the registered component backup root.") from exc
-        if not candidate.is_file():
-            raise FileNotFoundError(candidate)
-        with SQLiteConnectionLayer(candidate).connection(read_only=True) as connection:
-            check = connection.execute("PRAGMA integrity_check").fetchone()
-        if not check or check[0] != "ok":
-            raise RuntimeError("Component restore candidate failed integrity validation.")
-        safety = self.create_component_backup(component_id, actor=actor)
-        target_path = Path(str(component["database_path"]))
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        try:
+            component = self._registered_component(component_id)
+            allowed_root = (self.backup_root / "components" / component_id.lower()).resolve()
+            try:
+                candidate.relative_to(allowed_root)
+            except ValueError as exc:
+                raise ValueError(
+                    "Backup is outside the registered component backup root."
+                ) from exc
+            if not candidate.is_file():
+                raise FileNotFoundError(candidate)
+            self._validate_component_database(
+                candidate,
+                int(component["schema_version"]),
+                "Component restore candidate",
+            )
+            safety = self.create_component_backup(component_id, actor=actor)
+            target_path = Path(str(component["database_path"]))
+            target_path.parent.mkdir(parents=True, exist_ok=True)
             with SQLiteConnectionLayer(candidate).connection(read_only=True) as source:
                 with SQLiteConnectionLayer(target_path).connection() as target:
                     source.backup(target)
-            with SQLiteConnectionLayer(target_path).connection(read_only=True) as verification:
-                restored_check = verification.execute("PRAGMA integrity_check").fetchone()
-            if not restored_check or restored_check[0] != "ok":
-                raise RuntimeError("Restored component failed integrity verification.")
-        except Exception:
-            with SQLiteConnectionLayer(safety).connection(read_only=True) as source:
-                with SQLiteConnectionLayer(target_path).connection() as target:
-                    source.backup(target)
+            self._validate_component_database(
+                target_path,
+                int(component["schema_version"]),
+                "Restored component",
+            )
+            recovery_result = "NOT_REQUIRED"
+        except Exception as exc:
+            if safety is not None:
+                try:
+                    target_path = Path(str(component["database_path"]))
+                    with SQLiteConnectionLayer(safety).connection(read_only=True) as source:
+                        with SQLiteConnectionLayer(target_path).connection() as target:
+                            source.backup(target)
+                    recovery_result = "ROLLED_BACK"
+                except Exception:
+                    recovery_result = "ROLLBACK_FAILED"
+            self.executions.record(
+                component_id,
+                "component_restore",
+                str(candidate),
+                "FAILED",
+                actor=actor,
+                error=exc,
+                recovery_result=recovery_result,
+                validation_result=(
+                    "FAILED" if isinstance(exc, (ValueError, KeyError)) else "NOT_APPLICABLE"
+                ),
+                failure_context={
+                    "backup_path": str(candidate),
+                    "safety_backup": str(safety or ""),
+                },
+            )
             raise
-        self.record_execution(
+        self.executions.record(
             component_id,
             "component_restore",
+            str(candidate),
+            "COMPLETED",
             actor=actor,
-            result={"backup_path": str(candidate), "safety_backup": str(safety)},
+            recovery_result=recovery_result,
+            validation_result="PASSED",
+            result={
+                "backup_path": str(candidate),
+                "safety_backup": str(safety),
+                "recovery_result": recovery_result,
+            },
         )
-        return {"component_id": component_id, "restored_from": str(candidate), "safety_backup": str(safety)}
+        return {
+            "component_id": component_id,
+            "restored_from": str(candidate),
+            "safety_backup": str(safety),
+            "recovery_result": recovery_result,
+        }
+
+    @staticmethod
+    def _validate_component_database(
+        path: Path,
+        expected_schema_version: int,
+        label: str,
+    ) -> None:
+        with SQLiteConnectionLayer(path).connection(read_only=True) as connection:
+            integrity = connection.execute("PRAGMA integrity_check").fetchone()
+            foreign_keys = connection.execute("PRAGMA foreign_key_check").fetchall()
+            tables = [
+                str(row[0])
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+                ).fetchall()
+            ]
+            actual_schema_version: int | None = None
+            for table in (name for name in tables if name.endswith("_meta")):
+                safe_table = table.replace('"', '""')
+                version = connection.execute(
+                    f'SELECT value FROM "{safe_table}" WHERE key=?',
+                    ("schema_version",),
+                ).fetchone()
+                if version:
+                    actual_schema_version = int(version[0])
+                    break
+        if not integrity or integrity[0] != "ok":
+            raise RuntimeError(f"{label} failed integrity validation.")
+        if foreign_keys:
+            raise RuntimeError(f"{label} has foreign-key violations.")
+        if actual_schema_version != expected_schema_version:
+            raise RuntimeError(f"{label} has an incompatible schema version.")
 
     def _registered_component(self, component_id: str) -> dict[str, Any]:
         record = self.repository.read(
@@ -713,7 +858,9 @@ class DatabaseSubsystem:
             "execution_records": (
                 "execution_id", "subsystem", "action", "target", "status", "started_at",
                 "completed_at", "duration_ms", "result_json", "error_code", "error_message",
-                "actor", "source", "correlation_id", "trace_id",
+                "actor", "source", "correlation_id", "trace_id", "retry_count",
+                "recovery_result", "product_version", "validation_result",
+                "failure_context_json", "recorded_at",
             ),
             "backup_history": (
                 "backup_id", "path", "status", "schema_version", "size_bytes", "checksum",

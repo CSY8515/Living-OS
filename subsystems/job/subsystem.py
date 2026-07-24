@@ -9,6 +9,7 @@ from uuid import uuid4
 from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.job.models import JobRecord
 from subsystems.job.repository import JobRepository
+from subsystems.database.engines.observability import record_failures
 
 
 class JobSubsystem:
@@ -23,6 +24,7 @@ class JobSubsystem:
         )
         self.database_foundation = database_foundation
 
+    @record_failures("create")
     def create(self, company: str, title: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso()
         record = JobRecord(
@@ -38,6 +40,7 @@ class JobSubsystem:
         self._execution("read", job_id)
         return result
 
+    @record_failures("update")
     def update(self, job_id: str, **changes: Any) -> dict[str, Any]:
         current = self.repository.get(job_id)
         if current is None:
@@ -48,14 +51,22 @@ class JobSubsystem:
         self._execution("update", job_id)
         return result
 
+    @record_failures("transition")
     def transition(self, job_id: str, status: str, **changes: Any) -> dict[str, Any]:
         result = self.update(job_id, status=status, **changes)
         self._execution("transition", job_id)
         return result
 
+    @record_failures("archive")
     def archive(self, job_id: str) -> dict[str, Any]:
         result = self.update(job_id, status="ARCHIVED")
         self._execution("archive", job_id)
+        return result
+
+    @record_failures("restore")
+    def restore(self, job_id: str) -> dict[str, Any]:
+        result = self.update(job_id, status="SAVED")
+        self._execution("restore", job_id)
         return result
 
     def list(self, **filters: Any) -> list[dict[str, Any]]:

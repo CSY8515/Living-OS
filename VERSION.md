@@ -1,18 +1,18 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.4
+Workspace version: Living OS v2.0.5
 
-Implementation verification date: 2026-07-18
+Implementation verification date: 2026-07-25
 
-Production release: Living OS v2.0.4
+Production release: Living OS v2.0.5
 
-Status: Living OS v2.0.4 is the stable Home-only Sidebar visibility UI hotfix. The navigation remains mounted and functional while its Streamlit rail is hidden only on Home. Architecture, backend behavior, database contracts, business logic, routes, and subsystem ownership are unchanged.
+Status: Living OS v2.0.5 is the approved Persistence & Core Stability Release. All 128 automated tests pass. The deployment operator must still verify durable storage, independent backup, Owner Authentication, and the release gate in every target production environment.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
 
-Database Foundation: Database and Database Management remain independent peer Subsystems. v2.0 exposes both as dedicated navigation surfaces. Real user migration, backup, and restore operations remain explicit and never run on startup.
+Database Foundation: Database and Database Management remain independent peer Subsystems. Foundation schema migrations are additive and idempotent at startup. Legacy business-data migration, backup, and restore remain explicit owner actions.
 
 v2.0 additions: Personal Growth Subsystem v1.0.0 and Collaboration Subsystem v1.0.0 are independent sensitive-data owners registered through the common Database Foundation adapter, Registry, Execution Database, integrity, backup, and restore contracts.
 
