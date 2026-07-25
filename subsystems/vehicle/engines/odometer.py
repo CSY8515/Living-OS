@@ -72,6 +72,14 @@ class OdometerEngine:
         sql += " ORDER BY recorded_on,odometer_km,reading_id"
         return self.store.query(sql, tuple(parameters))
 
+    def delete(self, reading_id: Any) -> bool:
+        key = str(reading_id or "").strip()
+        with self.store.transaction() as connection:
+            cursor = connection.execute("DELETE FROM vehicle_odometer_readings WHERE reading_id=?", (key,))
+        if cursor.rowcount != 1:
+            raise KeyError("Odometer reading not found.")
+        return True
+
     def current(self, vehicle_id: Any) -> dict[str, Any] | None:
         vehicle = self.vehicles.get(vehicle_id)
         return self.store.query_one(

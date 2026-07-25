@@ -9,6 +9,7 @@ from subsystems.vehicle.engines.odometer import OdometerEngine
 from subsystems.vehicle.engines.report import VehicleReportEngine
 from subsystems.vehicle.engines.schedule import ScheduleEngine
 from subsystems.vehicle.engines.storage import VehicleStorageEngine
+from subsystems.vehicle.engines.trip import TripEngine
 from subsystems.vehicle.engines.vehicle import VehicleEngine
 from subsystems.database.engines.observability import record_failures
 
@@ -35,10 +36,11 @@ class VehicleSubsystem:
         maintenance = MaintenanceEngine(store, vehicles)
         schedules = ScheduleEngine(store, vehicles, odometer, maintenance)
         energy = EnergyEngine(store, vehicles)
+        trips = TripEngine(store, vehicles)
         report = VehicleReportEngine(vehicles, odometer, maintenance, schedules, energy)
         self._store, self._vehicles, self._odometer = store, vehicles, odometer
         self._maintenance, self._schedules, self._energy = maintenance, schedules, energy
-        self._report = report
+        self._trips, self._report = trips, report
 
     @property
     def database_path(self) -> Path:
@@ -54,8 +56,10 @@ class VehicleSubsystem:
             "subsystem": "vehicle", "version": self.VERSION,
             "living_os_compatibility": self.LIVING_OS_COMPATIBILITY,
             "privacy_class": self.PRIVACY_CLASS,
-            "capabilities": ("vehicle-profile", "odometer", "maintenance",
-                             "maintenance-schedule", "energy-cost", "vehicle-report"),
+            "capabilities": (
+                "vehicle-profile", "trip-log", "odometer", "maintenance",
+                "maintenance-schedule", "energy-cost", "fuel-efficiency", "vehicle-report",
+            ),
         }
 
     @record_failures("create_vehicle")
@@ -90,6 +94,24 @@ class VehicleSubsystem:
                                end_on: Any = None) -> list[dict[str, Any]]:
         return self._odometer.list(vehicle_id, start_on, end_on)
 
+    @record_failures("delete_odometer")
+    def delete_odometer(self, reading_id: Any) -> bool:
+        return self._odometer.delete(reading_id)
+
+    @record_failures("record_trip")
+    def record_trip(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._trips.record(*args, **kwargs)
+
+    def get_trip(self, trip_id: Any) -> dict[str, Any]:
+        return self._trips.get(trip_id)
+
+    def list_trips(self, vehicle_id: Any, start_on: Any = None, end_on: Any = None) -> list[dict[str, Any]]:
+        return self._trips.list(vehicle_id, start_on, end_on)
+
+    @record_failures("delete_trip")
+    def delete_trip(self, trip_id: Any) -> bool:
+        return self._trips.delete(trip_id)
+
     @record_failures("record_maintenance")
     def record_maintenance(self, vehicle_id: Any, service_type: Any, serviced_on: Any,
                            odometer_km: Any = None, cost: Any = 0, provider: Any = "",
@@ -101,6 +123,10 @@ class VehicleSubsystem:
     def list_maintenance_records(self, vehicle_id: Any, start_on: Any = None,
                                  end_on: Any = None, service_type: Any = None) -> list[dict[str, Any]]:
         return self._maintenance.list(vehicle_id, start_on, end_on, service_type)
+
+    @record_failures("delete_maintenance")
+    def delete_maintenance(self, maintenance_id: Any) -> bool:
+        return self._maintenance.delete(maintenance_id)
 
     @record_failures("create_maintenance_schedule")
     def create_maintenance_schedule(self, vehicle_id: Any, service_type: Any,
@@ -131,9 +157,35 @@ class VehicleSubsystem:
                          end_on: Any = None, energy_type: Any = None) -> list[dict[str, Any]]:
         return self._energy.list(vehicle_id, start_on, end_on, energy_type)
 
+    @record_failures("delete_energy")
+    def delete_energy(self, energy_id: Any) -> bool:
+        return self._energy.delete(energy_id)
+
+    def fuel_efficiency(self, vehicle_id: Any, start_on: Any = None, end_on: Any = None) -> dict[str, Any]:
+        return self._energy.efficiency(vehicle_id, start_on, end_on)
+
     def vehicle_report(self, vehicle_id: Any, start_on: Any = None,
                        end_on: Any = None, as_of: Any = None) -> dict[str, Any]:
-        return self._report.status(vehicle_id, start_on, end_on, as_of)
+        report = self._report.status(vehicle_id, start_on, end_on, as_of)
+        trips = self.list_trips(vehicle_id, start_on, end_on)
+        return {
+            **report,
+            "trip_count": len(trips),
+            "trip_distance_km": sum(int(item["distance_km"]) for item in trips),
+            "fuel_efficiency": self.fuel_efficiency(vehicle_id, start_on, end_on),
+            "trips": trips,
+        }
+
+    def dashboard(self, vehicle_id: Any) -> dict[str, Any]:
+        report = self.vehicle_report(vehicle_id)
+        return {
+            "vehicle": report["vehicle"],
+            "current_odometer_km": report["current_odometer_km"],
+            "trip_distance_km": report["trip_distance_km"],
+            "operating_cost": report["operating_cost"],
+            "fuel_efficiency": report["fuel_efficiency"],
+            "due_maintenance_count": len(report["due_maintenance"]),
+        }
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()

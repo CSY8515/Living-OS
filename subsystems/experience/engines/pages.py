@@ -46,6 +46,53 @@ def _tags(raw: str) -> list[str]:
     return [tag.strip() for tag in raw.split(",") if tag.strip()]
 
 
+def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
+    import streamlit as st
+
+    st.subheader("Record Browser")
+    if not records:
+        st.caption("No records yet.")
+        return
+    search = st.text_input("Search", key=f"{prefix}_record_search")
+    statuses = sorted({str(item.get("status")) for item in records if item.get("status")})
+    status = st.selectbox(
+        "Status", ["All", *statuses], key=f"{prefix}_record_status"
+    )
+    scalar_fields = sorted({
+        key for item in records for key, value in item.items()
+        if isinstance(value, (str, int, float)) or value is None
+    })
+    sort_by = st.selectbox(
+        "Sort", scalar_fields, index=0, key=f"{prefix}_record_sort"
+    )
+    descending = st.toggle(
+        "Descending", value=True, key=f"{prefix}_record_descending"
+    )
+    needle = search.strip().casefold()
+    visible = [
+        dict(item) for item in records
+        if (status == "All" or str(item.get("status")) == status)
+        and (not needle or needle in " ".join(str(value) for value in item.values()).casefold())
+    ]
+    visible.sort(
+        key=lambda item: (item.get(sort_by) is None, str(item.get(sort_by, "")).casefold()),
+        reverse=descending,
+    )
+    st.dataframe(visible, width="stretch", hide_index=True)
+    if visible:
+        id_fields = (
+            "record_id", "transaction_id", "ingredient_id", "recipe_id", "meal_id",
+            "candidate_id", "contract_id", "charge_id", "vehicle_id", "trip_id",
+            "maintenance_id", "energy_id", "goal_id",
+        )
+        options = [
+            next((str(item[field]) for field in id_fields if item.get(field)), str(index))
+            for index, item in enumerate(visible)
+        ]
+        selected = st.selectbox("Detail", options, key=f"{prefix}_record_detail")
+        st.json(visible[options.index(selected)])
+
+
 def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
     import streamlit as st
     st.title("Investment")
@@ -1199,6 +1246,13 @@ def render_finance(finance: FinanceSubsystem) -> None:
                     st.json(result)
 
 
+    snapshot = finance.export_snapshot()
+    _render_record_browser(
+        "finance",
+        [item for key, value in snapshot.items() if isinstance(value, list) for item in value],
+    )
+
+
 def render_health(health: HealthSubsystem) -> None:
     import json
     import streamlit as st
@@ -1506,6 +1560,13 @@ def render_health(health: HealthSubsystem) -> None:
             st.error(f"Health report could not be generated: {exc}")
 
 
+    snapshot = health.export_snapshot()
+    _render_record_browser(
+        "health",
+        [item for key, value in snapshot.items() if isinstance(value, list) for item in value],
+    )
+
+
 def render_housing(housing: HousingSubsystem) -> None:
     import streamlit as st
 
@@ -1603,6 +1664,60 @@ def render_housing(housing: HousingSubsystem) -> None:
             else:
                 st.json(result)
                 st.success("Reviewed Housing migration completed.")
+
+
+    with st.expander("Rental contract and monthly charges"):
+        with st.form("housing_contract_v207_form", clear_on_submit=True):
+            contract_name = st.text_input("Contract name")
+            contract_address = st.text_input("Contract address")
+            start_on = st.date_input("Contract start", value=date.today())
+            end_on = st.date_input("Contract end", value=date.today())
+            contract_deposit = st.number_input("Contract deposit", min_value=0, step=1000000)
+            contract_rent = st.number_input("Monthly rent", min_value=0, step=10000)
+            contract_fee = st.number_input("Monthly maintenance", min_value=0, step=10000)
+            contract_submit = st.form_submit_button("Create rental contract")
+        if contract_submit:
+            try:
+                housing.create_contract(
+                    contract_name, contract_address, start_on, end_on,
+                    contract_deposit, contract_rent, contract_fee,
+                )
+            except (KeyError, ValueError) as exc:
+                st.error(str(exc))
+            else:
+                st.success("Rental contract created.")
+                st.rerun()
+        contracts = housing.list_contracts()
+        st.dataframe(contracts, width="stretch", hide_index=True)
+        if contracts:
+            labels = {item["contract_id"]: item["name"] for item in contracts}
+            with st.form("housing_charge_v207_form", clear_on_submit=True):
+                charge_contract = st.selectbox(
+                    "Charge contract", list(labels), format_func=lambda value: labels[value]
+                )
+                charged_on = st.date_input("Charged on", value=date.today())
+                charge_kind = st.selectbox(
+                    "Charge type", ["rent", "maintenance", "utility", "other"]
+                )
+                charge_amount = st.number_input("Charge amount", min_value=0, step=10000)
+                charge_submit = st.form_submit_button("Record housing charge")
+            if charge_submit:
+                try:
+                    housing.record_charge(
+                        charge_contract, charged_on, charge_kind, charge_amount
+                    )
+                except (KeyError, ValueError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.success("Housing charge recorded.")
+                    st.rerun()
+            st.json(housing.occupancy_report(charge_contract))
+
+    snapshot = housing.export_snapshot()
+    _render_record_browser(
+        "housing",
+        [item for key, value in snapshot.items() if isinstance(value, list) for item in value],
+    )
 
 
 def render_vehicle(vehicle: VehicleSubsystem) -> None:
@@ -1791,6 +1906,41 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
             st.json(vehicle.vehicle_report(report_id))
 
 
+    with st.expander("Trip log"):
+        active = vehicle.list_vehicles("active")
+        if not active:
+            st.caption("Add an active vehicle first.")
+        else:
+            labels = {item["vehicle_id"]: item["display_name"] for item in active}
+            with st.form("vehicle_trip_v207_form", clear_on_submit=True):
+                trip_vehicle = st.selectbox(
+                    "Trip vehicle", list(labels), format_func=lambda value: labels[value]
+                )
+                driven_on = st.date_input("Driven on", value=date.today())
+                start_km = st.number_input("Start odometer", min_value=0, step=1)
+                end_km = st.number_input("End odometer", min_value=0, step=1)
+                purpose = st.text_input("Trip purpose")
+                trip_submit = st.form_submit_button("Record trip")
+            if trip_submit:
+                try:
+                    vehicle.record_trip(
+                        trip_vehicle, driven_on, start_km, end_km, purpose
+                    )
+                except (KeyError, ValueError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.success("Trip recorded.")
+                    st.rerun()
+            st.dataframe(vehicle.list_trips(trip_vehicle), width="stretch", hide_index=True)
+            st.json(vehicle.dashboard(trip_vehicle))
+
+    snapshot = vehicle.export_snapshot()
+    _render_record_browser(
+        "vehicle",
+        [item for key, value in snapshot.items() if isinstance(value, list) for item in value],
+    )
+
+
 def render_food(food: FoodSubsystem) -> None:
     import streamlit as st
 
@@ -1975,3 +2125,12 @@ def render_food(food: FoodSubsystem) -> None:
     with report_tab:
         st.info("Nutrition totals use owner-entered values only and are not medical guidance.")
         st.json(food.food_report())
+
+    snapshot = food.export_snapshot()
+    _render_record_browser(
+        "food",
+        [item for key, value in snapshot.items() if isinstance(value, list) for item in value],
+    )
+
+
+# v2.0.7 common Food record browser is rendered after the domain report.

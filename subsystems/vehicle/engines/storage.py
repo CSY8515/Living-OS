@@ -67,7 +67,15 @@ class VehicleStorageEngine(ComponentDatabaseAdapter):
                     cost INTEGER NOT NULL CHECK(cost >= 0), note TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(vehicle_id) REFERENCES vehicle_vehicles(vehicle_id))""",
+                """CREATE TABLE IF NOT EXISTS vehicle_trips (
+                    trip_id TEXT PRIMARY KEY, vehicle_id TEXT NOT NULL,
+                    driven_on TEXT NOT NULL, start_odometer_km INTEGER NOT NULL,
+                    end_odometer_km INTEGER NOT NULL, distance_km INTEGER NOT NULL,
+                    purpose TEXT NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL,
+                    CHECK(start_odometer_km >= 0 AND end_odometer_km >= start_odometer_km),
+                    FOREIGN KEY(vehicle_id) REFERENCES vehicle_vehicles(vehicle_id))""",
                 "CREATE INDEX IF NOT EXISTS ix_vehicle_odometer ON vehicle_odometer_readings(vehicle_id,recorded_on,odometer_km)",
+                "CREATE INDEX IF NOT EXISTS ix_vehicle_trip_date ON vehicle_trips(vehicle_id,driven_on)",
                 "CREATE INDEX IF NOT EXISTS ix_vehicle_maintenance ON vehicle_maintenance_records(vehicle_id,serviced_on)",
                 "CREATE INDEX IF NOT EXISTS ix_vehicle_schedule ON vehicle_maintenance_schedules(vehicle_id,status,due_on,due_odometer_km)",
                 "CREATE INDEX IF NOT EXISTS ix_vehicle_energy ON vehicle_energy_logs(vehicle_id,recorded_on)",
@@ -116,6 +124,7 @@ class VehicleStorageEngine(ComponentDatabaseAdapter):
             "maintenance_records": self.query("SELECT * FROM vehicle_maintenance_records ORDER BY serviced_on,maintenance_id"),
             "maintenance_schedules": self.query("SELECT * FROM vehicle_maintenance_schedules ORDER BY created_at,schedule_id"),
             "energy_logs": self.query("SELECT * FROM vehicle_energy_logs ORDER BY recorded_on,energy_id"),
+            "trips": self.query("SELECT * FROM vehicle_trips ORDER BY driven_on,trip_id") if self.query_one("SELECT 1 FROM sqlite_master WHERE type='table' AND name='vehicle_trips'") else [],
         }
 
     def health(self) -> dict[str, Any]:

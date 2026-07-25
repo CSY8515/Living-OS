@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 from subsystems.housing.engines.candidate import HousingCandidateEngine
 from subsystems.housing.engines.comparison import HousingComparisonEngine
 from subsystems.housing.engines.migration import HousingMigrationEngine
+from subsystems.housing.engines.occupancy import HousingOccupancyEngine
 from subsystems.housing.engines.report import HousingReportEngine
 from subsystems.housing.engines.scoring import HousingScoringEngine
 from subsystems.housing.engines.storage import HousingStorageEngine
@@ -37,6 +38,7 @@ class HousingSubsystem:
         self._candidates = candidates
         self._comparison = comparison
         self._report = report
+        self._occupancy = HousingOccupancyEngine(store)
         self._migration = HousingMigrationEngine(store, candidates, scoring)
 
     @property
@@ -58,7 +60,10 @@ class HousingSubsystem:
             "version": self.VERSION,
             "living_os_compatibility": self.LIVING_OS_COMPATIBILITY,
             "privacy_class": self.PRIVACY_CLASS,
-            "capabilities": ("candidate-crud", "scoring", "comparison", "housing-report", "migration"),
+            "capabilities": (
+                "candidate-crud", "scoring", "comparison", "rental-contract",
+                "rent-and-maintenance-charge", "housing-report", "migration",
+            ),
         }
 
     def calculate_candidate(self, **values: Any) -> dict[str, Any]:
@@ -87,6 +92,48 @@ class HousingSubsystem:
 
     def housing_report(self) -> dict[str, Any]:
         return self._report.status()
+
+    @record_failures("create_housing_contract")
+    def create_contract(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._occupancy.create_contract(*args, **kwargs)
+
+    def get_contract(self, contract_id: Any) -> dict[str, Any]:
+        return self._occupancy.get_contract(contract_id)
+
+    def list_contracts(self, status: Any | None = None, search: str | None = None) -> list[dict[str, Any]]:
+        return self._occupancy.list_contracts(status, search)
+
+    @record_failures("update_housing_contract")
+    def update_contract(self, contract_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._occupancy.update_contract(contract_id, **changes)
+
+    @record_failures("archive_housing_contract")
+    def archive_contract(self, contract_id: Any) -> dict[str, Any]:
+        return self._occupancy.update_contract(contract_id, status="archived")
+
+    @record_failures("record_housing_charge")
+    def record_charge(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._occupancy.record_charge(*args, **kwargs)
+
+    def list_charges(self, *args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+        return self._occupancy.list_charges(*args, **kwargs)
+
+    @record_failures("delete_housing_charge")
+    def delete_charge(self, charge_id: Any) -> bool:
+        return self._occupancy.delete_charge(charge_id)
+
+    def occupancy_report(self, contract_id: Any) -> dict[str, Any]:
+        return self._occupancy.report(contract_id)
+
+    def dashboard(self) -> dict[str, Any]:
+        active = self.list_contracts("active")
+        return {
+            "candidate_count": len(self.list_candidates()),
+            "active_contract_count": len(active),
+            "monthly_commitment": sum(
+                int(item["monthly_rent"]) + int(item["maintenance_fee"]) for item in active
+            ),
+        }
 
     def dry_run_legacy_json(self, source: Path) -> dict[str, Any]:
         return self._migration.dry_run_legacy_json(Path(source))

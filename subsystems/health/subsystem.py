@@ -90,6 +90,17 @@ class HealthSubsystem:
     def body_composition_timeline(self, **filters: Any) -> list[dict[str, Any]]:
         return self._body.timeline(**filters)
 
+    def get_body_composition(self, record_id: Any) -> dict[str, Any]:
+        return self._body.get(record_id)
+
+    @record_failures("update_body_composition")
+    def update_body_composition(self, record_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._body.update(record_id, **changes)
+
+    @record_failures("delete_body_composition")
+    def delete_body_composition(self, record_id: Any) -> bool:
+        return self._body.delete(record_id)
+
     def body_composition_baseline_comparison(self) -> dict[str, Any]:
         return self._body.baseline_comparison()
 
@@ -101,6 +112,17 @@ class HealthSubsystem:
 
     def list_health_checkups(self, **filters: Any) -> list[dict[str, Any]]:
         return self._checkup.list(**filters)
+
+    def get_health_checkup(self, record_id: Any) -> dict[str, Any]:
+        return self._checkup.get(record_id)
+
+    @record_failures("update_health_checkup")
+    def update_health_checkup(self, record_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._checkup.update(record_id, **changes)
+
+    @record_failures("delete_health_checkup")
+    def delete_health_checkup(self, record_id: Any) -> bool:
+        return self._checkup.delete(record_id)
 
     def health_checkup_follow_ups(self, as_of: Any | None = None) -> list[dict[str, Any]]:
         return self._checkup.follow_ups(as_of)
@@ -145,6 +167,20 @@ class HealthSubsystem:
 
     def health_goal_progress(self, goal_id: Any) -> dict[str, Any]:
         return self._goal.progress(goal_id)
+
+    @record_failures("update_health_goal_status")
+    def update_health_goal_status(self, goal_id: Any, status: Any) -> dict[str, Any]:
+        return self._goal.update_status(goal_id, status)
+
+    def dashboard(self) -> dict[str, Any]:
+        active_goals = self.list_health_goals("active")
+        return {
+            "latest_weight": (self.list_weights() or [None])[-1],
+            "latest_inbody": (self.body_composition_timeline() or [None])[-1],
+            "follow_up_count": len(self.health_checkup_follow_ups()),
+            "active_goal_count": len(active_goals),
+            "goal_progress": [self.health_goal_progress(item["goal_id"]) for item in active_goals],
+        }
 
     def weight_trend(self, **filters: Any) -> dict[str, Any]:
         return self._trend.weight_trend(**filters)

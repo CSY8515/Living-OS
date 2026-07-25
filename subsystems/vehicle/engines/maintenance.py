@@ -71,3 +71,17 @@ class MaintenanceEngine:
             parameters.append(require_text(service_type, "service_type", 200))
         sql += " ORDER BY serviced_on DESC,maintenance_id DESC"
         return self.store.query(sql, tuple(parameters))
+
+    def delete(self, maintenance_id: Any) -> bool:
+        current = self.get(maintenance_id)
+        if self.store.query_one(
+            "SELECT schedule_id FROM vehicle_maintenance_schedules WHERE completed_maintenance_id=? LIMIT 1",
+            (current["maintenance_id"],),
+        ):
+            raise ValueError("Maintenance record completes a schedule and cannot be deleted.")
+        with self.store.transaction() as connection:
+            cursor = connection.execute(
+                "DELETE FROM vehicle_maintenance_records WHERE maintenance_id=?",
+                (current["maintenance_id"],),
+            )
+        return cursor.rowcount == 1

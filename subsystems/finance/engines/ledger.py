@@ -8,6 +8,7 @@ from subsystems.finance.engines.storage import FinanceStorageEngine
 from subsystems.finance.engines.validation import (
     optional_text, require_amount, require_date, require_month, require_text, utc_now_iso,
 )
+from subsystems.database.engines.records import query_records
 
 
 class LedgerEngine:
@@ -55,7 +56,10 @@ class LedgerEngine:
         return self._record("expense", amount, category, occurred_on, description, metadata)
 
     def list_transactions(self, start_on: Any | None = None, end_on: Any | None = None,
-                          kind: str | None = None, category: str | None = None) -> list[dict[str, Any]]:
+                          kind: str | None = None, category: str | None = None,
+                          status: str | None = None, search: str | None = None,
+                          sort_by: str = "occurred_on", descending: bool = True,
+                          limit: int = 500) -> list[dict[str, Any]]:
         clauses: list[str] = []
         parameters: list[Any] = []
         normalized_start = require_date(start_on, "start_on") if start_on is not None else None
@@ -84,7 +88,71 @@ class LedgerEngine:
         )
         for row in rows:
             row["metadata"] = json.loads(row.pop("metadata_json"))
-        return rows
+            row["status"] = str(row["metadata"].get("status") or "active").lower()
+            row["updated_at"] = str(row["metadata"].get("updated_at") or row["created_at"])
+        return query_records(
+            rows, search=search, status=status, sort_by=sort_by,
+            descending=descending, limit=limit,
+        )
+
+    def get(self, transaction_id: Any) -> dict[str, Any]:
+        selected = require_text(transaction_id, "transaction_id", 100)
+        row = next(
+            (item for item in self.list_transactions(limit=1000)
+             if item["transaction_id"] == selected),
+            None,
+        )
+        if row is None:
+            raise KeyError("Finance transaction not found.")
+        return row
+
+    def update(self, transaction_id: Any, **changes: Any) -> dict[str, Any]:
+        current = self.get(transaction_id)
+        allowed = {"kind", "amount", "category", "occurred_on", "description", "metadata"}
+        unexpected = set(changes) - allowed
+        if unexpected:
+            raise ValueError(f"Unsupported Finance transaction fields: {sorted(unexpected)}")
+        kind = str(changes.get("kind", current["kind"])).lower()
+        if kind not in {"income", "expense"}:
+            raise ValueError("kind must be income or expense.")
+        metadata = dict(current["metadata"])
+        supplied_metadata = changes.get("metadata")
+        if supplied_metadata is not None:
+            if not isinstance(supplied_metadata, dict):
+                raise ValueError("metadata must be an object.")
+            metadata.update(supplied_metadata)
+        metadata["updated_at"] = utc_now_iso()
+        with self.store.transaction() as connection:
+            connection.execute(
+                """UPDATE ledger_transactions
+                   SET kind=?,amount=?,category=?,occurred_on=?,description=?,metadata_json=?
+                   WHERE transaction_id=?""",
+                (
+                    kind,
+                    require_amount(changes.get("amount", current["amount"])),
+                    require_text(changes.get("category", current["category"]), "category", 100),
+                    require_date(changes.get("occurred_on", current["occurred_on"]), "occurred_on"),
+                    optional_text(changes.get("description", current["description"]), 500),
+                    json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+                    current["transaction_id"],
+                ),
+            )
+        return self.get(current["transaction_id"])
+
+    def archive(self, transaction_id: Any) -> dict[str, Any]:
+        return self.update(transaction_id, metadata={"status": "archived"})
+
+    def restore(self, transaction_id: Any) -> dict[str, Any]:
+        return self.update(transaction_id, metadata={"status": "active"})
+
+    def delete(self, transaction_id: Any) -> bool:
+        current = self.get(transaction_id)
+        with self.store.transaction() as connection:
+            cursor = connection.execute(
+                "DELETE FROM ledger_transactions WHERE transaction_id=?",
+                (current["transaction_id"],),
+            )
+        return cursor.rowcount == 1
 
     def totals_for_month(self, month: Any) -> dict[str, int]:
         normalized = require_month(month)

@@ -31,6 +31,39 @@ class BodyCompositionEngine:
             "SELECT * FROM body_compositions" + where + " ORDER BY measured_on,created_at", parameters
         )]
 
+    def get(self, record_id: Any) -> dict[str, Any]:
+        key = str(record_id or "").strip()
+        row = self.store.query_one("SELECT * FROM body_compositions WHERE record_id=?", (key,))
+        if row is None:
+            raise KeyError("InBody record not found.")
+        return self._public(row)
+
+    def update(self, record_id: Any, **changes: Any) -> dict[str, Any]:
+        current = self.get(record_id)
+        allowed = {"measured_on", "skeletal_muscle_kg", "body_fat_percent", "bmi", "note"}
+        unexpected = set(changes) - allowed
+        if unexpected:
+            raise ValueError(f"Unsupported InBody fields: {sorted(unexpected)}")
+        with self.store.transaction() as connection:
+            connection.execute(
+                "UPDATE body_compositions SET measured_on=?,skeletal_muscle_kg=?,body_fat_percent=?,bmi=?,note=? WHERE record_id=?",
+                (
+                    require_date(changes.get("measured_on", current["measured_on"]), "measured_on"),
+                    require_decimal(changes.get("skeletal_muscle_kg", current["skeletal_muscle_kg"]), "skeletal_muscle_kg", "1", "150"),
+                    require_decimal(changes.get("body_fat_percent", current["body_fat_percent"]), "body_fat_percent", "1", "75"),
+                    require_decimal(changes.get("bmi", current["bmi"]), "bmi", "5", "100"),
+                    optional_text(changes.get("note", current["note"])),
+                    current["record_id"],
+                ),
+            )
+        return self.get(current["record_id"])
+
+    def delete(self, record_id: Any) -> bool:
+        current = self.get(record_id)
+        with self.store.transaction() as connection:
+            cursor = connection.execute("DELETE FROM body_compositions WHERE record_id=?", (current["record_id"],))
+        return cursor.rowcount == 1
+
     def baseline_comparison(self) -> dict[str, Any]:
         rows = self.timeline()
         if not rows:

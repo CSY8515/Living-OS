@@ -2,6 +2,16 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.7 — 2026-07-25
+
+- Completed Finance transaction CRUD, Archive/restore, budget lifecycle, search, sorting, monthly close, and dashboard integration.
+- Completed Food cooking and meal record lifecycle, search, detail, statistics, Archive-aware catalog behavior, Timeline, and dashboard integration.
+- Completed Health InBody and checkup correction lifecycle, goal status/progress, deterministic reports, and dashboard integration.
+- Added Housing rental contracts, monthly rent, maintenance, utility charges, Archive, occupancy reports, and dashboard integration.
+- Added Vehicle trip records, fuel/charge and maintenance correction lifecycle, fuel efficiency, Timeline, Report, and dashboard integration.
+- Added the common List View, Search, Filter, Sort, Detail Page, validation, error handling, and lazy additive database compatibility behavior.
+- Verified 140 automated tests, Streamlit page smoke, architecture boundaries, existing-data compatibility, and six SQLite integrity checks.
+
 ## v2.0.6 — 2026-07-25
 
 - Added the common Timeline record contract and source adapter for Finance, Investment, Job, Health, Vehicle, Housing, Food, Knowledge, Routine, Personal Growth, and Collaboration.

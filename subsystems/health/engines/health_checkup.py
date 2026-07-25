@@ -41,6 +41,46 @@ class HealthCheckupEngine:
             row["metrics"] = json.loads(row.pop("metrics_json"))
         return rows
 
+    def get(self, record_id: Any) -> dict[str, Any]:
+        key = str(record_id or "").strip()
+        row = self.store.query_one("SELECT * FROM health_checkups WHERE record_id=?", (key,))
+        if row is None:
+            raise KeyError("Health checkup not found.")
+        row["metrics"] = json.loads(row.pop("metrics_json"))
+        return row
+
+    def update(self, record_id: Any, **changes: Any) -> dict[str, Any]:
+        current = self.get(record_id)
+        allowed = {"checked_on", "title", "assessment", "follow_up_on", "metrics", "note"}
+        unexpected = set(changes) - allowed
+        if unexpected:
+            raise ValueError(f"Unsupported checkup fields: {sorted(unexpected)}")
+        checked = require_date(changes.get("checked_on", current["checked_on"]), "checked_on")
+        follow_value = changes.get("follow_up_on", current["follow_up_on"])
+        follow = require_date(follow_value, "follow_up_on") if follow_value else None
+        if follow and follow < checked:
+            raise ValueError("follow_up_on cannot be before checked_on.")
+        with self.store.transaction() as connection:
+            connection.execute(
+                "UPDATE health_checkups SET checked_on=?,title=?,assessment=?,follow_up_on=?,metrics_json=?,note=? WHERE record_id=?",
+                (
+                    checked,
+                    require_text(changes.get("title", current["title"]), "title", 200),
+                    require_text(changes.get("assessment", current["assessment"]), "assessment", 1000),
+                    follow,
+                    json.dumps(require_metrics(changes.get("metrics", current["metrics"])), sort_keys=True),
+                    optional_text(changes.get("note", current["note"])),
+                    current["record_id"],
+                ),
+            )
+        return self.get(current["record_id"])
+
+    def delete(self, record_id: Any) -> bool:
+        current = self.get(record_id)
+        with self.store.transaction() as connection:
+            cursor = connection.execute("DELETE FROM health_checkups WHERE record_id=?", (current["record_id"],))
+        return cursor.rowcount == 1
+
     def follow_ups(self, as_of: Any | None = None) -> list[dict[str, Any]]:
         reference = require_date(as_of, "as_of") if as_of else None
         rows = self.list()

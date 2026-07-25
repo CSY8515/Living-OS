@@ -1,8 +1,8 @@
-# Living OS v2.0.6
+# Living OS v2.0.7
 
-> Living OS v2.0.6 is the approved Timeline & Report Foundation Release built on the v2.0.5 stability baseline.
+> Living OS v2.0.7 is the approved Existing Subsystem Completion Release built on the v2.0.6 Timeline & Report Foundation baseline.
 
-v2.0.6 adds a common Timeline contract, Subsystem and Global Timeline queries, status/archive history, and a deterministic Daily/Weekly/Monthly Report lifecycle. It connects existing and basic new Report sources without adding AI, automation, scheduling, or an official UI.
+v2.0.7 completes the existing Finance, Food, Health, Housing, and Vehicle Subsystems with stronger CRUD, Timeline, Report, Dashboard, Archive, validation, database, and practical UI connections.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

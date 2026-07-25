@@ -11,6 +11,7 @@ from subsystems.finance.engines.report import ReportEngine
 from subsystems.finance.engines.savings import SavingsEngine
 from subsystems.finance.engines.storage import FinanceStorageEngine
 from subsystems.database.engines.observability import record_failures
+from subsystems.database.engines.records import dashboard_counts
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -68,9 +69,36 @@ class FinanceSubsystem:
     def list_transactions(self, **filters: Any) -> list[dict[str, Any]]:
         return self._ledger.list_transactions(**filters)
 
+    def get_transaction(self, transaction_id: Any) -> dict[str, Any]:
+        return self._ledger.get(transaction_id)
+
+    @record_failures("update_transaction")
+    def update_transaction(self, transaction_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._ledger.update(transaction_id, **changes)
+
+    @record_failures("archive_transaction")
+    def archive_transaction(self, transaction_id: Any) -> dict[str, Any]:
+        return self._ledger.archive(transaction_id)
+
+    @record_failures("restore_transaction")
+    def restore_transaction(self, transaction_id: Any) -> dict[str, Any]:
+        return self._ledger.restore(transaction_id)
+
+    @record_failures("delete_transaction")
+    def delete_transaction(self, transaction_id: Any) -> bool:
+        return self._ledger.delete(transaction_id)
+
     @record_failures("create_budget")
     def create_budget(self, month: Any, category: Any, amount: Any) -> dict[str, Any]:
         return self._budget.create_budget(month, category, amount)
+
+    @record_failures("upsert_budget")
+    def upsert_budget(self, month: Any, category: Any, amount: Any) -> dict[str, Any]:
+        return self._budget.upsert_budget(month, category, amount)
+
+    @record_failures("delete_budget")
+    def delete_budget(self, month: Any, category: Any) -> bool:
+        return self._budget.delete_budget(month, category)
 
     def list_budgets(self, month: Any) -> list[dict[str, Any]]:
         return self._budget.list_budgets(month)
@@ -137,3 +165,7 @@ class FinanceSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def dashboard(self, month: Any) -> dict[str, Any]:
+        snapshot = self.export_snapshot()
+        return {**dashboard_counts(snapshot), **self.summary_report(month)}

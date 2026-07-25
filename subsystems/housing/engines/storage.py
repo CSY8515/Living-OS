@@ -53,6 +53,27 @@ class HousingStorageEngine(ComponentDatabaseAdapter):
                 );
                 CREATE INDEX IF NOT EXISTS ix_housing_candidate_rank
                     ON housing_candidates(status, score DESC, total_monthly_cost, commute_minutes);
+                CREATE TABLE IF NOT EXISTS housing_contracts (
+                    contract_id TEXT PRIMARY KEY, name TEXT NOT NULL, address TEXT NOT NULL,
+                    start_on TEXT NOT NULL, end_on TEXT NOT NULL,
+                    deposit INTEGER NOT NULL CHECK(deposit >= 0),
+                    monthly_rent INTEGER NOT NULL CHECK(monthly_rent >= 0),
+                    maintenance_fee INTEGER NOT NULL CHECK(maintenance_fee >= 0),
+                    status TEXT NOT NULL CHECK(status IN ('active','completed','archived')),
+                    note TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS housing_charges (
+                    charge_id TEXT PRIMARY KEY, contract_id TEXT NOT NULL,
+                    charged_on TEXT NOT NULL,
+                    kind TEXT NOT NULL CHECK(kind IN ('rent','maintenance','utility','other')),
+                    amount INTEGER NOT NULL CHECK(amount >= 0), note TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(contract_id) REFERENCES housing_contracts(contract_id)
+                );
+                CREATE INDEX IF NOT EXISTS ix_housing_contract_status
+                    ON housing_contracts(status,start_on);
+                CREATE INDEX IF NOT EXISTS ix_housing_charge_date
+                    ON housing_charges(contract_id,charged_on,kind);
                 CREATE TABLE IF NOT EXISTS housing_migration_ledger (
                     source_key TEXT PRIMARY KEY,
                     checksum TEXT NOT NULL,
@@ -116,4 +137,6 @@ class HousingStorageEngine(ComponentDatabaseAdapter):
             "schema_version": SCHEMA_VERSION,
             "privacy_class": "sensitive",
             "candidates": self.query("SELECT * FROM housing_candidates ORDER BY candidate_id"),
+            "contracts": self.query("SELECT * FROM housing_contracts ORDER BY start_on,contract_id") if self.query_one("SELECT 1 FROM sqlite_master WHERE type='table' AND name='housing_contracts'") else [],
+            "charges": self.query("SELECT * FROM housing_charges ORDER BY charged_on,charge_id") if self.query_one("SELECT 1 FROM sqlite_master WHERE type='table' AND name='housing_charges'") else [],
         }

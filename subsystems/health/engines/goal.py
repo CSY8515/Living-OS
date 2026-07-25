@@ -43,6 +43,20 @@ class GoalEngine:
             "SELECT * FROM health_goals" + where + " ORDER BY start_on,created_at", parameters
         )]
 
+    def update_status(self, goal_id: Any, status: Any) -> dict[str, Any]:
+        identifier = require_text(goal_id, "goal_id", 80)
+        selected = str(status or "").strip().lower()
+        if selected not in {"active", "completed", "cancelled"}:
+            raise ValueError("Unknown goal status.")
+        if not any(row["goal_id"] == identifier for row in self.list()):
+            raise KeyError("Health goal not found.")
+        with self.store.transaction() as connection:
+            connection.execute(
+                "UPDATE health_goals SET status=?,updated_at=? WHERE goal_id=?",
+                (selected, utc_now_iso(), identifier),
+            )
+        return next(row for row in self.list() if row["goal_id"] == identifier)
+
     def progress(self, goal_id: Any) -> dict[str, Any]:
         identifier = require_text(goal_id, "goal_id", 80)
         goal = next((row for row in self.list() if row["goal_id"] == identifier), None)

@@ -90,6 +90,45 @@ class MealEngine:
             tuple(parameters),
         )
 
+    def update(self, meal_id: Any, **changes: Any) -> dict[str, Any]:
+        current = self.get(meal_id)
+        allowed = {"eaten_on", "meal_type", "recipe_id", "cooking_id", "servings_consumed", "nutrition_override", "note"}
+        unexpected = set(changes) - allowed
+        if unexpected:
+            raise ValueError(f"Unsupported meal fields: {sorted(unexpected)}")
+        recipe_key = optional_identifier(changes.get("recipe_id", current["recipe_id"]), "recipe_id")
+        cooking_key = optional_identifier(changes.get("cooking_id", current["cooking_id"]), "cooking_id")
+        if recipe_key:
+            self.recipes.get(recipe_key)
+        if cooking_key:
+            cooking = self.cooking.get(cooking_key)
+            if recipe_key and cooking["recipe_id"] != recipe_key:
+                raise ValueError("cooking_id does not belong to recipe_id.")
+            recipe_key = cooking["recipe_id"]
+        nutrition = nutrition_values(changes["nutrition_override"]) if "nutrition_override" in changes else {
+            name: current[name] for name in NUTRIENTS
+        }
+        with self.store.transaction() as connection:
+            connection.execute(
+                "UPDATE food_meals SET eaten_on=?,meal_type=?,recipe_id=?,cooking_id=?,servings_consumed=?,calories=?,protein=?,carbohydrate=?,fat=?,note=? WHERE meal_id=?",
+                (
+                    require_date(changes.get("eaten_on", current["eaten_on"]), "eaten_on"),
+                    require_choice(changes.get("meal_type", current["meal_type"]), "meal_type", MEAL_TYPES),
+                    recipe_key, cooking_key,
+                    decimal_string(changes.get("servings_consumed", current["servings_consumed"]), "servings_consumed", positive=True),
+                    *(nutrition[name] for name in NUTRIENTS),
+                    optional_text(changes.get("note", current["note"]), "note"),
+                    current["meal_id"],
+                ),
+            )
+        return self.get(current["meal_id"])
+
+    def delete(self, meal_id: Any) -> bool:
+        current = self.get(meal_id)
+        with self.store.transaction() as connection:
+            cursor = connection.execute("DELETE FROM food_meals WHERE meal_id=?", (current["meal_id"],))
+        return cursor.rowcount == 1
+
     @staticmethod
     def explicit_nutrition(row: dict[str, Any]) -> dict[str, str | None]:
         return {name: row[name] for name in NUTRIENTS}

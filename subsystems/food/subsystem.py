@@ -11,6 +11,7 @@ from subsystems.food.engines.recipe import RecipeEngine
 from subsystems.food.engines.report import FoodReportEngine
 from subsystems.food.engines.storage import FoodStorageEngine
 from subsystems.database.engines.observability import record_failures
+from subsystems.database.engines.records import dashboard_counts, query_records, record_detail
 
 if TYPE_CHECKING:
     from subsystems.database.subsystem import DatabaseSubsystem
@@ -112,8 +113,22 @@ class FoodSubsystem:
         return self._cooking.record(recipe_id, cooked_on, servings_produced, note)
 
     def list_cooking_records(self, start_on: Any = None, end_on: Any = None,
-                             recipe_id: Any = None) -> list[dict[str, Any]]:
-        return self._cooking.list(start_on, end_on, recipe_id)
+                             recipe_id: Any = None, search: str | None = None,
+                             sort_by: str = "cooked_on", descending: bool = True,
+                             limit: int = 500) -> list[dict[str, Any]]:
+        return query_records(self._cooking.list(start_on, end_on, recipe_id),
+                             search=search, sort_by=sort_by, descending=descending, limit=limit)
+
+    def get_cooking_record(self, cooking_id: Any) -> dict[str, Any]:
+        return self._cooking.get(cooking_id)
+
+    @record_failures("update_cooking")
+    def update_cooking(self, cooking_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._cooking.update(cooking_id, **changes)
+
+    @record_failures("delete_cooking")
+    def delete_cooking(self, cooking_id: Any) -> bool:
+        return self._cooking.delete(cooking_id)
 
     @record_failures("record_meal")
     def record_meal(self, eaten_on: Any, meal_type: Any, servings_consumed: Any,
@@ -125,8 +140,22 @@ class FoodSubsystem:
         )
 
     def list_meals(self, start_on: Any = None, end_on: Any = None,
-                   meal_type: Any = None, recipe_id: Any = None) -> list[dict[str, Any]]:
-        return self._meals.list(start_on, end_on, meal_type, recipe_id)
+                   meal_type: Any = None, recipe_id: Any = None,
+                   search: str | None = None, sort_by: str = "eaten_on",
+                   descending: bool = True, limit: int = 500) -> list[dict[str, Any]]:
+        return query_records(self._meals.list(start_on, end_on, meal_type, recipe_id),
+                             search=search, sort_by=sort_by, descending=descending, limit=limit)
+
+    def get_meal(self, meal_id: Any) -> dict[str, Any]:
+        return self._meals.get(meal_id)
+
+    @record_failures("update_meal")
+    def update_meal(self, meal_id: Any, **changes: Any) -> dict[str, Any]:
+        return self._meals.update(meal_id, **changes)
+
+    @record_failures("delete_meal")
+    def delete_meal(self, meal_id: Any) -> bool:
+        return self._meals.delete(meal_id)
 
     def recipe_nutrition(self, recipe_id: Any) -> dict[str, Any]:
         return self._nutrition.recipe(recipe_id)
@@ -139,3 +168,13 @@ class FoodSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def record_detail(self, record_id: Any) -> dict[str, Any]:
+        snapshot = self.export_snapshot()
+        return record_detail(
+            (item for value in snapshot.values() if isinstance(value, list) for item in value),
+            record_id,
+        )
+
+    def dashboard(self, start_on: Any = None, end_on: Any = None) -> dict[str, Any]:
+        return {**dashboard_counts(self.export_snapshot()), **self.food_report(start_on, end_on)}

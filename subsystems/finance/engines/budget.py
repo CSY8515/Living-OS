@@ -61,6 +61,14 @@ class BudgetEngine:
             "SELECT * FROM budgets WHERE month=? ORDER BY category", (require_month(month),)
         )
 
+    def delete_budget(self, month: Any, category: Any) -> bool:
+        current = self.get_budget(month, category)
+        with self.store.transaction() as connection:
+            cursor = connection.execute(
+                "DELETE FROM budgets WHERE budget_id=?", (current["budget_id"],)
+            )
+        return cursor.rowcount == 1
+
     def usage(self, month: Any, category: str | None = None) -> dict[str, Any]:
         normalized = require_month(month)
         expenses = self.ledger.expenses_by_category(normalized)

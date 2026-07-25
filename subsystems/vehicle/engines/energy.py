@@ -63,3 +63,28 @@ class EnergyEngine:
             parameters.append(require_choice(energy_type, "energy_type", {"fuel", "charge"}))
         sql += " ORDER BY recorded_on DESC,energy_id DESC"
         return self.store.query(sql, tuple(parameters))
+
+    def get(self, energy_id: Any) -> dict[str, Any]:
+        key = str(energy_id or "").strip()
+        row = self.store.query_one("SELECT * FROM vehicle_energy_logs WHERE energy_id=?", (key,))
+        if row is None:
+            raise KeyError("Vehicle energy record not found.")
+        return row
+
+    def delete(self, energy_id: Any) -> bool:
+        row = self.get(energy_id)
+        with self.store.transaction() as connection:
+            cursor = connection.execute("DELETE FROM vehicle_energy_logs WHERE energy_id=?", (row["energy_id"],))
+        return cursor.rowcount == 1
+
+    def efficiency(self, vehicle_id: Any, start_on: Any = None, end_on: Any = None) -> dict[str, Any]:
+        logs = [row for row in self.list(vehicle_id, start_on, end_on, "fuel") if row["odometer_km"] is not None]
+        logs.sort(key=lambda row: (row["recorded_on"], row["odometer_km"]))
+        distance = int(logs[-1]["odometer_km"]) - int(logs[0]["odometer_km"]) if len(logs) > 1 else 0
+        quantity = sum(int(row["quantity_milliunits"]) for row in logs[1:])
+        return {
+            "distance_km": distance,
+            "fuel_liters": round(quantity / 1000, 3),
+            "km_per_liter": round(distance / (quantity / 1000), 2) if quantity else None,
+            "source_count": len(logs),
+        }
