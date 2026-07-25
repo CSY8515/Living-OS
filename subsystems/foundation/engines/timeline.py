@@ -186,6 +186,14 @@ class TimelineRecord:
         return self.status.upper() in ARCHIVE_VALUES or "ARCHIV" in self.event_type.upper()
 
     @property
+    def category(self) -> str:
+        return str(
+            self.metadata.get("category")
+            or self.metadata.get("type")
+            or self.record_type
+        ).strip()
+
+    @property
     def record_ref(self) -> dict[str, str]:
         return {
             "subsystem": self.subsystem,
@@ -194,7 +202,12 @@ class TimelineRecord:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return {**asdict(self), "archived": self.archived, "record_ref": self.record_ref}
+        return {
+            **asdict(self),
+            "category": self.category,
+            "archived": self.archived,
+            "record_ref": self.record_ref,
+        }
 
 
 @dataclass(frozen=True)
@@ -347,10 +360,17 @@ class TimelineService:
         end: date | datetime | str | None = None,
         subsystem: str | None = None,
         record_id: str | None = None,
+        search: str | None = None,
+        category: str | None = None,
         include_archived: bool = True,
+        sort_order: str = "desc",
         limit: int = 500,
     ) -> list[TimelineRecord]:
+        if sort_order not in {"asc", "desc"}:
+            raise ValueError("sort_order must be asc or desc")
         selected = SUBSYSTEM_ALIASES.get(str(subsystem or ""), str(subsystem or "")).lower()
+        needle = str(search or "").strip().casefold()
+        selected_category = str(category or "").strip().casefold()
         start_value = _boundary(start)
         end_value = _boundary(end, end=True)
         records = self._domain_events() + self._execution_events(limit)
@@ -362,6 +382,25 @@ class TimelineService:
                 continue
             if record_id and item.record_id != record_id:
                 continue
+            if selected_category and item.category.casefold() != selected_category:
+                continue
+            if needle:
+                searchable = " ".join(
+                    (
+                        item.record_id,
+                        item.subsystem,
+                        item.record_type,
+                        item.event_type,
+                        item.title,
+                        item.summary,
+                        item.status,
+                        item.source,
+                        item.category,
+                        json.dumps(dict(item.metadata), ensure_ascii=False, default=str),
+                    )
+                ).casefold()
+                if needle not in searchable:
+                    continue
             if not include_archived and item.archived:
                 continue
             if start_value and _sort_value(item.event_time) < _sort_value(start_value):
@@ -369,8 +408,22 @@ class TimelineService:
             if end_value and _sort_value(item.event_time) > _sort_value(end_value):
                 continue
             filtered.append(item)
-        filtered.sort(key=lambda item: _sort_value(item.event_time), reverse=True)
+        filtered.sort(
+            key=lambda item: _sort_value(item.event_time),
+            reverse=sort_order == "desc",
+        )
         return filtered[: max(1, min(int(limit), 1000))]
+
+    def categories(self, *, subsystem: str | None = None) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                {
+                    item.category
+                    for item in self.query(subsystem=subsystem, limit=1000)
+                    if item.category
+                }
+            )
+        )
 
     def status_history(self, subsystem: str, record_id: str) -> list[TimelineRecord]:
         return [

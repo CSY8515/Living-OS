@@ -18,6 +18,8 @@ from subsystems.experience.engines.pages import (
     render_knowledge,
     render_module_manager,
     render_reports,
+    render_timeline,
+    render_global_search,
     render_review,
     render_settings,
     render_knowledge_subsystem,
@@ -59,7 +61,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 NAV_ICONS = {
     "Command Center": "◈", "Daily Log": "✦", "Decision Log": "◇", "Reports": "▤",
-    "Archive": "▣", "Analytics": "⌁", "Review": "◎", "AI Analysis": "✧",
+    "Archive": "▣", "Analytics": "⌁", "Timeline": "↕", "Search": "⌕", "Review": "◎", "AI Analysis": "✧",
     "Documents": "▧", "Finance": "◐", "Food": "◒", "Health": "♡",
     "Housing": "⌂", "Vehicle": "▷", "Knowledge": "◫", "Routine": "↻",
     "Investment": "↗", "Job": "▱", "Personal Growth": "△", "Collaboration": "◉",
@@ -338,15 +340,28 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
         growth,
         collaboration,
     )
-    managed = {"Personal Growth": growth, "Collaboration": collaboration,
-               "Knowledge": knowledge, "Routine": routine, "Investment": investment, "Job": job}
+    managed = {
+        "Finance": finance,
+        "Food": food,
+        "Health": health,
+        "Housing": housing,
+        "Vehicle": vehicle,
+        "Knowledge": knowledge,
+        "Routine": routine,
+        "Investment": investment,
+        "Job": job,
+        "Personal Growth": growth,
+        "Collaboration": collaboration,
+    }
     return {
         "Command Center": lambda: render_dashboard(hub, managed),
         "Daily Log": lambda: render_journal(hub),
         "Decision Log": lambda: render_decisions(hub),
-        "Reports": lambda: render_reports(hub),
+        "Reports": lambda: render_reports(hub, managed),
         "Archive": lambda: render_knowledge(hub),
         "Analytics": lambda: render_analytics(hub),
+        "Timeline": lambda: render_timeline(hub),
+        "Search": lambda: render_global_search(hub),
         "Review": lambda: render_review(hub),
         "AI Analysis": lambda: render_ai_briefing(hub),
         "Documents": lambda: render_documents(hub),
@@ -507,6 +522,8 @@ def main() -> None:
         "Reports": "reports",
         "Archive": "knowledge",
         "Analytics": "analytics",
+        "Timeline": "analytics",
+        "Search": "analytics",
         "Review": "review",
         "AI Analysis": "ai_briefing",
         "Documents": "documents",

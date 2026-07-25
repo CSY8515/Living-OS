@@ -14,7 +14,7 @@ from subsystems.foundation.engines.time import utc_now_iso
 from subsystems.foundation.engines.version import PRODUCT_VERSION
 
 
-REPORT_TYPES = ("daily", "weekly", "monthly")
+REPORT_TYPES = ("daily", "weekly", "monthly", "yearly")
 REPORT_STATUSES = ("ACTIVE", "ARCHIVED")
 REPORT_SOURCE_SUBSYSTEMS = (
     "journal",
@@ -189,7 +189,46 @@ class ReportsService:
             return selected - timedelta(days=6), selected
         if report_type == "monthly":
             return selected.replace(day=1), selected
+        if report_type == "yearly":
+            return selected.replace(month=1, day=1), selected
         return selected, selected
+
+    def report_summary(
+        self,
+        report_type: str,
+        *,
+        as_of: date | None = None,
+    ) -> dict[str, Any]:
+        selected = report_type if report_type in REPORT_TYPES else "daily"
+        start, end = self._range(selected, as_of)
+        timeline = self.hub.timeline.query(start=start, end=end, limit=1000)
+        by_subsystem: dict[str, int] = {}
+        by_category: dict[str, int] = {}
+        for item in timeline:
+            by_subsystem[item.subsystem] = by_subsystem.get(item.subsystem, 0) + 1
+            by_category[item.category] = by_category.get(item.category, 0) + 1
+        return {
+            "report_type": selected,
+            "period_start": start.isoformat(),
+            "period_end": end.isoformat(),
+            "timeline_events": len(timeline),
+            "active_events": sum(not item.archived for item in timeline),
+            "archived_events": sum(item.archived for item in timeline),
+            "by_subsystem": dict(sorted(by_subsystem.items())),
+            "by_category": dict(sorted(by_category.items())),
+        }
+
+    def cross_subsystem_summary(
+        self,
+        report_type: str,
+        *,
+        as_of: date | None = None,
+    ) -> list[dict[str, Any]]:
+        summary = self.report_summary(report_type, as_of=as_of)
+        return [
+            {"subsystem": name, "activity": count}
+            for name, count in summary["by_subsystem"].items()
+        ]
 
     def build(self, report_type: str, *, as_of: date | None = None) -> str:
         selected = report_type if report_type in REPORT_TYPES else "daily"
@@ -216,6 +255,12 @@ class ReportsService:
             f"- Journal Entries: {len(journals)}",
             f"- Decisions: {len(decisions)}",
             f"- Timeline Events: {len(timeline)}",
+            f"- Active Events: {sum(not item.archived for item in timeline)}",
+            f"- Archived Events: {sum(item.archived for item in timeline)}",
+            "",
+            "## Cross Subsystem Summary",
+            "",
+            *(f"- {item['subsystem']}: {item['activity']}" for item in self.cross_subsystem_summary(selected, as_of=as_of)),
             "",
             "## Journal",
             "",
@@ -373,6 +418,8 @@ class ReportsService:
             return provider.weekly_report(end.isoformat())
         if report_type == "monthly" and callable(getattr(provider, "monthly_report", None)):
             return provider.monthly_report(end.strftime("%Y-%m"))
+        if report_type == "yearly" and callable(getattr(provider, "yearly_report", None)):
+            return provider.yearly_report(end.year)
         if callable(getattr(provider, "management_summary", None)):
             return provider.management_summary()
         if callable(getattr(provider, "housing_report", None)):

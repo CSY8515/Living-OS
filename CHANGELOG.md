@@ -2,6 +2,15 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.8 — 2026-07-25
+
+- Added read-only Dashboard Analytics, trend, monthly/yearly, comparison, and growth analysis over the common Timeline contract.
+- Added Global Timeline search, Category, Subsystem, date, Archive, and ascending/descending filters with record detail and status history.
+- Added Global Search and subsystem-scoped search with relevance, time, title, and subsystem sorting.
+- Added deterministic Yearly Reports, Report Summary, and Cross Subsystem Summary while preserving Daily, Weekly, and Monthly reports.
+- Improved Dashboard status cards, recent activity, quick actions, Navigation, Detail View, Search, Filter, Sort, loading feedback, and empty states.
+- Preserved the existing Subsystem → Engine → Function architecture and all existing database ownership boundaries.
+
 ## v2.0.7 — 2026-07-25
 
 - Completed Finance transaction CRUD, Archive/restore, budget lifecycle, search, sorting, monthly close, and dashboard integration.

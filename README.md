@@ -1,8 +1,8 @@
-# Living OS v2.0.7
+# Living OS v2.0.8
 
-> Living OS v2.0.7 is the approved Existing Subsystem Completion Release built on the v2.0.6 Timeline & Report Foundation baseline.
+> Living OS v2.0.8 is the Analytics & UX Enhancement Release built on the v2.0.7 Existing Subsystem Completion baseline.
 
-v2.0.7 completes the existing Finance, Food, Health, Housing, and Vehicle Subsystems with stronger CRUD, Timeline, Report, Dashboard, Archive, validation, database, and practical UI connections.
+v2.0.8 adds read-only Dashboard Analytics, trends, comparisons, growth analysis, Global Timeline filters, Global Search, Yearly Reports, Cross Subsystem summaries, and improved detail, navigation, empty-state, filter, and sort UX while preserving the existing architecture and data ownership.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

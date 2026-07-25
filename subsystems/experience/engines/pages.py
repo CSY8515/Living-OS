@@ -38,7 +38,9 @@ from subsystems.operations.engines.decision import DecisionService
 from subsystems.operations.engines.journal import JournalService
 from subsystems.operations.engines.knowledge import KnowledgeService
 from subsystems.operations.engines.settings import HubSettingsService
-from subsystems.insight.engines.projections import analytics_projection, review_projection
+from subsystems.insight.engines.analytics import AnalyticsEngine
+from subsystems.insight.engines.projections import review_projection
+from subsystems.insight.engines.search import GlobalSearchEngine
 from subsystems.operations.engines.reports import ReportsService
 
 
@@ -326,20 +328,14 @@ def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> N
     import streamlit as st
 
     systems = systems or {}
-    database_health = hub.database_management.health_check(record=False)
-    overall = "NORMAL" if database_health.get("status") == "HEALTHY" else "ATTENTION"
-    modules = {str(item["module_id"]): item for item in hub.modules.list_modules()}
-    ai_status = str(modules.get("ai_briefing", {}).get("status", "ready")).upper()
+    health = hub.database_management.health_check(record=False)
+    overall = "NORMAL" if health.get("status") == "HEALTHY" else "ATTENTION"
+    routine = systems.get("Routine").management_summary() if systems.get("Routine") else {}
+    growth = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
+    routine_due = int(routine.get("due", 0)); growth_active = int(growth.get("active", 0))
     hour = datetime.now().hour
     greeting = "Good morning." if hour < 12 else "Good afternoon." if hour < 18 else "Good evening."
-    routine_summary = systems.get("Routine").management_summary() if systems.get("Routine") else {}
-    growth_summary = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
-    routine_due = int(routine_summary.get("due", 0))
-    growth_active = int(growth_summary.get("active", 0))
-    schedule = f"{routine_due} routine items" if routine_due else "Schedule clear"
-    priority = "Routine first" if routine_due else "Continue learning" if growth_active else "Open focus"
-    summary = f"{routine_due} routines are ready for today." if routine_due else "Your day is open and ready."
-    ai_brief = "Context online. Your day is calm and ready." if ai_status in {"READY", "ENABLED", "ACTIVE"} else "Core available whenever you need it."
+    analytics = AnalyticsEngine(hub.timeline).dashboard()
 
     def navigate(target: str) -> None:
         st.session_state.nav_page = target
@@ -348,23 +344,27 @@ def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> N
         home_core(
             greeting=greeting,
             date_label=date.today().strftime("%A, %B %d"),
-            summary=summary,
-            ai_brief=ai_brief,
-            schedule=schedule,
-            priority=priority,
+            summary=f"{routine_due} routines are ready for today." if routine_due else "Your day is open and ready.",
+            ai_brief="Existing data is ready for analytics and review.",
+            schedule=f"{routine_due} routine items" if routine_due else "Schedule clear",
+            priority="Routine first" if routine_due else "Continue learning" if growth_active else "Open focus",
             status=overall,
         )
-        targets = [
-            ("◐  Finance", "Finance", "finance"),
-            ("♡  Health", "Health", "health"),
-            ("▷  Vehicle", "Vehicle", "vehicle"),
-            ("△  Learning", "Personal Growth", "learning"),
-            ("◫  Knowledge", "Knowledge", "knowledge"),
-            ("↻  Routine", "Routine", "routine"),
-        ]
-        for label, target, key in targets:
+        st.subheader("Status overview")
+        cards = st.columns(4)
+        for column, card in zip(cards, analytics["state_cards"]):
+            column.metric(card["label"], card["value"])
+        quick = st.columns(4)
+        for column, action in zip(quick, analytics["quick_actions"]):
+            column.button(action["label"], key=f"dashboard_quick_{action['target']}", on_click=navigate, args=(action["target"],), width="stretch")
+        st.subheader("Recent activity")
+        recent = analytics["recent_activity"]
+        if recent:
+            st.dataframe([{"Time": item["event_time"], "Subsystem": item["subsystem"], "Title": item["title"], "Status": item["status"]} for item in recent], width="stretch", hide_index=True)
+        else:
+            st.info("No recent activity yet. Use a quick action to create your first record.")
+        for label, target, key in [("Finance", "Finance", "finance"), ("Health", "Health", "health"), ("Vehicle", "Vehicle", "vehicle"), ("Learning", "Personal Growth", "learning"), ("Knowledge", "Knowledge", "knowledge"), ("Routine", "Routine", "routine")]:
             st.button(label, key=f"home_orbit_{key}", on_click=navigate, args=(target,))
-
 
 def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
     import streamlit as st
@@ -581,51 +581,91 @@ def render_knowledge(hub: LivingHub) -> None:
                         st.rerun()
 
 
-def render_reports(hub: LivingHub) -> None:
+def render_timeline(hub: LivingHub) -> None:
     import streamlit as st
+    st.title("Global Timeline")
+    st.caption("Search and filter activity across every connected subsystem.")
+    dates = st.columns(2)
+    start = dates[0].date_input("From", value=date.today().replace(day=1), key="timeline_start")
+    end = dates[1].date_input("To", value=date.today(), key="timeline_end")
+    filters = st.columns(4)
+    subsystem = filters[0].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="timeline_subsystem")
+    categories = hub.timeline.categories(subsystem=None if subsystem == "All" else subsystem)
+    category = filters[1].selectbox("Category", ["All", *categories], key="timeline_category")
+    query = filters[2].text_input("Search", key="timeline_search")
+    order = filters[3].selectbox("Order", ["Newest", "Oldest"], key="timeline_sort")
+    include_archived = st.toggle("Include archived", value=True, key="timeline_archived")
+    if start > end:
+        st.error("The start date cannot be after the end date."); return
+    records = hub.timeline.query(start=start, end=end, subsystem=None if subsystem == "All" else subsystem, category=None if category == "All" else category, search=query, include_archived=include_archived, sort_order="desc" if order == "Newest" else "asc", limit=1000)
+    metrics = st.columns(3); metrics[0].metric("Results", len(records)); metrics[1].metric("Subsystems", len({item.subsystem for item in records})); metrics[2].metric("Archived", sum(item.archived for item in records))
+    if not records:
+        st.info("No timeline activity matches these filters. Expand the date range or clear filters."); return
+    st.dataframe([{"Time": item.event_time, "Subsystem": item.subsystem, "Category": item.category, "Title": item.title, "Event": item.event_type, "Status": item.status} for item in records], width="stretch", hide_index=True)
+    labels = [f"{item.subsystem} · {item.title} · {item.record_id}" for item in records]
+    detail = records[labels.index(st.selectbox("Detail view", labels, key="timeline_detail"))]
+    st.json(detail.to_dict())
+    history = hub.timeline.status_history(detail.subsystem, detail.record_id)
+    if history:
+        st.caption("Status history"); st.dataframe([item.to_dict() for item in history], width="stretch", hide_index=True)
 
-    service = ReportsService(hub)
+
+def render_global_search(hub: LivingHub) -> None:
+    import streamlit as st
+    st.title("Global Search")
+    st.caption("One search surface for Timeline and connected subsystem records.")
+    query = st.text_input("Search all records", placeholder="Title, summary, ID, category…", key="global_search")
+    cols = st.columns(4)
+    subsystem = cols[0].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="search_subsystem")
+    category = cols[1].selectbox("Category", ["All", *hub.timeline.categories()], key="search_category")
+    sort_by = cols[2].selectbox("Sort by", ["relevance", "event_time", "title", "subsystem"], key="search_sort")
+    include_archived = cols[3].toggle("Archived", value=True, key="search_archived")
+    results = GlobalSearchEngine(hub.timeline).search(query, subsystem=None if subsystem == "All" else subsystem, category=None if category == "All" else category, include_archived=include_archived, sort_by=sort_by, limit=200)
+    st.caption(f"{len(results)} result(s)")
+    if not results:
+        st.info("No matching records. Try fewer words or remove a filter."); return
+    st.dataframe([item.to_dict() for item in results], width="stretch", hide_index=True)
+    labels = [f"{item.subsystem} · {item.title} · {item.record_id}" for item in results]
+    st.json(results[labels.index(st.selectbox("Result detail", labels, key="search_detail"))].to_dict())
+
+def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
+    import streamlit as st
+    sources = {name.casefold().replace(" ", "-"): provider for name, provider in (systems or {}).items()}
+    service = ReportsService(hub, sources)
     st.title("Reports")
-    report_type = st.selectbox("Report Type", ["daily", "weekly", "monthly"])
+    st.caption("Deterministic summaries built from existing data; no AI is required.")
+    report_type = st.selectbox("Report Type", ["daily", "weekly", "monthly", "yearly"])
+    summary = service.report_summary(report_type)
+    metrics = st.columns(4); metrics[0].metric("Timeline events", summary["timeline_events"]); metrics[1].metric("Active", summary["active_events"]); metrics[2].metric("Archived", summary["archived_events"]); metrics[3].metric("Subsystems", len(summary["by_subsystem"]))
+    cross = service.cross_subsystem_summary(report_type)
+    if cross:
+        st.subheader("Cross Subsystem Summary"); st.dataframe(cross, width="stretch", hide_index=True)
+    else:
+        st.info("No subsystem activity exists for this report period yet.")
     preview = service.build(report_type)
     edited = st.text_area("Deterministic Report", value=preview, height=400)
     if st.button("Save Report"):
-        try:
-            record = service.save(report_type, edited)
-        except (CoreError, OSError, ValueError):
-            st.error("The report could not be saved.")
-        else:
-            st.success(f"Saved {record['id']}")
-    st.divider()
-    st.subheader("Optional AI Report Draft")
-    st.caption("Draft-only. AI cannot write canonical data; saving requires a separate explicit command.")
-    _ensure_ai_model(st)
-    source = preview
-    st.code(source, language="text")
+        try: record = service.save(report_type, edited)
+        except (CoreError, OSError, ValueError): st.error("The report could not be saved.")
+        else: st.success(f"Saved {record['id']}")
+    st.divider(); st.subheader("Optional AI Report Draft"); st.caption("Draft-only. AI cannot write canonical data; saving requires a separate explicit command.")
+    _ensure_ai_model(st); st.code(preview, language="text")
     if st.button("Generate AI Report Draft"):
         api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
-        if not api_key:
-            st.error("Configure an OpenAI API key in Settings first.")
+        if not api_key: st.error("Configure an OpenAI API key in Settings first.")
         else:
-            try:
-                briefing = AIBriefingService(hub, OpenAITextProvider(api_key))
-                st.session_state.v2_ai_report_draft = briefing.analyze("report", st.session_state.ai_model, source)
-            except AIServiceError as exc:
-                st.error(str(exc))
+            try: st.session_state.v2_ai_report_draft = AIBriefingService(hub, OpenAITextProvider(api_key)).analyze("report", st.session_state.ai_model, preview)
+            except AIServiceError as exc: st.error(str(exc))
     draft = str(st.session_state.get("v2_ai_report_draft", ""))
     if draft:
         edited_draft = st.text_area("Unsaved AI Draft", value=draft, height=350)
         if st.button("Save AI Draft (Explicit Approval)"):
-            try:
-                service.save(report_type, edited_draft, generated_by="ai-approved-draft")
-            except (CoreError, OSError, ValueError):
-                st.error("The AI draft could not be saved.")
-            else:
-                st.success("AI draft saved as a canonical report artifact.")
-    st.divider()
-    for item in service.list()[:20]:
-        st.write(f"{item.get('report_type', 'report')} · {item.get('id')} · {item.get('generated_by')}")
-
+            try: service.save(report_type, edited_draft, generated_by="ai-approved-draft")
+            except (CoreError, OSError, ValueError): st.error("The AI draft could not be saved.")
+            else: st.success("AI draft saved as a canonical report artifact.")
+    st.divider(); saved = service.list(include_archived=True)[:50]
+    if not saved: st.info("No saved reports yet. Generate and save a report when ready.")
+    for item in saved: st.write(f"{item.get('report_type', 'report')} · {item.get('id')} · {item.get('generated_by')}")
 
 def _render_counter(title: str, counter: Counter[str]) -> None:
     import streamlit as st
@@ -639,20 +679,23 @@ def _render_counter(title: str, counter: Counter[str]) -> None:
 
 def render_analytics(hub: LivingHub) -> None:
     import streamlit as st
-
-    data = analytics_projection(hub)
-    st.title("Analytics")
-    st.caption("Read-only projections; never an alternate source of truth.")
-    cols = st.columns(4)
-    for column, (name, value) in zip(cols, data["counts"].items()):
-        column.metric(name.title(), value)
-    left, right = st.columns(2)
-    with left:
-        _render_counter("Journal Tags", data["journal_tags"])
-        _render_counter("Decision Status", data["decision_statuses"])
-    with right:
-        _render_counter("Knowledge Tags", data["knowledge_tags"])
-
+    engine = AnalyticsEngine(hub.timeline)
+    st.title("Analytics"); st.caption("Read-only trend, comparison, monthly, yearly, and growth analysis.")
+    cols = st.columns(3); start = cols[0].date_input("From", value=date.today().replace(day=1), key="analytics_start"); end = cols[1].date_input("To", value=date.today(), key="analytics_end"); subsystem = cols[2].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="analytics_subsystem")
+    if start > end: st.error("The start date cannot be after the end date."); return
+    selected = None if subsystem == "All" else subsystem; summary = engine.summary(start, end, subsystem=selected)
+    metrics = st.columns(4); metrics[0].metric("Activity", summary["total_activity"]); metrics[1].metric("Active", summary["active_activity"]); metrics[2].metric("Archived", summary["archived_activity"]); metrics[3].metric("Subsystems", summary["subsystem_count"])
+    trend_tab, compare_tab, summary_tab, growth_tab = st.tabs(["Trend", "Comparison", "Monthly / Yearly", "Growth"])
+    with trend_tab:
+        trend = engine.trend(start, end, subsystem=selected, granularity="month")
+        if trend: st.dataframe(trend, width="stretch", hide_index=True)
+        else: st.info("No trend data exists in this period.")
+    with compare_tab:
+        comparison = engine.comparison(start, end, subsystem=selected); compare = st.columns(3); compare[0].metric("Current", comparison["current"]["total_activity"]); compare[1].metric("Previous", comparison["previous"]["total_activity"]); compare[2].metric("Growth", f"{comparison['growth_percent']}%"); st.dataframe(comparison["by_subsystem"], width="stretch", hide_index=True)
+    with summary_tab:
+        left, right = st.columns(2); left.subheader("Monthly Summary"); left.json(engine.monthly_summary(end.year, end.month, subsystem=selected)); right.subheader("Yearly Summary"); right.json(engine.yearly_summary(end.year, subsystem=selected))
+    with growth_tab:
+        growth = engine.growth_analysis(as_of=end, months=12, subsystem=selected); st.metric("12-month growth", f"{growth['growth_percent']}%", growth["net_growth"]); st.dataframe(growth["trend"], width="stretch", hide_index=True)
 
 def render_review(hub: LivingHub) -> None:
     import streamlit as st
