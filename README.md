@@ -1,8 +1,8 @@
-# Living OS v2.0.9
+# Living OS v2.0.9.1
 
-> Living OS v2.0.9 is the Official UI / UX Completion Release built on the stable v2.0.8 Analytics & UX baseline.
+> Living OS v2.0.9.1 is the Official UI Refinement Release built on the stable v2.0.9 release.
 
-v2.0.9 completes the official Korean UI, concept-art world navigation, shared visual system, premium interaction states, and responsive Desktop / Notebook / Tablet / Mobile experience while preserving existing features, architecture, and data ownership.
+v2.0.9.1 rebuilds the official presentation as an immersive Living World, premium operating deck, and unified OS Ecosystem-quality interaction system while preserving every existing feature, architecture boundary, and data owner.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

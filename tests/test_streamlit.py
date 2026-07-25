@@ -77,7 +77,7 @@ class StreamlitPageSmokeTests(unittest.TestCase):
     def test_every_page_renders_without_errors_or_page_load_writes(self) -> None:
         before = fingerprints()
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
-        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.1")
         self.assertFalse(app.exception)
         next(button for button in app.button if "자기계발" in button.label).click().run()
         self.assertEqual(app.sidebar.radio[0].value, "Personal Growth")

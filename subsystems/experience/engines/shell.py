@@ -37,7 +37,7 @@ from subsystems.experience.engines.pages import (
     render_database,
     render_database_management,
 )
-from subsystems.experience.engines.design_system import system_banner
+from subsystems.experience.engines.design_system import navigation_identity, system_banner
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
 from subsystems.food import FoodSubsystem
@@ -568,6 +568,8 @@ def main() -> None:
     ]
 
     with st.sidebar:
+        current_page = str(st.session_state.get("nav_page", visible_pages[0]))
+        navigation_identity(version=VERSION, page=current_page, enabled=len(enabled))
         st.title("리빙 OS")
         st.caption(VERSION)
         st.caption("개인 생활 운영 시스템")

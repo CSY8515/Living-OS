@@ -1,6 +1,15 @@
 # Changelog
 
 All notable Living OS changes are recorded in this file.
+## v2.0.9.1 — 2026-07-26
+
+- Rebuilt the first screen as an immersive Living World with an official application chrome, life core, guided context cards, eleven Subsystem orbit objects, and an integrated operating dock.
+- Replaced the flat Dashboard presentation with a Living Signal Matrix, Quick Launch rail, and recent-record constellation.
+- Rebuilt Sidebar navigation as a branded system rail with current-space and connected-module context.
+- Added shared Page Hero, Metric Deck, Workspace Rail, Record Gallery, Detail Explorer, and premium empty-state structures inside the existing Experience Engine.
+- Reassembled Timeline, Search, Reports, Analytics, Module Manager, and Settings around the new official information hierarchy without changing their functions or data contracts.
+- Strengthened hover glow, highlight, shadow, border, scale, icon response, active, focus, press, glass, blur, fade, entrance, orbit, and reduced-motion behavior.
+- Preserved the Subsystem → Engine → Function architecture with no new Foundation or Subsystem.
 
 ## v2.0.9 — 2026-07-26
 
