@@ -49,8 +49,8 @@ def _tags(raw: str) -> list[str]:
 
 
 def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.subheader("Record Browser")
     if not records:
         st.caption("No records yet.")
@@ -96,7 +96,8 @@ def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
 
 
 def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Investment")
     st.caption("Owner-managed investment positions and valuations. Values are grouped by currency.")
     with st.expander("Add Investment"):
@@ -147,7 +148,8 @@ def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
 
 
 def render_investment_management(investment: InvestmentSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Investment Management")
     summary = investment.management_summary()
     cols = st.columns(5)
@@ -165,7 +167,8 @@ def render_investment_management(investment: InvestmentSubsystem) -> None:
 
 
 def render_job_subsystem(job: JobSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Job")
     st.caption("Job opportunities, applications, interviews, offers, and next actions.")
     query = st.text_input("Search Jobs", key="job_search")
@@ -212,7 +215,8 @@ def render_job_subsystem(job: JobSubsystem) -> None:
 
 
 def render_job_management(job: JobSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Job Management")
     summary = job.management_summary()
     cols = st.columns(6)
@@ -231,7 +235,8 @@ def render_job_management(job: JobSubsystem) -> None:
 
 
 def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Knowledge")
     st.caption("Structured information, notes, learning material, ideas, and sources.")
     search, status = st.columns([3, 1])
@@ -270,7 +275,8 @@ def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
 
 
 def render_knowledge_management(knowledge: KnowledgeSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Knowledge Management")
     summary = knowledge.management_summary(); cols = st.columns(5)
     cols[0].metric("Total", summary["total"]); cols[1].metric("Archived", summary["archived"])
@@ -281,7 +287,8 @@ def render_knowledge_management(knowledge: KnowledgeSubsystem) -> None:
 
 
 def render_routine_subsystem(routine: RoutineSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Routine")
     st.caption("Recurring personal, work, learning, and health routines.")
     with st.expander("Create Routine"):
@@ -316,7 +323,8 @@ def render_routine_subsystem(routine: RoutineSubsystem) -> None:
 
 
 def render_routine_management(routine: RoutineSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Routine Management")
     summary = routine.management_summary(); cols = st.columns(6)
     cols[0].metric("Total", summary["total"]); cols[1].metric("Due", summary["due"]); cols[2].metric("Completed", summary["completion_count"])
@@ -325,49 +333,72 @@ def render_routine_management(routine: RoutineSubsystem) -> None:
 
 
 def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
 
     systems = systems or {}
     health = hub.database_management.health_check(record=False)
-    overall = "NORMAL" if health.get("status") == "HEALTHY" else "ATTENTION"
+    overall = "정상" if health.get("status") == "HEALTHY" else "확인 필요"
     routine = systems.get("Routine").management_summary() if systems.get("Routine") else {}
     growth = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
-    routine_due = int(routine.get("due", 0)); growth_active = int(growth.get("active", 0))
+    routine_due = int(routine.get("due", 0))
+    growth_active = int(growth.get("active", 0))
     hour = datetime.now().hour
-    greeting = "Good morning." if hour < 12 else "Good afternoon." if hour < 18 else "Good evening."
+    greeting = "좋은 아침입니다." if hour < 12 else "편안한 오후입니다." if hour < 18 else "차분한 저녁입니다."
+    today = date.today()
+    weekdays = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
+    date_label = f"{today.year}년 {today.month}월 {today.day}일 {weekdays[today.weekday()]}"
     analytics = AnalyticsEngine(hub.timeline).dashboard()
 
     def navigate(target: str) -> None:
         st.session_state.nav_page = target
 
-    with st.container(key="home_orbit"):
+    with st.container(key="living_world"):
         home_core(
             greeting=greeting,
-            date_label=date.today().strftime("%A, %B %d"),
-            summary=f"{routine_due} routines are ready for today." if routine_due else "Your day is open and ready.",
-            ai_brief="Existing data is ready for analytics and review.",
-            schedule=f"{routine_due} routine items" if routine_due else "Schedule clear",
-            priority="Routine first" if routine_due else "Continue learning" if growth_active else "Open focus",
+            date_label=date_label,
+            summary=f"오늘 실행할 루틴이 {routine_due}개 있습니다." if routine_due else "오늘의 생활 흐름이 열려 있습니다.",
+            ai_brief="기존 기록을 바탕으로 분석과 검토를 시작할 수 있습니다.",
+            schedule=f"루틴 {routine_due}개" if routine_due else "예정 일정 없음",
+            priority="루틴부터 시작" if routine_due else "배움 이어가기" if growth_active else "집중할 일 선택",
             status=overall,
         )
-        st.subheader("Status overview")
-        cards = st.columns(4)
-        for column, card in zip(cards, analytics["state_cards"]):
-            column.metric(card["label"], card["value"])
-        quick = st.columns(4)
-        for column, action in zip(quick, analytics["quick_actions"]):
-            column.button(action["label"], key=f"dashboard_quick_{action['target']}", on_click=navigate, args=(action["target"],), width="stretch")
-        st.subheader("Recent activity")
-        recent = analytics["recent_activity"]
-        if recent:
-            st.dataframe([{"Time": item["event_time"], "Subsystem": item["subsystem"], "Title": item["title"], "Status": item["status"]} for item in recent], width="stretch", hide_index=True)
-        else:
-            st.info("No recent activity yet. Use a quick action to create your first record.")
-        for label, target, key in [("Finance", "Finance", "finance"), ("Health", "Health", "health"), ("Vehicle", "Vehicle", "vehicle"), ("Learning", "Personal Growth", "learning"), ("Knowledge", "Knowledge", "knowledge"), ("Routine", "Routine", "routine")]:
-            st.button(label, key=f"home_orbit_{key}", on_click=navigate, args=(target,))
+        world_nodes = (
+            ("◒  재무", "Finance", "finance"), ("▱  직업", "Job", "job"),
+            ("↗  투자", "Investment", "investment"), ("◫  지식", "Knowledge", "knowledge"),
+            ("↻  루틴", "Routine", "routine"), ("△  자기계발", "Personal Growth", "growth"),
+            ("◒  식사", "Food", "food"), ("⌂  주거", "Housing", "housing"),
+            ("♡  건강", "Health", "health"), ("▷  차량", "Vehicle", "vehicle"),
+            ("◉  협업", "Collaboration", "collaboration"),
+        )
+        for label, target, key in world_nodes:
+            st.button(label, key=f"world_node_{key}", on_click=navigate, args=(target,))
+        world_navigation = (
+            ("대시보드", "Command Center", "dashboard"), ("오늘", "Daily Log", "today"),
+            ("검색", "Search", "search"), ("리포트", "Reports", "reports"),
+            ("AI 브리핑", "AI Analysis", "ai"),
+        )
+        for label, target, key in world_navigation:
+            st.button(label, key=f"world_nav_{key}", on_click=navigate, args=(target,))
+
+    st.subheader("상태 요약")
+    cards = st.columns(4)
+    for column, card in zip(cards, analytics["state_cards"]):
+        column.metric(card["label"], card["value"])
+    quick = st.columns(4)
+    for column, action in zip(quick, analytics["quick_actions"]):
+        column.button(action["label"], key=f"dashboard_quick_{action['target']}", on_click=navigate, args=(action["target"],), width="stretch")
+    st.subheader("최근 활동")
+    recent = analytics["recent_activity"]
+    if recent:
+        st.dataframe([{"시간": item["event_time"], "하위 시스템": item["subsystem"], "제목": item["title"], "상태": item["status"]} for item in recent], width="stretch", hide_index=True)
+    else:
+        st.info("아직 최근 활동이 없습니다. 빠른 실행으로 첫 기록을 만들어 보세요.")
+
 
 def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     page_header("Personal Growth", "Growth / Workspace", "Turn intentions into measurable progress and clear next actions.", growth.health().get("status", "READY"))
     summary = growth.management_summary(); cols = st.columns(4)
     cols[0].metric("Active", summary["active"]); cols[1].metric("Average Progress", f"{summary['average_progress']}%")
@@ -402,7 +433,8 @@ def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
 
 
 def render_personal_growth_management(growth: PersonalGrowthSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     page_header("Growth Management", "Growth / Management", "Portfolio health, distribution, priorities, and data contract status.", growth.health().get("status", "READY"))
     summary = growth.management_summary(); cols = st.columns(5)
     for col, label, value in zip(cols, ["Total", "Active", "Completed", "Overdue", "Registry"], [summary["total"], summary["active"], summary["completed"], summary["overdue"], "REGISTERED" if summary["registry_registered"] else "MISSING"]): col.metric(label, value)
@@ -410,7 +442,8 @@ def render_personal_growth_management(growth: PersonalGrowthSubsystem) -> None:
 
 
 def render_collaboration(collaboration: CollaborationSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     page_header("Collaboration", "Collaboration / Workspace", "Coordinate partners, commitments, due dates, and blockers from one view.", collaboration.health().get("status", "READY"))
     summary = collaboration.management_summary(); cols = st.columns(4)
     cols[0].metric("Active", summary["active"]); cols[1].metric("Blocked", summary["blocked"]); cols[2].metric("Due", summary["due"]); cols[3].metric("Completed", summary["completed"])
@@ -442,7 +475,8 @@ def render_collaboration(collaboration: CollaborationSubsystem) -> None:
 
 
 def render_collaboration_management(collaboration: CollaborationSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     page_header("Collaboration Management", "Collaboration / Management", "Pipeline health, blockers, partner distribution, and control status.", collaboration.health().get("status", "READY"))
     summary = collaboration.management_summary(); cols = st.columns(5)
     for col, label, value in zip(cols, ["Total", "Active", "Blocked", "Due", "Registry"], [summary["total"], summary["active"], summary["blocked"], summary["due"], "REGISTERED" if summary["registry_registered"] else "MISSING"]): col.metric(label, value)
@@ -450,7 +484,8 @@ def render_collaboration_management(collaboration: CollaborationSubsystem) -> No
 
 
 def render_database(hub: LivingHub) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     management = hub.database_management; health = management.health_check(record=False); schema = management.schema_registry()
     page_header("Database Contract", "System / Database", "Execution Database, schema, registry, and integrity observability.", str(health.get("status", "UNKNOWN")))
     cols = st.columns(4); cols[0].metric("Schema", f"{schema.get('schema_version', 0)} / {schema.get('expected_schema_version', 0)}"); cols[1].metric("Integrity", health.get("integrity_status", "unknown")); cols[2].metric("Components", len(management.component_status())); cols[3].metric("Executions", len(hub.database.execution_records(500)))
@@ -458,7 +493,8 @@ def render_database(hub: LivingHub) -> None:
 
 
 def render_database_management(hub: LivingHub) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     management = hub.database_management; health = management.health_check(record=False); backups = management.backup_status()
     page_header("Database Management", "System / Control Plane", "Health checks, verified backup readiness, restore safety, and operational reporting.", str(health.get("status", "UNKNOWN")))
     cols = st.columns(4); cols[0].metric("Database", health.get("status", "UNKNOWN")); cols[1].metric("Integrity", health.get("integrity_status", "unknown")); cols[2].metric("Verified Backups", len(backups)); cols[3].metric("Size", f"{int(health.get('file_size', 0)):,} bytes")
@@ -472,8 +508,8 @@ def render_database_management(hub: LivingHub) -> None:
 
 
 def render_journal(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     service = JournalService(hub)
     st.title("Journal")
     st.caption("Daily operating records saved through explicit audited commands.")
@@ -499,8 +535,8 @@ def render_journal(hub: LivingHub) -> None:
 
 
 def render_decisions(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     service = DecisionService(hub)
     st.title("Decision")
     st.caption("Versioned decisions with evidence, review, outcomes, and audit.")
@@ -542,8 +578,8 @@ def render_decisions(hub: LivingHub) -> None:
 
 
 def render_knowledge(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     service = KnowledgeService(hub)
     st.title("Knowledge")
     st.caption("Notes, archive material, cases, and governed Living Rule promotion.")
@@ -582,7 +618,8 @@ def render_knowledge(hub: LivingHub) -> None:
 
 
 def render_timeline(hub: LivingHub) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Global Timeline")
     st.caption("Search and filter activity across every connected subsystem.")
     dates = st.columns(2)
@@ -611,7 +648,8 @@ def render_timeline(hub: LivingHub) -> None:
 
 
 def render_global_search(hub: LivingHub) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Global Search")
     st.caption("One search surface for Timeline and connected subsystem records.")
     query = st.text_input("Search all records", placeholder="Title, summary, ID, category…", key="global_search")
@@ -629,7 +667,8 @@ def render_global_search(hub: LivingHub) -> None:
     st.json(results[labels.index(st.selectbox("Result detail", labels, key="search_detail"))].to_dict())
 
 def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     sources = {name.casefold().replace(" ", "-"): provider for name, provider in (systems or {}).items()}
     service = ReportsService(hub, sources)
     st.title("Reports")
@@ -668,8 +707,8 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
     for item in saved: st.write(f"{item.get('report_type', 'report')} · {item.get('id')} · {item.get('generated_by')}")
 
 def _render_counter(title: str, counter: Counter[str]) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.subheader(title)
     if counter:
         st.dataframe([{"Name": key, "Count": value} for key, value in counter.most_common()], hide_index=True, width="stretch")
@@ -678,7 +717,8 @@ def _render_counter(title: str, counter: Counter[str]) -> None:
 
 
 def render_analytics(hub: LivingHub) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     engine = AnalyticsEngine(hub.timeline)
     st.title("Analytics"); st.caption("Read-only trend, comparison, monthly, yearly, and growth analysis.")
     cols = st.columns(3); start = cols[0].date_input("From", value=date.today().replace(day=1), key="analytics_start"); end = cols[1].date_input("To", value=date.today(), key="analytics_end"); subsystem = cols[2].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="analytics_subsystem")
@@ -698,8 +738,8 @@ def render_analytics(hub: LivingHub) -> None:
         growth = engine.growth_analysis(as_of=end, months=12, subsystem=selected); st.metric("12-month growth", f"{growth['growth_percent']}%", growth["net_growth"]); st.dataframe(growth["trend"], width="stretch", hide_index=True)
 
 def render_review(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     data = review_projection(hub)
     st.title("Review")
     st.caption("Human review queue derived from canonical records.")
@@ -726,8 +766,8 @@ def _ai_panel(
     request_type: str,
     state_key: str,
 ) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     if not records:
         st.info("No canonical records are available.")
         return
@@ -754,8 +794,8 @@ def _ai_panel(
 
 
 def render_ai_briefing(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("AI Briefing")
     st.caption("Source-attributed, explicit, read-only AI analysis.")
     _ensure_ai_model(st)
@@ -779,8 +819,8 @@ def render_ai_briefing(hub: LivingHub) -> None:
 
 
 def render_documents(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Documents")
     st.caption("Content-integrity foundation with versioned references and privacy classification.")
     uploaded = st.file_uploader("Choose a document")
@@ -802,8 +842,8 @@ def render_documents(hub: LivingHub) -> None:
 
 
 def render_module_manager(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Module Manager")
     st.caption("Validated lifecycle and health; no future roadmap modules are installed.")
     for module in hub.modules.list_modules():
@@ -828,8 +868,8 @@ def render_module_manager(hub: LivingHub) -> None:
 
 
 def render_settings(hub: LivingHub) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Settings / Hub Administration")
     st.caption("Explicit migration, backup, credentials, and storage status.")
     st.subheader("Runtime Storage and Release Gate")
@@ -1163,7 +1203,8 @@ def render_settings(hub: LivingHub) -> None:
 
 
 def render_finance(finance: FinanceSubsystem) -> None:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     from calendar import monthrange
     from datetime import date
 
@@ -1298,7 +1339,8 @@ def render_finance(finance: FinanceSubsystem) -> None:
 
 def render_health(health: HealthSubsystem) -> None:
     import json
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     from datetime import date
 
     st.title("Health")
@@ -1611,8 +1653,8 @@ def render_health(health: HealthSubsystem) -> None:
 
 
 def render_housing(housing: HousingSubsystem) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Housing")
     st.caption("Housing Subsystem v1.0 · Sensitive owner data · Deterministic candidate comparison")
     candidate_tab, comparison_tab, migration_tab = st.tabs(["Candidates", "Comparison / Report", "Migration"])
@@ -1764,8 +1806,8 @@ def render_housing(housing: HousingSubsystem) -> None:
 
 
 def render_vehicle(vehicle: VehicleSubsystem) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Vehicle")
     st.caption("Vehicle Subsystem v1.0 · Sensitive owner data · Deterministic maintenance and cost records")
     vehicles_tab, records_tab, report_tab = st.tabs(["Vehicles", "Records", "Status report"])
@@ -1985,8 +2027,8 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
 
 
 def render_food(food: FoodSubsystem) -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.title("Food")
     st.caption("Food Subsystem v1.0 - Sensitive owner data - Owner-entered deterministic nutrition")
     ingredients_tab, recipes_tab, records_tab, report_tab = st.tabs(

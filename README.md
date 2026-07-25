@@ -1,8 +1,8 @@
-# Living OS v2.0.8
+# Living OS v2.0.9
 
-> Living OS v2.0.8 is the Analytics & UX Enhancement Release built on the v2.0.7 Existing Subsystem Completion baseline.
+> Living OS v2.0.9 is the Official UI / UX Completion Release built on the stable v2.0.8 Analytics & UX baseline.
 
-v2.0.8 adds read-only Dashboard Analytics, trends, comparisons, growth analysis, Global Timeline filters, Global Search, Yearly Reports, Cross Subsystem summaries, and improved detail, navigation, empty-state, filter, and sort UX while preserving the existing architecture and data ownership.
+v2.0.9 completes the official Korean UI, concept-art world navigation, shared visual system, premium interaction states, and responsive Desktop / Notebook / Tablet / Mobile experience while preserving existing features, architecture, and data ownership.
 
 Living OS is the Module layer in the official Skeleton Architecture:
 

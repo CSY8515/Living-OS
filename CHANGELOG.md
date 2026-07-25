@@ -2,6 +2,15 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.9 — 2026-07-26
+
+- Completed the Korean presentation contract across canonical and compatibility Streamlit screens while preserving internal values and data contracts.
+- Rebuilt Home as the official Living OS world with a central life tree, eleven orbiting Subsystem capsules, and a five-action navigation dock based on the supplied concept art.
+- Reused the OS Ecosystem key visual and interaction language inside the existing Experience Engine boundary.
+- Unified typography, gold-and-seed color system, cards, controls, navigation, detail views, Timeline, Reports, Analytics, Search, empty states, loading, and feedback surfaces.
+- Added hover glow, highlight, border, shadow, scale, selected, active, focus, press, ripple, entrance, orbit, floating, scan, glass, blur, and reduced-motion behaviors.
+- Added explicit Desktop, Notebook, Tablet, and Mobile responsive layouts without adding a top-level layer, Foundation, or Subsystem.
+
 ## v2.0.8 — 2026-07-25
 
 - Added read-only Dashboard Analytics, trend, monthly/yearly, comparison, and growth analysis over the common Timeline contract.

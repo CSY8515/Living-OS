@@ -54,6 +54,7 @@ from subsystems.foundation.engines.hub import LivingHub
 from subsystems.operations.engines.catalog import V206_STABLE_MANIFESTS
 from subsystems.foundation.engines.runtime_config import RuntimeConfigurationError
 from subsystems.foundation.engines.version import PRODUCT_VERSION
+from subsystems.experience.engines.localization import ui_text
 
 
 VERSION = PRODUCT_VERSION
@@ -73,8 +74,8 @@ NAV_ICONS = {
 
 
 def _hub() -> LivingHub:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_hub() -> LivingHub:
         hub = LivingHub(ROOT)
@@ -85,8 +86,8 @@ def _hub() -> LivingHub:
 
 
 def _finance() -> FinanceSubsystem:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_finance() -> FinanceSubsystem:
         hub = _hub()
@@ -100,8 +101,8 @@ def _finance() -> FinanceSubsystem:
 
 
 def _food() -> FoodSubsystem:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_food() -> FoodSubsystem:
         hub = _hub()
@@ -115,8 +116,8 @@ def _food() -> FoodSubsystem:
 
 
 def _health() -> HealthSubsystem:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_health() -> HealthSubsystem:
         hub = _hub()
@@ -130,8 +131,8 @@ def _health() -> HealthSubsystem:
 
 
 def _housing() -> HousingSubsystem:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_housing() -> HousingSubsystem:
         hub = _hub()
@@ -145,8 +146,8 @@ def _housing() -> HousingSubsystem:
 
 
 def _vehicle() -> VehicleSubsystem:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build_vehicle() -> VehicleSubsystem:
         hub = _hub()
@@ -160,7 +161,8 @@ def _vehicle() -> VehicleSubsystem:
 
 
 def _knowledge_subsystem() -> KnowledgeSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> KnowledgeSubsystem:
         hub = _hub()
@@ -173,7 +175,8 @@ def _knowledge_subsystem() -> KnowledgeSubsystem:
 
 
 def _routine_subsystem() -> RoutineSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> RoutineSubsystem:
         hub = _hub()
@@ -186,7 +189,8 @@ def _routine_subsystem() -> RoutineSubsystem:
 
 
 def _investment_subsystem() -> InvestmentSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> InvestmentSubsystem:
         hub = _hub()
@@ -199,7 +203,8 @@ def _investment_subsystem() -> InvestmentSubsystem:
 
 
 def _job_subsystem() -> JobSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> JobSubsystem:
         hub = _hub()
@@ -212,7 +217,8 @@ def _job_subsystem() -> JobSubsystem:
 
 
 def _personal_growth_subsystem() -> PersonalGrowthSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> PersonalGrowthSubsystem:
         hub = _hub()
@@ -225,7 +231,8 @@ def _personal_growth_subsystem() -> PersonalGrowthSubsystem:
 
 
 def _collaboration_subsystem() -> CollaborationSubsystem:
-    import streamlit as st
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     @st.cache_resource
     def build() -> CollaborationSubsystem:
         hub = _hub()
@@ -390,32 +397,32 @@ def _canonical_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSubsys
 
 
 def _authorize(hub: LivingHub) -> bool:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     remote_required = hub.runtime_config.authentication_required
     if not hub.security.configured and not remote_required:
         return True
     if not hub.security.configured and hub.runtime_config.production:
-        st.title("Living OS Access Locked")
+        st.title("리빙 OS 접근 잠김")
         st.error(
-            "Owner authentication is not provisioned for this production deployment. "
-            "The release gate must be completed before access is allowed."
+            "운영 배포에 소유자 인증이 구성되지 않았습니다. "
+            "접근을 허용하려면 먼저 릴리스 게이트를 완료해야 합니다."
         )
         return False
     if not hub.security.configured:
-        st.title("Living OS Owner Setup")
-        st.warning("Remote access requires owner authentication before the Hub can open.")
+        st.title("리빙 OS 소유자 설정")
+        st.warning("원격에서 허브를 열려면 소유자 인증이 필요합니다.")
         with st.form("owner_setup"):
-            first = st.text_input("New owner passphrase", type="password")
-            second = st.text_input("Confirm passphrase", type="password")
-            submitted = st.form_submit_button("Secure This Hub")
+            first = st.text_input("새 소유자 암호문", type="password")
+            second = st.text_input("암호문 확인", type="password")
+            submitted = st.form_submit_button("이 허브 보호")
         if submitted:
             if first != second:
-                st.error("Passphrases do not match.")
+                st.error("암호문이 일치하지 않습니다.")
             else:
                 try:
                     hub.security.configure(first)
-                    device = hub.security.pair_device(first, "Initial Owner Device", "browser")
+                    device = hub.security.pair_device(first, "최초 소유자 기기", "browser")
                 except ValueError as exc:
                     st.error(str(exc))
                 else:
@@ -426,16 +433,16 @@ def _authorize(hub: LivingHub) -> bool:
     device_id = str(st.session_state.get("v2_device_id", ""))
     if device_id and hub.security.validate_device(device_id):
         return True
-    st.title("Living OS Owner Sign In")
+    st.title("리빙 OS 소유자 로그인")
     with st.form("owner_sign_in"):
-        passphrase = st.text_input("Owner passphrase", type="password")
-        device_name = st.text_input("Device name", value="Living OS Browser")
-        submitted = st.form_submit_button("Pair and Open Hub")
+        passphrase = st.text_input("소유자 암호문", type="password")
+        device_name = st.text_input("기기 이름", value="리빙 OS 브라우저")
+        submitted = st.form_submit_button("기기 연결 후 허브 열기")
     if submitted:
         try:
             device = hub.security.pair_device(passphrase, device_name, "browser")
         except ValueError:
-            st.error("Owner authentication failed.")
+            st.error("소유자 인증에 실패했습니다.")
         else:
             st.session_state.v2_device_id = device.device_id
             st.rerun()
@@ -487,16 +494,16 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 
 
 def main() -> None:
-    import streamlit as st
-
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
     st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="auto")
     apply_responsive_layout()
     try:
         hub = _hub()
     except RuntimeConfigurationError as exc:
         st.error(
-            "Living OS storage or authentication configuration is unsafe. "
-            "The application has been locked before opening owner data."
+            "리빙 OS 저장소 또는 인증 구성이 안전하지 않습니다. "
+            "소유자 데이터를 열기 전에 앱을 잠갔습니다."
         )
         st.code(str(exc))
         st.stop()
@@ -561,12 +568,12 @@ def main() -> None:
     ]
 
     with st.sidebar:
-        st.title("LIVING OS")
+        st.title("리빙 OS")
         st.caption(VERSION)
-        st.caption("PERSONAL COMMAND SYSTEM")
+        st.caption("개인 생활 운영 시스템")
         page = st.radio(
-            "Menu", visible_pages, label_visibility="collapsed", key="nav_page",
-            format_func=lambda name: f"{NAV_ICONS.get(name, '◇')}  {name}",
+            "메뉴", visible_pages, label_visibility="collapsed", key="nav_page",
+            format_func=lambda name: f"{NAV_ICONS.get(name, '◇')}  {ui_text(name)}",
         )
-    system_banner(version=VERSION, status="ONLINE", detail=f"{len(enabled)} modules active · {page}")
+    system_banner(version=VERSION, status="ONLINE", detail=f"{len(enabled)}개 모듈 활성 · {ui_text(page)}")
     pages[page]()

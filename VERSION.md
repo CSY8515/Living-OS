@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.8
+Workspace version: Living OS v2.0.9
 
 Implementation verification date: 2026-07-25
 
-Production release: Living OS v2.0.8
+Production release: Living OS v2.0.9
 
-Status: Living OS v2.0.8 Analytics & UX Enhancement Final Release. All 145 automated tests and the final release gate pass.
+Status: Living OS v2.0.9 Official UI / UX Completion Release.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
