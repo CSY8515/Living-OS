@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import base64
+from base64 import b64encode
 from functools import lru_cache
+
 from html import escape
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -10,7 +11,19 @@ from subsystems.experience.engines.localization import localized_streamlit, ui_t
 
 
 ROOT = Path(__file__).resolve().parents[3]
-WORLD_ASSET = ROOT / "assets" / "living-os-official-world.png"
+WORLD_ASSET = ROOT / "assets" / "living-os-v2092-official-style-clean.png"
+SUBSYSTEM_WORLD_ASSETS = {
+    "finance": ROOT / "assets" / "subsystem-worlds" / "finance-world.png",
+    "investment": ROOT / "assets" / "subsystem-worlds" / "investment-world.png",
+    "job": ROOT / "assets" / "subsystem-worlds" / "job-world.png",
+    "health": ROOT / "assets" / "subsystem-worlds" / "health-world.png",
+    "vehicle": ROOT / "assets" / "subsystem-worlds" / "vehicle-world.png",
+    "housing": ROOT / "assets" / "subsystem-worlds" / "housing-world.png",
+    "food": ROOT / "assets" / "subsystem-worlds" / "food-world.png",
+    "knowledge": ROOT / "assets" / "subsystem-worlds" / "knowledge-world.png",
+    "routine": ROOT / "assets" / "subsystem-worlds" / "routine-world.png",
+    "growth": ROOT / "assets" / "subsystem-worlds" / "growth-world.png",
+}
 
 STATUS_TONES = {
     "HEALTHY": "good", "NORMAL": "good", "ACTIVE": "good", "COMPLETED": "good",
@@ -20,16 +33,81 @@ STATUS_TONES = {
 }
 
 
-@lru_cache(maxsize=1)
-def _world_asset_uri() -> str:
-    if not WORLD_ASSET.exists():
-        return ""
-    encoded = base64.b64encode(WORLD_ASSET.read_bytes()).decode("ascii")
-    return f"data:image/png;base64,{encoded}"
 
+@lru_cache(maxsize=16)
+def _asset_data_uri(path_value: str) -> str:
+    """Return a stable inline image URL so Streamlit cannot reflow World artwork."""
+    path = Path(path_value)
+    mime = "image/jpeg" if path.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
+    return f"data:{mime};base64,{b64encode(path.read_bytes()).decode('ascii')}"
 
 def _tone(status: str) -> str:
     return STATUS_TONES.get(str(status).upper(), "info")
+
+
+SCENE_MATCHES = (
+    (("finance", "재무"), "finance"),
+    (("investment", "투자"), "investment"),
+    (("job", "직업"), "job"),
+    (("health", "건강"), "health"),
+    (("vehicle", "차량"), "vehicle"),
+    (("housing", "주거"), "housing"),
+    (("food", "식사"), "food"),
+    (("knowledge", "지식"), "knowledge"),
+    (("routine", "루틴"), "routine"),
+    (("growth", "자기계발"), "growth"),
+    (("collaboration", "협업"), "collaboration"),
+    (("timeline", "타임라인"), "timeline"),
+    (("report", "리포트"), "reports"),
+    (("analytics", "분석"), "analytics"),
+    (("search", "검색"), "search"),
+    (("journal", "일지"), "today"),
+    (("decision", "의사결정"), "decision"),
+    (("ai briefing", "ai 브리핑"), "assistant"),
+)
+
+SCENE_LABELS = {
+    "finance": ("재무 금고", "장부 · 예산 · 월 결산"),
+    "investment": ("투자 관측소", "자산 흐름 · 가치 · 추세"),
+    "job": ("커리어 정거장", "기회 · 지원 · 다음 행동"),
+    "health": ("건강 생체 정원", "몸의 신호 · 검사 · 목표"),
+    "vehicle": ("모빌리티 베이", "운행 · 주유 · 정비"),
+    "housing": ("생활 주거 공간", "계약 · 월세 · 관리비"),
+    "food": ("식생활 아틀리에", "재료 · 레시피 · 식사"),
+    "knowledge": ("지식 서고", "배움 · 기록 · 연결"),
+    "routine": ("리듬 순환실", "반복 · 실행 · 연속성"),
+    "growth": ("성장 온실", "목표 · 진행 · 성찰"),
+    "collaboration": ("협업 연결망", "사람 · 약속 · 결과"),
+    "timeline": ("생활 시간 궤도", "모든 활동의 흐름"),
+    "reports": ("생활 기록 지도", "일간 · 주간 · 월간 · 연간"),
+    "analytics": ("생활 관측소", "추세 · 비교 · 성장"),
+    "search": ("생활 기록 탐색", "모든 공간을 한 번에"),
+    "today": ("오늘의 기록", "지금의 흐름을 남기는 공간"),
+    "decision": ("의사결정 기록", "선택 · 근거 · 결과"),
+    "assistant": ("AI 브리핑", "내 기록을 읽는 보조 관측소"),
+    "living": ("생활 중심 공간", "기록 · 실행 · 회고"),
+}
+
+
+def _scene_for(title: str, eyebrow: str = "") -> str:
+    value = f"{title} {eyebrow}".lower()
+    for needles, scene in SCENE_MATCHES:
+        if any(needle in value for needle in needles):
+            return scene
+    return "living"
+
+
+def official_user_navigation(*, page: str, feature: bool) -> None:
+    st = localized_streamlit()
+    kind = "생활 기능" if feature else "생활 허브"
+    st.markdown(
+        f'''<nav class="los-user-navigation" aria-label="리빙 OS 사용자 탐색">
+          <div class="los-user-mark"><span aria-hidden="true"><i></i></span>
+          <div><small>공식 생활 공간</small><b>리빙 OS</b></div></div>
+          <div class="los-user-location"><small>{kind}</small><strong>{escape(str(ui_text(page)))}</strong></div>
+          <div class="los-user-pulse" aria-hidden="true"><i></i><b></b><span></span></div>
+        </nav>''', unsafe_allow_html=True,
+    )
 
 
 def navigation_identity(*, version: str, page: str, enabled: int) -> None:
@@ -37,7 +115,7 @@ def navigation_identity(*, version: str, page: str, enabled: int) -> None:
     st.markdown(
         f'''<section class="los-nav-identity">
           <div class="los-nav-sigil" aria-hidden="true"><i></i><span></span><b></b></div>
-          <div class="los-nav-copy"><small>OFFICIAL LIFE SYSTEM</small><strong>리빙 OS</strong>
+          <div class="los-nav-copy"><small>공식 생활 시스템</small><strong>리빙 OS</strong>
           <p>{escape(version)} · {enabled}개 모듈 연결</p></div>
         </section>
         <div class="los-nav-current"><span>현재 공간</span><b>{escape(str(ui_text(page)))}</b><i></i></div>''',
@@ -51,7 +129,7 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
     st.markdown(
         f'''<header class="los-app-chrome">
           <div class="los-app-brand"><span class="los-mini-sigil" aria-hidden="true"><i></i></span>
-          <div><small>LIVING INTELLIGENCE</small><b>리빙 OS</b></div></div>
+          <div><small>생활 인텔리전스</small><b>리빙 OS</b></div></div>
           <div class="los-app-compass" aria-hidden="true"><i></i><i></i><b></b></div>
           <div class="los-app-state"><span class="los-dot {tone}"></span><div><b>{escape(str(ui_text(status)))}</b>
           <small>{escape(str(ui_text(detail, context="caption")))}</small></div><em>{escape(version)}</em></div>
@@ -61,20 +139,35 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
 
 def page_header(title: str, eyebrow: str, description: str = "", status: str | None = None) -> None:
     st = localized_streamlit()
+    scene = _scene_for(title, eyebrow)
+    scene_title, scene_detail = SCENE_LABELS[scene]
     badge = ""
     if status:
         badge = f'<span class="los-badge {_tone(status)}"><i></i>{escape(str(ui_text(status)))}</span>'
-    st.markdown(
-        f'''<section class="los-page-hero">
+    hero = f'''<section class="los-page-hero los-scene-{scene}">
+          <div class="los-scene-atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="los-feature-scene" aria-hidden="true"><span></span><i></i><b></b><em></em></div>
           <div class="los-page-glyph" aria-hidden="true"><span></span><i></i></div>
-          <div class="los-page-copy"><div class="los-eyebrow">{escape(str(ui_text(eyebrow)))}</div>
-          <h1>{escape(str(ui_text(title)))}</h1><p>{escape(str(ui_text(description, context="caption")))}</p></div>
+          <div class="los-page-copy"><div class="los-eyebrow">{escape(scene_title)}</div>
+          <h1>{escape(str(ui_text(title)))}</h1><p>{escape(str(ui_text(description, context="caption")))}</p>
+          <small>{escape(scene_detail)}</small></div>
           <div class="los-page-orbit" aria-hidden="true"><i></i><i></i><b></b></div>{badge}
-        </section>''',
-        unsafe_allow_html=True,
-    )
-
-
+        </section>'''
+    asset = SUBSYSTEM_WORLD_ASSETS.get(scene)
+    if asset and asset.exists():
+        asset_uri = _asset_data_uri(str(asset))
+        st.markdown(
+            f'''<div class="los-world-scene-scope los-world-scene-{scene}">
+              <div class="los-fixed-world-backdrop" aria-hidden="true"><img src="{asset_uri}" alt=""></div>
+              <section class="los-subsystem-world-hero"><img src="{asset_uri}" alt="">{hero}</section>
+              <section class="los-world-threshold"><span>리빙 OS 월드</span><i></i>
+                <strong>{escape(scene_title)}</strong><em>{escape(scene_detail)}</em>
+              </section>
+            </div>''',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(hero, unsafe_allow_html=True)
 def home_world(
     *,
     greeting: str,
@@ -85,38 +178,66 @@ def home_world(
     priority: str,
     status: str,
 ) -> None:
-    """Render the immersive official Living OS world while preserving all route behavior."""
+    """Render the final-answer home with direct, non-reflowing interaction layers."""
     st = localized_streamlit()
-    image = _world_asset_uri()
-    style = f"--los-world-image:url('{image}')" if image else ""
+    world_uri = _asset_data_uri(str(WORLD_ASSET))
+    ornament_dir = ROOT / "assets" / "ornaments"
+    roof_assets = {
+        "bud": ornament_dir / "roof-bud.png",
+        "sprout": ornament_dir / "roof-sprout.png",
+        "blossom": ornament_dir / "roof-blossom.png",
+        "tree": ornament_dir / "roof-living-tree.png",
+    }
+    roof_uris = {name: _asset_data_uri(str(path)) for name, path in roof_assets.items()}
+    roof_styles = "".join(
+        f"--los-roof-{name}:url('{uri}');" for name, uri in roof_uris.items()
+    )
+    symbol_dir = ROOT / "assets" / "dome-symbols"
+    symbol_assets = {
+        name: symbol_dir / f"{name}.png"
+        for name in (
+            "finance",
+            "job",
+            "investment",
+            "knowledge",
+            "routine",
+            "vehicle",
+            "growth",
+            "food",
+            "housing",
+            "health",
+        )
+    }
+    symbol_uris = {
+        name: _asset_data_uri(str(path)) for name, path in symbol_assets.items()
+    }
+    symbol_styles = "".join(
+        f"--los-symbol-{name}:url('{uri}');" for name, uri in symbol_uris.items()
+    )
+    symbol_layers = "".join(
+        f'<span class="los-world-symbol los-world-symbol-{name}" aria-hidden="true"></span>'
+        for name in symbol_assets
+    )
+    object_layers = "".join(
+        f'<span class="los-world-object-clone los-world-object-{name}" aria-hidden="true"></span>'
+        for name in ("finance", "job", "investment", "knowledge", "routine", "vehicle", "growth", "food", "housing", "health")
+    )
+    roof_layers = "".join(
+        f'<span class="los-world-roof los-world-roof-{name}" aria-hidden="true"></span>'
+        for name in ("finance", "job", "investment", "knowledge", "routine", "vehicle", "growth", "food", "housing", "health")
+    )
+    st.image(str(WORLD_ASSET), width="stretch")
     st.markdown(
-        f'''<section class="los-world-stage" aria-label="리빙 OS 공식 세계" style="{style}">
-          <div class="los-cosmos-depth" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="los-world-orbits" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
-          <header class="los-world-brand"><span class="los-world-emblem"><i></i><b></b></span>
-            <div><small>PERSONAL LIFE UNIVERSE</small><strong>리빙 OS</strong></div>
-          </header>
-          <div class="los-world-home"><span aria-hidden="true">⌂</span><b>홈</b></div>
-          <aside class="los-world-card los-world-card-left">
-            <small>TODAY'S SIGNAL</small><b>{escape(str(ui_text(schedule)))}</b>
-            <p>{escape(str(ui_text(summary, context="caption")))}</p><span>오늘의 흐름</span>
-          </aside>
-          <aside class="los-world-card los-world-card-right">
-            <small>GUIDED FOCUS</small><b>{escape(str(ui_text(priority)))}</b>
-            <p>{escape(str(ui_text(ai_brief, context="caption")))}</p><span>기록 기반 안내</span>
-          </aside>
-          <article class="los-world-core">
-            <div class="los-life-dome" aria-hidden="true"><span></span><i></i><b></b></div>
-            <span class="los-world-kicker">LIVING INTELLIGENCE CORE</span>
-            <h1>리빙 OS</h1><p>{escape(str(ui_text(greeting)))}</p><time>{escape(date_label)}</time>
-            <div class="los-world-enter"><span>시스템 상태</span><b>{escape(str(ui_text(status)))}</b><i></i></div>
-          </article>
-          <footer class="los-world-dock-label"><span>운영 허브</span><i></i><b>생활의 모든 흐름이 하나의 세계로 연결됩니다</b><i></i><span>11 SYSTEMS</span></footer>
+        f'''<section class="los-world-stage" aria-label="리빙 OS 공식 세계"
+          style="--los-home-image:url('{world_uri}');{roof_styles}{symbol_styles}">
+          <div class="los-world-style-layer" aria-hidden="true"></div>
+          <span class="los-world-central-roof" aria-hidden="true"></span>
+          {roof_layers}
+          {symbol_layers}
+          {object_layers}
         </section>''',
         unsafe_allow_html=True,
     )
-
-
 def home_core(
     *, greeting: str, date_label: str, summary: str, ai_brief: str,
     schedule: str, priority: str, status: str,
@@ -127,7 +248,7 @@ def home_core(
     )
 
 
-def metric_deck(cards: Sequence[dict[str, Any]], *, label: str = "LIVE SIGNALS") -> None:
+def metric_deck(cards: Sequence[dict[str, Any]], *, label: str = "현재 신호") -> None:
     st = localized_streamlit()
     items = []
     glyphs = ("◈", "◇", "⌁", "✦", "◎", "△")
@@ -140,16 +261,16 @@ def metric_deck(cards: Sequence[dict[str, Any]], *, label: str = "LIVE SIGNALS")
             <p>{escape(str(ui_text(card.get("detail", "실시간 운영 상태"), context="caption")))}</p></article>'''
         )
     st.markdown(
-        f'<section class="los-metric-section"><header><span>{escape(label)}</span><i></i><b>현재 생활 신호</b></header>'
+        f'<section class="los-metric-section"><header><span>{escape(str(ui_text(label)))}</span><i></i><b>현재 생활 신호</b></header>'
         f'<div class="los-signal-grid">{"".join(items)}</div></section>', unsafe_allow_html=True,
     )
 
 
-def workspace_rail(title: str, description: str, *, icon: str = "◇", meta: str = "LIVE WORKSPACE") -> None:
+def workspace_rail(title: str, description: str, *, icon: str = "◇", meta: str = "생활 공간") -> None:
     st = localized_streamlit()
     st.markdown(
         f'''<div class="los-workspace-rail"><span class="los-rail-icon">{escape(icon)}</span><div>
-        <small>{escape(meta)}</small><b>{escape(str(ui_text(title)))}</b><p>{escape(str(ui_text(description, context="caption")))}</p>
+        <small>{escape(str(ui_text(meta)))}</small><b>{escape(str(ui_text(title)))}</b><p>{escape(str(ui_text(description, context="caption")))}</p>
         </div><i></i></div>''', unsafe_allow_html=True,
     )
 
@@ -174,6 +295,95 @@ def record_gallery(items: Iterable[dict[str, Any]], *, empty: str, limit: int = 
     st.markdown(f'<div class="los-record-gallery">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
+def _official_value(value: Any) -> str:
+    if value is None or value == "":
+        return "—"
+    if isinstance(value, bool):
+        return "예" if value else "아니요"
+    if isinstance(value, dict):
+        return " · ".join(f"{ui_text(key)} {item}" for key, item in list(value.items())[:4]) or "—"
+    if isinstance(value, (list, tuple, set)):
+        return f"{len(value)}개 항목"
+    if isinstance(value, float):
+        return f"{value:,.2f}"
+    if isinstance(value, int):
+        return f"{value:,}"
+    return str(value)
+
+
+def official_insight(title: str, payload: Any, *, caption: str = "생활 기록에서 정리한 현재 신호") -> None:
+    """Render structured insight without exposing raw JSON or developer payloads."""
+    st = localized_streamlit()
+    if isinstance(payload, dict):
+        entries = list(payload.items())
+    elif isinstance(payload, (list, tuple)):
+        entries = [("항목", f"{len(payload)}개")]
+    else:
+        entries = [("내용", payload)]
+    if not entries:
+        state_panel("표시할 요약이 없습니다", caption)
+        return
+    cells = []
+    for key, value in entries[:12]:
+        cells.append(
+            f'''<article class="los-insight-cell"><small>{escape(str(ui_text(key)))}</small>
+            <strong>{escape(_official_value(value))}</strong><i></i></article>'''
+        )
+    st.markdown(
+        f'''<section class="los-insight-canvas"><header><div><small>생활 요약</small>
+        <h3>{escape(str(ui_text(title)))}</h3><p>{escape(str(ui_text(caption, context="caption")))}</p></div><span>◇</span></header>
+        <div class="los-insight-grid">{"".join(cells)}</div></section>''',
+        unsafe_allow_html=True,
+    )
+
+
+def official_records(
+    items: Iterable[dict[str, Any]], *, title: str, empty: str = "아직 기록이 없습니다.", limit: int = 16,
+) -> None:
+    """Render user records as Living OS cards instead of a raw data table."""
+    st = localized_streamlit()
+    rows = [dict(item) for item in items][:limit]
+    if not rows:
+        state_panel("기록이 아직 없습니다", empty)
+        return
+    identity_fields = (
+        "title", "name", "company", "display_name", "category", "activity", "service_type",
+        "meal_type", "transaction_type", "kind", "type", "status",
+    )
+    cards = []
+    for index, row in enumerate(rows):
+        heading = next((str(row[key]) for key in identity_fields if row.get(key) not in (None, "")), f"기록 {index + 1}")
+        status = str(row.get("status", row.get("state", "READY")))
+        details = []
+        for key, value in row.items():
+            if key in identity_fields or key.endswith("_id") or value in (None, "", [], {}):
+                continue
+            details.append(
+                f'<span><small>{escape(str(ui_text(key.replace("_", " ").title())))}</small><b>{escape(_official_value(value))}</b></span>'
+            )
+            if len(details) == 4:
+                break
+        cards.append(
+            f'''<article class="los-data-card"><header><em class="{_tone(status)}">{escape(str(ui_text(status)))}</em><i></i></header>
+            <h4>{escape(heading)}</h4><div>{"".join(details) or '<span><small>상태</small><b>기록됨</b></span>'}</div></article>'''
+        )
+    st.markdown(
+        f'''<section class="los-data-canvas"><header><div><small>생활 기록</small><h3>{escape(str(ui_text(title)))}</h3></div>
+        <span>{len(rows)}개 기록</span></header><div class="los-data-grid">{"".join(cards)}</div></section>''',
+        unsafe_allow_html=True,
+    )
+
+def official_document(title: str, content: Any, *, caption: str = "공식 기록") -> None:
+    """Render long-form user content as an official Living OS document surface."""
+    st = localized_streamlit()
+    body = escape(str(content or "기록이 없습니다.")).replace("\n", "<br>")
+    st.markdown(
+        f'''<section class="los-document-canvas"><header><div><small>생활 문서</small>
+        <h3>{escape(str(ui_text(title)))}</h3><p>{escape(str(ui_text(caption, context="caption")))}</p></div><span>DOCUMENT</span></header>
+        <article>{body}</article></section>''',
+        unsafe_allow_html=True,
+    )
+
 def status_card(label: str, value: Any, detail: str = "", status: str = "INFO") -> None:
     metric_deck(({"label": label, "value": value, "detail": detail, "status": status},))
 
@@ -181,7 +391,7 @@ def status_card(label: str, value: Any, detail: str = "", status: str = "INFO") 
 def panel_header(title: str, caption: str = "", action: str = "") -> None:
     st = localized_streamlit()
     st.markdown(
-        f'''<div class="los-panel-header"><div><small>OPERATING PANEL</small><h3>{escape(str(ui_text(title)))}</h3>
+        f'''<div class="los-panel-header"><div><small>생활 운영</small><h3>{escape(str(ui_text(title)))}</h3>
         <p>{escape(str(ui_text(caption, context="caption")))}</p></div><span>{escape(str(ui_text(action)))}</span></div>''',
         unsafe_allow_html=True,
     )

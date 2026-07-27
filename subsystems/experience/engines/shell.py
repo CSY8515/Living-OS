@@ -37,7 +37,10 @@ from subsystems.experience.engines.pages import (
     render_database,
     render_database_management,
 )
-from subsystems.experience.engines.design_system import navigation_identity, system_banner
+from subsystems.experience.engines.design_system import (
+    navigation_identity,
+    official_user_navigation,
+)
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.finance import FinanceSubsystem
 from subsystems.food import FoodSubsystem
@@ -59,6 +62,18 @@ from subsystems.experience.engines.localization import ui_text
 
 VERSION = PRODUCT_VERSION
 ROOT = Path(__file__).resolve().parents[3]
+
+USER_PAGE_ORDER = (
+    "Command Center", "Daily Log", "Decision Log", "Reports", "Analytics",
+    "Timeline", "Search", "AI Analysis", "Finance", "Investment", "Job",
+    "Health", "Vehicle", "Housing", "Food", "Knowledge", "Routine",
+    "Personal Growth",
+)
+
+FEATURE_PAGES = {
+    "Finance", "Investment", "Job", "Health", "Vehicle", "Housing", "Food",
+    "Knowledge", "Routine", "Personal Growth",
+}
 
 NAV_ICONS = {
     "Command Center": "◈", "Daily Log": "✦", "Decision Log": "◇", "Reports": "▤",
@@ -496,7 +511,7 @@ def _compatibility_pages(hub: LivingHub, finance: FinanceSubsystem, food: FoodSu
 def main() -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
     apply_responsive_layout()
     try:
         hub = _hub()
@@ -562,9 +577,8 @@ def main() -> None:
         if item.get("status") in {"enabled", "degraded"}
     }
     visible_pages = [
-        name
-        for name in pages
-        if module_by_page[name] in enabled or name in {"Module Manager", "Settings"}
+        name for name in USER_PAGE_ORDER
+        if name in pages and module_by_page[name] in enabled
     ]
 
     with st.sidebar:
@@ -577,5 +591,16 @@ def main() -> None:
             "메뉴", visible_pages, label_visibility="collapsed", key="nav_page",
             format_func=lambda name: f"{NAV_ICONS.get(name, '◇')}  {ui_text(name)}",
         )
-    system_banner(version=VERSION, status="ONLINE", detail=f"{len(enabled)}개 모듈 활성 · {ui_text(page)}")
+    if page != "Command Center":
+        def navigate(target: str) -> None:
+            st.session_state.nav_page = target
+
+        with st.container(key="official_user_navigation"):
+            official_user_navigation(page=page, feature=page in FEATURE_PAGES)
+            nav = st.columns((1.35, 1, 1, 1, 1))
+            nav[0].button("⌂  리빙 OS", key="official_nav_home", on_click=navigate, args=("Command Center",), width="stretch")
+            nav[1].button("오늘", key="official_nav_today", on_click=navigate, args=("Daily Log",), width="stretch")
+            nav[2].button("타임라인", key="official_nav_timeline", on_click=navigate, args=("Timeline",), width="stretch")
+            nav[3].button("리포트", key="official_nav_reports", on_click=navigate, args=("Reports",), width="stretch")
+            nav[4].button("검색", key="official_nav_search", on_click=navigate, args=("Search",), width="stretch")
     pages[page]()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +19,9 @@ from subsystems.collaboration import CollaborationSubsystem
 from subsystems.experience.engines.design_system import (
     home_core,
     metric_deck,
+    official_document,
+    official_insight,
+    official_records,
     page_header,
     panel_header,
     record_gallery,
@@ -56,7 +59,7 @@ def _tags(raw: str) -> list[str]:
 def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    workspace_rail("Record Browser", "검색·상태·정렬을 조합하고 선택한 기록의 상세를 확인합니다.", icon="◇", meta="DETAIL EXPLORER")
+    workspace_rail("기록 탐색", "검색·상태·정렬을 조합하고 선택한 기록의 상세를 확인합니다.", icon="◇", meta="생활 기록")
     if not records:
         st.caption("No records yet.")
         return
@@ -85,9 +88,7 @@ def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
         key=lambda item: (item.get(sort_by) is None, str(item.get(sort_by, "")).casefold()),
         reverse=descending,
     )
-    record_gallery(visible, empty="표시할 기록이 없습니다.", limit=6)
-    with st.expander("전체 기록 표 보기"):
-        st.dataframe(visible, width="stretch", hide_index=True)
+    official_records(visible, title="기록 모음", empty="표시할 기록이 없습니다.")
     if visible:
         id_fields = (
             "record_id", "transaction_id", "ingredient_id", "recipe_id", "meal_id",
@@ -99,14 +100,14 @@ def _render_record_browser(prefix: str, records: list[dict[str, Any]]) -> None:
             for index, item in enumerate(visible)
         ]
         selected = st.selectbox("Detail", options, key=f"{prefix}_record_detail")
-        st.json(visible[options.index(selected)])
+        official_insight("선택한 기록", visible[options.index(selected)], caption="사용자가 선택한 생활 기록의 상세 정보")
 
 
 def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Investment")
-    st.caption("Owner-managed investment positions and valuations. Values are grouped by currency.")
+    page_header("Investment", "투자 관측소", "보유 자산과 가치 변화를 한 공간에서 살펴봅니다.", investment.health().get("status", "READY"))
+    st.caption("내가 보유한 자산과 평가 흐름을 통화별로 관리합니다.")
     with st.expander("Add Investment"):
         with st.form("investment_create"):
             name = st.text_input("Name")
@@ -129,6 +130,7 @@ def render_investment_subsystem(investment: InvestmentSubsystem) -> None:
                 st.success("Investment added.")
                 st.rerun()
     records = investment.list(include_archived=True)
+    official_records(records, title="투자 포트폴리오", empty="등록된 투자 자산이 없습니다.")
     for item in records:
         value = item["quantity"] * item["current_price"]
         with st.expander(f"{item['name']} · {item['status']} · {value:,.2f} {item['currency']}"):
@@ -176,8 +178,8 @@ def render_investment_management(investment: InvestmentSubsystem) -> None:
 def render_job_subsystem(job: JobSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Job")
-    st.caption("Job opportunities, applications, interviews, offers, and next actions.")
+    page_header("Job", "커리어 정거장", "기회와 지원 과정, 다음 행동을 이어서 관리합니다.", job.health().get("status", "READY"))
+    st.caption("기회, 지원, 면접과 다음 행동을 한 흐름으로 관리합니다.")
     query = st.text_input("Search Jobs", key="job_search")
     with st.expander("Add Job"):
         with st.form("job_create"):
@@ -197,6 +199,7 @@ def render_job_subsystem(job: JobSubsystem) -> None:
                 st.success("Job added.")
                 st.rerun()
     records = job.search(query, include_archived=True) if query else job.list(include_archived=True)
+    official_records(records, title="커리어 여정", empty="등록된 직업 기록이 없습니다.")
     statuses = ["SAVED", "APPLIED", "INTERVIEW", "OFFER", "ACCEPTED", "REJECTED", "WITHDRAWN", "ARCHIVED"]
     for item in records:
         with st.expander(f"{item['company']} · {item['title']} · {item['status']}"):
@@ -244,8 +247,8 @@ def render_job_management(job: JobSubsystem) -> None:
 def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Knowledge")
-    st.caption("Structured information, notes, learning material, ideas, and sources.")
+    page_header("Knowledge", "지식 서고", "배움과 자료를 기록하고 다시 연결합니다.", "READY")
+    st.caption("배움, 메모, 자료와 아이디어를 연결해 나만의 지식으로 보존합니다.")
     search, status = st.columns([3, 1])
     query = search.text_input("Search Knowledge", key="knowledge_subsystem_search")
     selected_status = status.selectbox("Status", ["All", "NEW", "REVIEW", "ORGANIZED", "ACTIVE", "ARCHIVED"])
@@ -264,6 +267,7 @@ def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
             else: st.success("Knowledge created."); st.rerun()
     records = knowledge.search(query, include_archived=True) if query else knowledge.list(include_archived=True)
     if selected_status != "All": records = [item for item in records if item["status"] == selected_status]
+    official_records(records, title="지식 컬렉션", empty="연결된 지식 기록이 없습니다.")
     for item in records:
         with st.expander(f"{item['title']} · {item['status']} · importance {item['importance']}"):
             st.write(item["content"]); st.caption(f"{item['category']} · {', '.join(item['tags']) or 'no tags'}")
@@ -296,8 +300,8 @@ def render_knowledge_management(knowledge: KnowledgeSubsystem) -> None:
 def render_routine_subsystem(routine: RoutineSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Routine")
-    st.caption("Recurring personal, work, learning, and health routines.")
+    page_header("Routine", "리듬 순환실", "반복 행동과 실행 흐름을 안정적으로 이어갑니다.", routine.health().get("status", "READY"))
+    st.caption("반복되는 생활·업무·학습·건강 습관을 안정적으로 이어갑니다.")
     with st.expander("Create Routine"):
         with st.form("routine_subsystem_create"):
             name = st.text_input("Name"); description = st.text_area("Description"); category = st.text_input("Category", value="General")
@@ -308,6 +312,7 @@ def render_routine_subsystem(routine: RoutineSubsystem) -> None:
             except ValueError as exc: st.error(str(exc))
             else: st.success("Routine created."); st.rerun()
     routines = routine.list(include_archived=True)
+    official_records(routines, title="생활 리듬", empty="등록된 루틴이 없습니다.")
     for item in routines:
         with st.expander(f"{item['name']} · {item['status']} · streak {item['streak']}"):
             st.write(item["description"]); st.caption(f"{item['frequency']} · next due {item.get('next_due_at') or '-'}")
@@ -340,55 +345,45 @@ def render_routine_management(routine: RoutineSubsystem) -> None:
 
 
 def render_dashboard(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
+    """Open the Living OS world without exposing a management dashboard beneath it."""
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    systems = systems or {}
-    health = hub.database_management.health_check(record=False)
-    overall = "정상" if health.get("status") == "HEALTHY" else "확인 필요"
-    routine = systems.get("Routine").management_summary() if systems.get("Routine") else {}
-    growth = systems.get("Personal Growth").management_summary() if systems.get("Personal Growth") else {}
-    routine_due = int(routine.get("due", 0)); growth_active = int(growth.get("active", 0))
-    hour = datetime.now().hour
-    greeting = "좋은 아침입니다." if hour < 12 else "편안한 오후입니다." if hour < 18 else "차분한 저녁입니다."
-    today = date.today(); weekdays = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
-    date_label = f"{today.year}년 {today.month}월 {today.day}일 {weekdays[today.weekday()]}"
-    analytics = AnalyticsEngine(hub.timeline).dashboard()
-    def navigate(target: str) -> None: st.session_state.nav_page = target
+
+    def navigate(target: str) -> None:
+        st.session_state.nav_page = target
+
     with st.container(key="living_world"):
-        home_core(greeting=greeting, date_label=date_label,
-            summary=f"오늘 실행할 루틴이 {routine_due}개 있습니다." if routine_due else "오늘의 생활 흐름이 열려 있습니다.",
-            ai_brief="기존 기록을 바탕으로 분석과 검토를 시작할 수 있습니다.",
-            schedule=f"루틴 {routine_due}개" if routine_due else "예정 일정 없음",
-            priority="루틴부터 시작" if routine_due else "배움 이어가기" if growth_active else "집중할 일 선택", status=overall)
-        world_nodes = (("◒  재무", "Finance", "finance"), ("▱  직업", "Job", "job"),
+        home_core(
+            greeting="리빙 OS에 오신 것을 환영합니다.",
+            date_label="",
+            summary="생활의 각 공간을 탐험합니다.",
+            ai_brief="",
+            schedule="",
+            priority="",
+            status="READY",
+        )
+        st.button("입장 →", key="world_enter", on_click=navigate, args=("Daily Log",))
+        world_nodes = (
+            ("◒  재무", "Finance", "finance"), ("▱  직업", "Job", "job"),
             ("↗  투자", "Investment", "investment"), ("◫  지식", "Knowledge", "knowledge"),
             ("↻  루틴", "Routine", "routine"), ("△  자기계발", "Personal Growth", "growth"),
             ("◒  식사", "Food", "food"), ("⌂  주거", "Housing", "housing"),
-            ("♡  건강", "Health", "health"), ("▷  차량", "Vehicle", "vehicle"),
-            ("◉  협업", "Collaboration", "collaboration"))
-        for label, target, key in world_nodes: st.button(label, key=f"world_node_{key}", on_click=navigate, args=(target,))
-        world_navigation = (("대시보드", "Command Center", "dashboard"), ("오늘", "Daily Log", "today"),
-            ("검색", "Search", "search"), ("리포트", "Reports", "reports"), ("AI 브리핑", "AI Analysis", "ai"))
-        for label, target, key in world_navigation: st.button(label, key=f"world_nav_{key}", on_click=navigate, args=(target,))
-    signal_cards = [{"label": card["label"], "value": card["value"],
-        "detail": "현재 기록에서 계산된 생활 신호", "status": "HEALTHY" if overall == "정상" else "WARNING"}
-        for card in analytics["state_cards"]]
-    metric_deck(signal_cards, label="LIVING SIGNAL MATRIX")
-    workspace_rail("빠른 실행", "현재 흐름에서 가장 자주 사용하는 공간으로 이동합니다.", icon="✦", meta="QUICK LAUNCH")
-    quick = st.columns(4)
-    for column, action in zip(quick, analytics["quick_actions"]):
-        column.button(action["label"], key=f"dashboard_quick_{action['target']}", on_click=navigate, args=(action["target"],), width="stretch")
-    workspace_rail("최근 활동", "연결된 하위 시스템에서 새로 발생한 생활 기록입니다.", icon="⌁", meta="RECENT ORBIT")
-    recent = analytics["recent_activity"]
-    record_gallery(recent, empty="빠른 실행으로 첫 기록을 만들어 보세요.", limit=6)
-    if recent:
-        with st.expander("전체 최근 활동 보기"):
-            st.dataframe([{"시간": item["event_time"], "하위 시스템": item["subsystem"], "제목": item["title"], "상태": item["status"]} for item in recent], width="stretch", hide_index=True)
+            ("♡  건강", "Health", "health"), ("◇  차량", "Vehicle", "vehicle"),
+        )
+        for label, target, key in world_nodes:
+            st.button(label, key=f"world_node_{key}", on_click=navigate, args=(target,))
+        world_navigation = (
+            ("대시보드", "Command Center", "dashboard"), ("오늘", "Daily Log", "today"),
+            ("의사결정 로그", "Decision Log", "decision"), ("리포트", "Reports", "reports"),
+            ("AI 어시스턴트", "AI Analysis", "ai"),
+        )
+        for label, target, key in world_navigation:
+            st.button(label, key=f"world_nav_{key}", on_click=navigate, args=(target,))
 
 def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    page_header("Personal Growth", "Growth / Workspace", "Turn intentions into measurable progress and clear next actions.", growth.health().get("status", "READY"))
+    page_header("Personal Growth", "성장 온실", "의도를 측정 가능한 성장과 선명한 다음 행동으로 이어갑니다.", growth.health().get("status", "READY"))
     summary = growth.management_summary(); cols = st.columns(4)
     cols[0].metric("Active", summary["active"]); cols[1].metric("Average Progress", f"{summary['average_progress']}%")
     cols[2].metric("Completed", summary["completed"]); cols[3].metric("Overdue", summary["overdue"])
@@ -403,6 +398,7 @@ def render_personal_growth(growth: PersonalGrowthSubsystem) -> None:
             else: st.success("Growth goal created."); st.rerun()
     with portfolio_tab:
         records = growth.list(include_archived=True)
+        official_records(records, title="성장 목표", empty="집중할 성장 목표를 만들어 보세요.")
         if not records: st.info("No growth goals yet. Create a focused goal to start.")
         for item in records:
             with st.expander(f"{item['title']} · {item['status']} · {item['progress']}%"):
@@ -500,7 +496,7 @@ def render_journal(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
     service = JournalService(hub)
-    st.title("Journal")
+    page_header("Journal", "오늘의 기록", "오늘의 생각과 생활 흐름을 차분히 남깁니다.", "READY")
     st.caption("Daily operating records saved through explicit audited commands.")
     with st.form("v2_journal_form", clear_on_submit=True):
         entry_date = st.date_input("Date").isoformat()
@@ -527,7 +523,7 @@ def render_decisions(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
     service = DecisionService(hub)
-    st.title("Decision")
+    page_header("Decision", "의사결정 기록", "선택의 근거와 결과를 함께 보존합니다.", "READY")
     st.caption("Versioned decisions with evidence, review, outcomes, and audit.")
     with st.form("v2_decision_form", clear_on_submit=True):
         decision = st.text_input("Decision")
@@ -570,7 +566,7 @@ def render_knowledge(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
     service = KnowledgeService(hub)
-    st.title("Knowledge")
+    page_header("Knowledge", "지식 서고", "배움과 자료를 기록하고 다시 연결합니다.", "READY")
     st.caption("Notes, archive material, cases, and governed Living Rule promotion.")
     with st.form("v2_knowledge_form", clear_on_submit=True):
         title = st.text_input("Title")
@@ -635,16 +631,14 @@ def render_timeline(hub: LivingHub) -> None:
     if not records:
         state_panel("일치하는 타임라인이 없습니다", "기간을 넓히거나 필터를 해제해 보세요."); return
     payload = [item.to_dict() for item in records]
-    record_gallery(payload, empty="일치하는 기록이 없습니다.", limit=6)
-    with st.expander("전체 타임라인 표 보기"):
-        st.dataframe([{"Time": item.event_time, "Subsystem": item.subsystem, "Category": item.category, "Title": item.title, "Event": item.event_type, "Status": item.status} for item in records], width="stretch", hide_index=True)
+    official_records(payload, title="전체 타임라인", empty="조건에 맞는 생활 기록이 없습니다.", limit=24)
     labels = [f"{item.subsystem} · {item.title} · {item.record_id}" for item in records]
     detail = records[labels.index(st.selectbox("Detail view", labels, key="timeline_detail"))]
-    st.json(detail.to_dict())
+    official_insight("선택한 타임라인", detail.to_dict(), caption="생활 기록의 현재 상태와 연결 정보")
     history = hub.timeline.status_history(detail.subsystem, detail.record_id)
     if history:
         panel_header("상태 이동 이력", "선택한 기록의 시간별 상태 변경", "HISTORY")
-        st.dataframe([item.to_dict() for item in history], width="stretch", hide_index=True)
+        official_records([item.to_dict() for item in history], title="상태 이동 이력", empty="상태 이동 이력이 없습니다.", limit=24)
 
 def render_global_search(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
@@ -667,11 +661,10 @@ def render_global_search(hub: LivingHub) -> None:
     workspace_rail("검색 결과", "관련도와 시간 흐름을 함께 확인할 수 있습니다.", icon="◇", meta="RESULT CONSTELLATION")
     if not results:
         state_panel("검색 결과가 없습니다", "검색어를 줄이거나 필터를 제거해 보세요."); return
-    record_gallery([item.to_dict() for item in results], empty="검색 결과가 없습니다.", limit=8)
-    with st.expander("전체 검색 결과 표 보기"):
-        st.dataframe([item.to_dict() for item in results], width="stretch", hide_index=True)
+    official_records([item.to_dict() for item in results], title="전체 검색 결과", empty="검색 결과가 없습니다.", limit=24)
     labels = [f"{item.subsystem} · {item.title} · {item.record_id}" for item in results]
-    st.json(results[labels.index(st.selectbox("Result detail", labels, key="search_detail"))].to_dict())
+    selected_result = results[labels.index(st.selectbox("Result detail", labels, key="search_detail"))]
+    official_insight("선택한 검색 결과", selected_result.to_dict(), caption="찾은 기록의 사용자용 상세 정보")
 
 def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
@@ -691,9 +684,7 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
     cross = service.cross_subsystem_summary(report_type)
     workspace_rail("교차 하위 시스템 요약", "서로 다른 생활 영역의 사건을 하나의 보고 흐름으로 연결합니다.", icon="◉", meta="CROSS SYSTEM")
     if cross:
-        record_gallery(cross, empty="이 기간의 교차 활동이 없습니다.", limit=6)
-        with st.expander("교차 요약 표 보기"):
-            st.dataframe(cross, width="stretch", hide_index=True)
+        official_records(cross, title="교차 영역 활동", empty="이 기간에는 교차 영역 활동이 없습니다.", limit=18)
     else:
         state_panel("요약할 활동이 없습니다", "이 리포트 기간에는 하위 시스템 활동이 없습니다.")
     preview = service.build(report_type)
@@ -704,7 +695,8 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
         except (CoreError, OSError, ValueError): st.error("The report could not be saved.")
         else: st.success(f"Saved {record['id']}")
     workspace_rail("선택적 AI 초안", "AI는 정식 데이터를 직접 변경하지 않으며 별도의 승인이 필요합니다.", icon="✧", meta="OPTIONAL INTELLIGENCE")
-    _ensure_ai_model(st); st.code(preview, language="text")
+    _ensure_ai_model(st)
+    official_document("결정론적 리포트 원문", preview, caption="AI 초안 생성 전에 확인하는 공식 리포트 본문")
     if st.button("Generate AI Report Draft"):
         api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
         if not api_key: st.error("Configure an OpenAI API key in Settings first.")
@@ -728,7 +720,7 @@ def _render_counter(title: str, counter: Counter[str]) -> None:
     st = localized_streamlit()
     st.subheader(title)
     if counter:
-        st.dataframe([{"Name": key, "Count": value} for key, value in counter.most_common()], hide_index=True, width="stretch")
+        official_records([{"name": key, "count": value} for key, value in counter.most_common()], title=title, empty="아직 데이터가 없습니다.")
     else:
         st.info("No data yet.")
 
@@ -757,7 +749,8 @@ def render_analytics(hub: LivingHub) -> None:
     with trend_tab:
         panel_header("추세 궤도", "월 단위 활동 변화", "TREND")
         trend = engine.trend(start, end, subsystem=selected, granularity="month")
-        if trend: record_gallery(trend, empty="추세 데이터가 없습니다.", limit=8); st.dataframe(trend, width="stretch", hide_index=True)
+        if trend:
+            official_records(trend, title="추세 기록", empty="추세 데이터가 없습니다.", limit=18)
         else: state_panel("추세 데이터가 없습니다", "선택한 기간에 기록이 쌓이면 변화가 나타납니다.")
     with compare_tab:
         comparison = engine.comparison(start, end, subsystem=selected)
@@ -766,15 +759,19 @@ def render_analytics(hub: LivingHub) -> None:
             {"label": "Previous", "value": comparison["previous"]["total_activity"], "detail": "이전 기간", "status": "READY"},
             {"label": "Growth", "value": f"{comparison['growth_percent']}%", "detail": "기간 대비 변화", "status": "HEALTHY" if comparison["growth_percent"] >= 0 else "WARNING"},
         ), label="COMPARISON SIGNALS")
-        st.dataframe(comparison["by_subsystem"], width="stretch", hide_index=True)
+        official_records(comparison["by_subsystem"], title="영역별 비교", empty="비교할 영역 데이터가 없습니다.", limit=18)
     with summary_tab:
         left, right = st.columns(2)
-        with left: panel_header("월간 요약", "선택 월의 생활 신호", "MONTH"); st.json(engine.monthly_summary(end.year, end.month, subsystem=selected))
-        with right: panel_header("연간 요약", "선택 연도의 생활 신호", "YEAR"); st.json(engine.yearly_summary(end.year, subsystem=selected))
+        with left:
+            panel_header("월간 요약", "선택 월의 생활 신호", "MONTH")
+            official_insight("월간 생활 요약", engine.monthly_summary(end.year, end.month, subsystem=selected), caption="선택한 월의 영역별 생활 신호")
+        with right:
+            panel_header("연간 요약", "선택 연도의 생활 신호", "YEAR")
+            official_insight("연간 생활 요약", engine.yearly_summary(end.year, subsystem=selected), caption="선택한 연도의 영역별 생활 신호")
     with growth_tab:
         growth = engine.growth_analysis(as_of=end, months=12, subsystem=selected)
         metric_deck(({"label": "12-month growth", "value": f"{growth['growth_percent']}%", "detail": f"순변화 {growth['net_growth']}", "status": "HEALTHY" if growth["growth_percent"] >= 0 else "WARNING"},), label="GROWTH SIGNAL")
-        st.dataframe(growth["trend"], width="stretch", hide_index=True)
+        official_records(growth["trend"], title="성장 추세", empty="성장 추세 데이터가 없습니다.", limit=18)
 
 def render_review(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
@@ -815,7 +812,7 @@ def _ai_panel(
     record = next(item for item in records if str(item.get("id", "")) == selected_id)
     source = record_source(record, fields)
     st.warning("Only the visible selected fields will be sent after explicit approval.")
-    st.code(source, language="text")
+    official_document("전송 전 확인", source, caption="선택한 기록에서 AI 분석에 사용할 항목")
     if st.button("Request Read-only Analysis", key=f"request_{state_key}"):
         api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
         if not api_key:
@@ -835,7 +832,7 @@ def _ai_panel(
 def render_ai_briefing(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("AI Briefing")
+    page_header("AI Briefing", "AI 브리핑", "내가 선택한 생활 기록을 읽기 전용으로 분석합니다.", "READY")
     st.caption("Source-attributed, explicit, read-only AI analysis.")
     _ensure_ai_model(st)
     journal_tab, decision_tab = st.tabs(["Journal", "Decision"])
@@ -1247,8 +1244,8 @@ def render_finance(finance: FinanceSubsystem) -> None:
     from calendar import monthrange
     from datetime import date
 
-    st.title("Finance")
-    st.caption("Finance Subsystem v1.0 · Ledger, Budget, Cash Flow, Savings, Reports")
+    page_header("Finance", "재무 금고", "장부, 예산, 저축과 월 결산을 한 공간에서 관리합니다.", finance.health().get("status", "READY"))
+    st.caption("장부와 예산, 현금 흐름, 저축과 결산을 한곳에서 확인합니다.")
     month = st.text_input("Month", value=date.today().strftime("%Y-%m"), key="finance_month")
     try:
         summary = finance.summary_report(month)
@@ -1288,7 +1285,7 @@ def render_finance(finance: FinanceSubsystem) -> None:
             start_on=f"{summary['month']}-01",
             end_on=date(int(summary["month"][:4]), int(summary["month"][5:]), monthrange(int(summary["month"][:4]), int(summary["month"][5:]))[1]),
         )
-        st.dataframe(transactions, width="stretch")
+        official_records(transactions, title="장부 기록", empty="이 달의 장부 기록이 없습니다.")
 
     with budget_tab:
         with st.form("finance_budget_v10_form"):
@@ -1305,7 +1302,7 @@ def render_finance(finance: FinanceSubsystem) -> None:
             else:
                 st.success("Budget created.")
                 st.rerun()
-        st.dataframe(finance.list_budgets(month), width="stretch")
+        official_records(finance.list_budgets(month), title="예산 계획", empty="이 달의 예산 계획이 없습니다.")
 
     with savings_tab:
         savings_kind = st.selectbox(
@@ -1346,29 +1343,13 @@ def render_finance(finance: FinanceSubsystem) -> None:
             else:
                 st.success("Savings account created.")
                 st.rerun()
-        st.dataframe(finance.list_savings(), width="stretch")
+        official_records(finance.list_savings(), title="저축 포트폴리오", empty="등록된 저축 계좌가 없습니다.")
 
     with report_tab:
-        st.code(finance.render_financial_status(month))
+        official_insight("월 결산 요약", {"결산 내용": finance.render_financial_status(month)}, caption="장부와 예산을 바탕으로 정리한 월간 재무 흐름")
         if st.button("Close month", key="finance_monthly_close"):
             finance.monthly_close(month)
             st.success("Immutable monthly closing created.")
-        legacy_path = finance.root / "data" / "finance_budget.json"
-        with st.expander("Legacy Finance migration"):
-            st.caption("Migration is explicit, checksum-guarded, and idempotent.")
-            if st.button(
-                "Migrate legacy Finance budget",
-                disabled=not legacy_path.is_file(),
-                key="finance_migrate_legacy",
-            ):
-                try:
-                    result = finance.migrate_legacy_budget(legacy_path, month)
-                except (OSError, ValueError) as exc:
-                    st.error(str(exc))
-                else:
-                    st.json(result)
-
-
     snapshot = finance.export_snapshot()
     _render_record_browser(
         "finance",
@@ -1382,10 +1363,8 @@ def render_health(health: HealthSubsystem) -> None:
     st = localized_streamlit()
     from datetime import date
 
-    st.title("Health")
-    st.caption(
-        "Health Subsystem v1.0 · Sensitive owner data · Informational, not medical advice"
-    )
+    page_header("Health", "건강 생체 정원", "체중, 건강검진, 인바디와 목표 흐름을 살펴봅니다.", health.health().get("status", "READY"))
+    st.caption("건강 기록은 사용자 본인만 관리하며 의료 진단을 대신하지 않습니다.")
     today = date.today()
     weight_tab, inbody_tab, lifestyle_tab, goal_tab = st.tabs(
         ["Weight", "InBody / Checkup", "Sleep / Exercise / Nutrition", "Goals / Report"]
@@ -1409,8 +1388,8 @@ def render_health(health: HealthSubsystem) -> None:
                 st.success("Weight recorded.")
                 st.rerun()
         weights = health.list_weights()
-        st.dataframe(weights, width="stretch")
-        st.json(health.weight_baseline_comparison())
+        official_records(weights, title="체중 기록", empty="기록된 체중이 없습니다.")
+        official_insight("체중 변화", health.weight_baseline_comparison(), caption="기준 기록과 최근 체중의 변화")
         if weights:
             labels = {
                 item["record_id"]: f"{item['measured_on']} · {item['weight_kg']} kg"
@@ -1494,8 +1473,8 @@ def render_health(health: HealthSubsystem) -> None:
             else:
                 st.success("InBody recorded.")
                 st.rerun()
-        st.dataframe(health.body_composition_timeline(), width="stretch")
-        st.json(health.body_composition_baseline_comparison())
+        official_records(health.body_composition_timeline(), title="인바디 기록", empty="기록된 인바디 측정값이 없습니다.")
+        official_insight("인바디 변화", health.body_composition_baseline_comparison(), caption="기준 측정과 최근 신체 구성의 변화")
         st.subheader("Health checkups")
         with st.form("health_checkup_form", clear_on_submit=True):
             checked_on = st.date_input("Checkup date", value=today)
@@ -1527,12 +1506,10 @@ def render_health(health: HealthSubsystem) -> None:
             else:
                 st.success("Health checkup recorded.")
                 st.rerun()
-        st.dataframe(health.list_health_checkups(), width="stretch")
+        official_records(health.list_health_checkups(), title="건강검진 기록", empty="건강검진 기록이 없습니다.")
         st.write("Follow-up queue")
-        st.dataframe(
-            health.health_checkup_follow_ups(), width="stretch", hide_index=True
-        )
-        st.json(health.health_checkup_baseline_comparison())
+        official_records(health.health_checkup_follow_ups(), title="추적 확인", empty="추적 확인이 필요한 항목이 없습니다.")
+        official_insight("검진 변화", health.health_checkup_baseline_comparison(), caption="기준 검진과 최근 검진의 변화")
 
     with lifestyle_tab:
         st.subheader("Sleep")
@@ -1555,7 +1532,7 @@ def render_health(health: HealthSubsystem) -> None:
             else:
                 st.success("Sleep record saved.")
                 st.rerun()
-        st.dataframe(health.list_sleep(), width="stretch")
+        official_records(health.list_sleep(), title="수면 기록", empty="기록된 수면이 없습니다.")
 
         st.subheader("Exercise")
         with st.form("health_exercise_form", clear_on_submit=True):
@@ -1583,8 +1560,8 @@ def render_health(health: HealthSubsystem) -> None:
             else:
                 st.success("Exercise recorded.")
                 st.rerun()
-        st.dataframe(health.list_exercise(), width="stretch")
-        st.json(health.exercise_statistics())
+        official_records(health.list_exercise(), title="운동 기록", empty="기록된 운동이 없습니다.")
+        official_insight("운동 흐름", health.exercise_statistics(), caption="최근 운동 기록을 바탕으로 정리한 활동 신호")
 
         st.subheader("Nutrition")
         goals = health.list_health_goals()
@@ -1620,14 +1597,18 @@ def render_health(health: HealthSubsystem) -> None:
             else:
                 st.success("Nutrition recorded.")
                 st.rerun()
-        st.dataframe(health.list_nutrition(), width="stretch")
+        official_records(health.list_nutrition(), title="영양 기록", empty="기록된 식사와 영양 정보가 없습니다.")
         trend_columns = st.columns(2)
-        trend_columns[0].json(
-            {"weight": health.weight_trend(), "inbody": health.inbody_trend()}
-        )
-        trend_columns[1].json(
-            {"sleep": health.sleep_trend(), "exercise": health.exercise_trend()}
-        )
+        with trend_columns[0]:
+            official_insight(
+                "신체 변화", {"체중": health.weight_trend(), "인바디": health.inbody_trend()},
+                caption="체중과 신체 구성 기록을 연결한 변화 흐름",
+            )
+        with trend_columns[1]:
+            official_insight(
+                "생활 리듬", {"수면": health.sleep_trend(), "운동": health.exercise_trend()},
+                caption="수면과 운동 기록을 연결한 생활 흐름",
+            )
 
     with goal_tab:
         with st.form("health_goal_form"):
@@ -1648,11 +1629,11 @@ def render_health(health: HealthSubsystem) -> None:
                 st.success("Health goal created.")
                 st.rerun()
         goals = health.list_health_goals()
-        st.dataframe(goals, width="stretch")
+        official_records(goals, title="건강 목표", empty="등록된 건강 목표가 없습니다.")
         for goal in goals:
             with st.expander(f"Goal progress · {goal['name']}"):
                 try:
-                    st.json(health.health_goal_progress(goal["goal_id"]))
+                    official_insight("목표 진행률", health.health_goal_progress(goal["goal_id"]), caption="현재 목표를 향한 진행 흐름")
                 except (KeyError, ValueError) as exc:
                     st.error(f"Goal progress is unavailable: {exc}")
         st.subheader("Health reports")
@@ -1679,7 +1660,7 @@ def render_health(health: HealthSubsystem) -> None:
                 report = health.weekly_report(report_date)
             else:
                 report = health.monthly_report(report_month)
-            st.json(report)
+            official_insight("건강 리포트", report, caption="선택한 기간의 건강 기록 요약")
         except (KeyError, ValueError) as exc:
             st.error(f"Health report could not be generated: {exc}")
 
@@ -1694,9 +1675,9 @@ def render_health(health: HealthSubsystem) -> None:
 def render_housing(housing: HousingSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Housing")
-    st.caption("Housing Subsystem v1.0 · Sensitive owner data · Deterministic candidate comparison")
-    candidate_tab, comparison_tab, migration_tab = st.tabs(["Candidates", "Comparison / Report", "Migration"])
+    page_header("Housing", "생활 주거 공간", "계약, 월세와 관리비의 생활 흐름을 관리합니다.", housing.health().get("status", "READY"))
+    st.caption("주거 후보를 비교하고 계약과 월별 비용을 함께 관리합니다.")
+    candidate_tab, comparison_tab = st.tabs(["Candidates", "Comparison / Report"])
 
     with candidate_tab:
         with st.form("housing_candidate_v14_form", clear_on_submit=True):
@@ -1732,7 +1713,7 @@ def render_housing(housing: HousingSubsystem) -> None:
                 st.rerun()
 
         candidates = housing.list_candidates()
-        st.dataframe(candidates, width="stretch", hide_index=True)
+        official_records(candidates, title="주거 후보", empty="비교할 주거 후보가 없습니다.")
         if candidates:
             labels = {item["candidate_id"]: item["name"] for item in candidates}
             selected_id = st.selectbox(
@@ -1760,35 +1741,8 @@ def render_housing(housing: HousingSubsystem) -> None:
                 st.rerun()
 
     with comparison_tab:
-        st.dataframe(housing.rank_candidates(), width="stretch", hide_index=True)
-        st.json(housing.housing_report())
-
-    with migration_tab:
-        legacy_path = housing.root / "data" / "housing_candidates.json"
-        st.caption("Migration is dry-run-first, explicit, checksum-guarded, transactional, and idempotent.")
-        dry_col, apply_col = st.columns(2)
-        if dry_col.button("Dry run legacy Housing migration", disabled=not legacy_path.is_file()):
-            try:
-                result = housing.dry_run_legacy_json(legacy_path)
-            except (OSError, ValueError) as exc:
-                st.error(str(exc))
-            else:
-                st.session_state.housing_migration_dry_run = result
-                st.json(result)
-        dry_result = st.session_state.get("housing_migration_dry_run")
-        if apply_col.button(
-            "Apply reviewed Housing migration",
-            disabled=not bool(dry_result),
-            key="housing_apply_migration",
-        ):
-            try:
-                result = housing.migrate_legacy_json(legacy_path)
-            except (OSError, ValueError) as exc:
-                st.error(str(exc))
-            else:
-                st.json(result)
-                st.success("Reviewed Housing migration completed.")
-
+        official_records(housing.rank_candidates(), title="주거 비교", empty="비교할 주거 후보가 없습니다.")
+        official_insight("주거 요약", housing.housing_report(), caption="후보와 계약을 바탕으로 정리한 주거 흐름")
 
     with st.expander("Rental contract and monthly charges"):
         with st.form("housing_contract_v207_form", clear_on_submit=True):
@@ -1812,7 +1766,7 @@ def render_housing(housing: HousingSubsystem) -> None:
                 st.success("Rental contract created.")
                 st.rerun()
         contracts = housing.list_contracts()
-        st.dataframe(contracts, width="stretch", hide_index=True)
+        official_records(contracts, title="주거 계약", empty="등록된 주거 계약이 없습니다.")
         if contracts:
             labels = {item["contract_id"]: item["name"] for item in contracts}
             with st.form("housing_charge_v207_form", clear_on_submit=True):
@@ -1835,7 +1789,7 @@ def render_housing(housing: HousingSubsystem) -> None:
                 else:
                     st.success("Housing charge recorded.")
                     st.rerun()
-            st.json(housing.occupancy_report(charge_contract))
+            official_insight("입주 비용", housing.occupancy_report(charge_contract), caption="선택한 계약의 월별 생활 비용")
 
     snapshot = housing.export_snapshot()
     _render_record_browser(
@@ -1847,8 +1801,8 @@ def render_housing(housing: HousingSubsystem) -> None:
 def render_vehicle(vehicle: VehicleSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Vehicle")
-    st.caption("Vehicle Subsystem v1.0 · Sensitive owner data · Deterministic maintenance and cost records")
+    page_header("Vehicle", "모빌리티 베이", "운행, 주유와 정비 기록을 안전하게 이어갑니다.", vehicle.health().get("status", "READY"))
+    st.caption("차량별 운행, 주유와 정비 이력을 안전하게 기록합니다.")
     vehicles_tab, records_tab, report_tab = st.tabs(["Vehicles", "Records", "Status report"])
 
     with vehicles_tab:
@@ -1874,7 +1828,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                 st.rerun()
 
         vehicles = vehicle.list_vehicles("active")
-        st.dataframe(vehicles, width="stretch", hide_index=True)
+        official_records(vehicles, title="내 차량", empty="등록된 차량이 없습니다.")
         if vehicles:
             labels = {item["vehicle_id"]: item["display_name"] for item in vehicles}
             archive_id = st.selectbox(
@@ -1933,7 +1887,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                         st.error(str(exc))
                     else:
                         st.rerun()
-                st.dataframe(vehicle.list_odometer_readings(vehicle_id), width="stretch", hide_index=True)
+                official_records(vehicle.list_odometer_readings(vehicle_id), title="주행거리 기록", empty="주행거리 기록이 없습니다.")
 
             with maintenance_tab:
                 with st.form("vehicle_v15_maintenance_form", clear_on_submit=True):
@@ -1954,7 +1908,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                         st.error(str(exc))
                     else:
                         st.rerun()
-                st.dataframe(vehicle.list_maintenance_records(vehicle_id), width="stretch", hide_index=True)
+                official_records(vehicle.list_maintenance_records(vehicle_id), title="정비 기록", empty="정비 기록이 없습니다.")
 
             with schedule_tab:
                 with st.form("vehicle_v15_schedule_form", clear_on_submit=True):
@@ -1976,7 +1930,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                     else:
                         st.rerun()
                 schedules = vehicle.list_maintenance_schedules(vehicle_id)
-                st.dataframe(schedules, width="stretch", hide_index=True)
+                official_records(schedules, title="정비 일정", empty="예정된 정비가 없습니다.")
                 active = [item for item in schedules if item["status"] == "active"]
                 maintenance = vehicle.list_maintenance_records(vehicle_id)
                 if active and maintenance:
@@ -2015,7 +1969,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                         st.error(str(exc))
                     else:
                         st.rerun()
-                st.dataframe(vehicle.list_energy_logs(vehicle_id), width="stretch", hide_index=True)
+                official_records(vehicle.list_energy_logs(vehicle_id), title="주유·충전 기록", empty="주유 또는 충전 기록이 없습니다.")
 
     with report_tab:
         vehicles = vehicle.list_vehicles("active")
@@ -2027,7 +1981,7 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                 "Report vehicle", list(labels), format_func=lambda value: labels[value],
                 key="vehicle_report_select",
             )
-            st.json(vehicle.vehicle_report(report_id))
+            official_insight("차량 상태 리포트", vehicle.vehicle_report(report_id), caption="주행과 정비 기록을 바탕으로 정리한 차량 상태")
 
 
     with st.expander("Trip log"):
@@ -2055,8 +2009,8 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
                 else:
                     st.success("Trip recorded.")
                     st.rerun()
-            st.dataframe(vehicle.list_trips(trip_vehicle), width="stretch", hide_index=True)
-            st.json(vehicle.dashboard(trip_vehicle))
+            official_records(vehicle.list_trips(trip_vehicle), title="운행 기록", empty="운행 기록이 없습니다.")
+            official_insight("운행 요약", vehicle.dashboard(trip_vehicle), caption="선택한 차량의 주행과 유지 흐름")
 
     snapshot = vehicle.export_snapshot()
     _render_record_browser(
@@ -2068,8 +2022,8 @@ def render_vehicle(vehicle: VehicleSubsystem) -> None:
 def render_food(food: FoodSubsystem) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    st.title("Food")
-    st.caption("Food Subsystem v1.0 - Sensitive owner data - Owner-entered deterministic nutrition")
+    page_header("Food", "식생활 아틀리에", "재료, 레시피와 식사 기록을 하나로 연결합니다.", food.health().get("status", "READY"))
+    st.caption("내가 입력한 재료, 레시피와 식사 기록을 바탕으로 정리합니다.")
     ingredients_tab, recipes_tab, records_tab, report_tab = st.tabs(
         ["Ingredients", "Recipes", "Cooking and meals", "Food report"]
     )
@@ -2098,7 +2052,7 @@ def render_food(food: FoodSubsystem) -> None:
                 st.success("Ingredient added.")
                 st.rerun()
         ingredients = food.list_ingredients("active")
-        st.dataframe(ingredients, width="stretch", hide_index=True)
+        official_records(ingredients, title="식재료 보관함", empty="등록된 식재료가 없습니다.")
         if ingredients:
             ingredient_labels = {row["ingredient_id"]: row["name"] for row in ingredients}
             archive_id = st.selectbox(
@@ -2150,7 +2104,7 @@ def render_food(food: FoodSubsystem) -> None:
                 st.success("Recipe added.")
                 st.rerun()
         recipes = food.list_recipes("active")
-        st.dataframe(recipes, width="stretch", hide_index=True)
+        official_records(recipes, title="레시피 컬렉션", empty="등록된 레시피가 없습니다.")
         ingredients = food.list_ingredients("active")
         if recipes and ingredients:
             recipe_labels = {row["recipe_id"]: row["name"] for row in recipes}
@@ -2243,12 +2197,12 @@ def render_food(food: FoodSubsystem) -> None:
                 st.error(str(exc))
             else:
                 st.rerun()
-        st.dataframe(food.list_cooking_records(), width="stretch", hide_index=True)
-        st.dataframe(food.list_meals(), width="stretch", hide_index=True)
+        official_records(food.list_cooking_records(), title="조리 기록", empty="조리 기록이 없습니다.")
+        official_records(food.list_meals(), title="식사 기록", empty="식사 기록이 없습니다.")
 
     with report_tab:
         st.info("Nutrition totals use owner-entered values only and are not medical guidance.")
-        st.json(food.food_report())
+        official_insight("식생활 리포트", food.food_report(), caption="재료, 레시피와 식사 기록을 바탕으로 정리한 영양 흐름")
 
     snapshot = food.export_snapshot()
     _render_record_browser(

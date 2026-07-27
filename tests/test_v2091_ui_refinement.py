@@ -17,9 +17,9 @@ SHELL = ROOT / "subsystems" / "experience" / "engines" / "shell.py"
 class OfficialUiRefinementTests(unittest.TestCase):
     def test_version_is_final_release(self) -> None:
         version = (ROOT / "VERSION.md").read_text(encoding="utf-8")
-        self.assertIn("Workspace version: Living OS v2.0.9.1", version)
+        self.assertIn("Workspace version: Living OS v2.0.9.2", version)
         self.assertIn("Production release: Living OS v2.0.9.1", version)
-        self.assertIn("Official UI Refinement Release.", version)
+        self.assertIn("Official Concept UI Implementation Release Candidate.", version)
 
     def test_structural_design_components_exist_in_experience_engine(self) -> None:
         design = DESIGN.read_text(encoding="utf-8")
@@ -29,14 +29,15 @@ class OfficialUiRefinementTests(unittest.TestCase):
         ):
             with self.subTest(function=function):
                 self.assertIn(f"def {function}(", design)
-        self.assertIn("los-life-dome", design)
-        self.assertIn("los-world-card-left", design)
-        self.assertIn("los-world-dock-label", design)
+        self.assertIn("los-world-style-layer", design)
+        self.assertIn('st.image(str(WORLD_ASSET), width="stretch")', design)
+        self.assertNotIn("los-world-overlay-repair", design)
+        self.assertIn("living-os-v2092-official-style.png", design)
 
     def test_key_screens_use_new_information_hierarchy(self) -> None:
         pages = PAGES.read_text(encoding="utf-8")
         for marker in (
-            "LIVING SIGNAL MATRIX", "MEMORY ORBIT / TIMELINE", "LIVING INDEX / SEARCH",
+            "MEMORY ORBIT / TIMELINE", "LIVING INDEX / SEARCH",
             "MEMORY ATLAS / REPORT", "LIFE OBSERVATORY / ANALYTICS",
             "SYSTEM CONSTELLATION / MODULES", "SYSTEM SANCTUM / SETTINGS",
             "record_gallery", "workspace_rail", "metric_deck",
@@ -44,7 +45,7 @@ class OfficialUiRefinementTests(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, pages)
         shell = SHELL.read_text(encoding="utf-8")
-        self.assertIn("navigation_identity", shell)
+        self.assertIn("official_user_navigation", shell)
 
     def test_premium_interaction_contract_is_complete(self) -> None:
         for marker in (
@@ -68,7 +69,7 @@ class OfficialUiRefinementTests(unittest.TestCase):
     def test_refined_primary_screens_render_without_errors(self) -> None:
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=15).run()
         self.assertFalse(app.exception)
-        for page in ("Command Center", "Timeline", "Search", "Reports", "Analytics", "Module Manager", "Settings"):
+        for page in ("Command Center", "Timeline", "Search", "Reports", "Analytics", "Finance", "Health"):
             with self.subTest(page=page):
                 app.sidebar.radio[0].set_value(page).run()
                 self.assertFalse(app.exception)

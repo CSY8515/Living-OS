@@ -1,6 +1,21 @@
 # Changelog
 
 All notable Living OS changes are recorded in this file.
+
+## v2.0.9.2 — 2026-07-26
+
+- Implemented the supplied Living OS concept as the actual first-screen structure: Image 1 as the fixed first-screen layout, its exact nine life spaces, top-right Home, and five-action bottom dock, with only Image 2's OS Ecosystem art direction transferred.
+- Replaced the normal Streamlit sidebar with a user-only glass navigation shell; internal Database, Migration, Registry, Module Manager, Settings, and management surfaces are no longer exposed to general users.
+- Removed the metric dashboard, quick-launch grid, and recent-activity administration surface from the Command Center so the first screen remains a single explorable Living OS world.
+- Re-rendered all function entry points as connected glass habitats with orbital paths, depth layers, living interiors, and world-specific ambient transitions.
+- Added dedicated visual worlds for Finance, Investment, Job, Health, Vehicle, Housing, Food, Knowledge, Routine, and Personal Growth without changing their CRUD or data ownership; Collaboration remains developer-only.
+- Added ten production Subsystem World artworks and a proportioned Vehicle orbital companion while preserving the nine original blueprint spaces; every public function screen now continues the same cosmic-organic world.
+- Replaced public JSON, code payloads, and default data tables across all 18 general-user surfaces with Official summary, document, and record canvases; developer and raw-data surfaces remain hidden from general navigation.
+- Added concept-aligned feature objects including vault, market flow, career skyline, biometric pulse, mobility gauge, house, dining table, knowledge book, routine clock, growth tree, and collaboration constellation.
+- Preserved Timeline, Reports, Analytics, Search, Today, Decision Log, and read-only AI Briefing as user-facing hubs.
+- Added Desktop, Notebook, Tablet, and Mobile behavior for the custom navigation, life world, functional cards, and feature scenes.
+- Preserved the Subsystem → Engine → Function architecture; no Foundation, Subsystem, schema, migration, or data contract was added.
+- Final release approved with commit, push, tag, GitHub Release, and Streamlit deployment.
 ## v2.0.9.1 — 2026-07-26
 
 - Rebuilt the first screen as an immersive Living World with an official application chrome, life core, guided context cards, eleven Subsystem orbit objects, and an integrated operating dock.

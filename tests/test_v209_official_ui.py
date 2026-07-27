@@ -85,14 +85,16 @@ class OfficialUiContractTests(unittest.TestCase):
         self.assertIn('key=f"world_nav_{key}"', pages)
         for key in (
             "finance", "job", "investment", "knowledge", "routine", "growth",
-            "food", "housing", "health", "vehicle", "collaboration",
+            "food", "housing", "health", "vehicle",
         ):
             self.assertIn(f'"{key}")', pages)
             self.assertIn(f"st-key-world_node_{key}", theme)
-        for key in ("dashboard", "today", "search", "reports", "ai"):
+        for key in ("dashboard", "today", "decision", "reports", "ai"):
             self.assertIn(f'"{key}")', pages)
         self.assertIn("los-world-stage", design)
-        asset = ROOT / "assets" / "living-os-official-world.png"
+        self.assertIn("Vehicle orbital companion", theme)
+        self.assertNotIn("st-key-world_node_vehicle{display:none!important}", theme)
+        asset = ROOT / "assets" / "living-os-final-answer.png"
         self.assertTrue(asset.is_file())
         self.assertGreater(asset.stat().st_size, 1_000_000)
 
@@ -100,9 +102,9 @@ class OfficialUiContractTests(unittest.TestCase):
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=15).run()
         self.assertFalse(app.exception)
         labels = {button.label for button in app.button}
-        for label in ("◒  재무", "♡  건강", "△  자기계발", "대시보드", "리포트"):
+        for label in ("◒  재무", "♡  건강", "◇  차량", "△  자기계발", "대시보드", "리포트"):
             self.assertIn(label, labels)
-        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.1")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.2")
         self.assertEqual(app.sidebar.caption[1].value, "개인 생활 운영 시스템")
 
     def test_all_canonical_pages_render_without_ui_contract_errors(self) -> None:

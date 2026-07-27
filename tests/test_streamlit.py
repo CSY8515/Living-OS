@@ -30,40 +30,11 @@ PERSISTED_FILES = [
     ROOT / "config" / "module_registry.json",
 ]
 PAGES = [
-    "Command Center",
-    "Daily Log",
-    "Decision Log",
-    "Reports",
-    "Archive",
-    "Analytics",
-    "Timeline",
-    "Search",
-    "Review",
-    "AI Analysis",
-    "Documents",
-    "Finance",
-    "Health",
-    "Housing",
-    "Vehicle",
-    "Food",
-    "Knowledge",
-    "Routine",
-    "Knowledge Management",
-    "Routine Management",
-    "Investment",
-    "Job",
-    "Investment Management",
-    "Job Management",
+    "Command Center", "Daily Log", "Decision Log", "Reports", "Analytics",
+    "Timeline", "Search", "AI Analysis", "Finance", "Investment", "Job",
+    "Health", "Vehicle", "Housing", "Food", "Knowledge", "Routine",
     "Personal Growth",
-    "Personal Growth Management",
-    "Collaboration",
-    "Collaboration Management",
-    "Database",
-    "Database Management",
-    "Module Manager",
-    "Settings",
 ]
-
 
 def fingerprints() -> dict[Path, str]:
     return {
@@ -77,7 +48,7 @@ class StreamlitPageSmokeTests(unittest.TestCase):
     def test_every_page_renders_without_errors_or_page_load_writes(self) -> None:
         before = fingerprints()
         app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=10).run()
-        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.1")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.2")
         self.assertFalse(app.exception)
         next(button for button in app.button if "자기계발" in button.label).click().run()
         self.assertEqual(app.sidebar.radio[0].value, "Personal Growth")
