@@ -17,6 +17,8 @@ class RoutineSubsystem:
     subsystem_id="SUB-ROUTINE"; VERSION="1.0.0"
     def __init__(self,root:Path,database_path:Path|None=None,database_foundation:Any=None)->None:
         path=Path(database_path) if database_path else Path(root)/"data"/"routine"/"routine.sqlite3";self.repository=RoutineRepository(path,database_foundation);self.repository.register_contract(schema_version=1,migration_id="routine-schema-v1");self.database_foundation=database_foundation
+    @property
+    def database_path(self)->Path:return self.repository.database_path
     @staticmethod
     def calculate_next_due(frequency:str,from_time:str|None=None,schedule_rule:str="")->str:
         base=datetime.fromisoformat(from_time) if from_time else datetime.now(timezone.utc)
@@ -74,6 +76,8 @@ class RoutineSubsystem:
     def due(self,at:str|None=None)->list[dict[str,Any]]:
         cutoff=at or utc_now_iso();return [r for r in self.list(status="ACTIVE",limit=1000) if r.get("next_due_at") and r["next_due_at"]<=cutoff]
     def health(self)->dict[str,Any]:return self.repository.health()
+    def owner_data_count(self)->int:return self.repository.owner_data_count()
+    def reset_owner_data(self)->dict[str,int]:return self.repository.reset_owner_data()
     def management_summary(self)->dict[str,Any]:
         routines=self.list(include_archived=True,limit=1000);history=self.executions(limit=1000);control=[e for e in (self.database_foundation.execution_records(500) if self.database_foundation else []) if e.get("subsystem")==self.subsystem_id]
         return {"total":len(routines),"by_status":dict(Counter(r["status"] for r in routines)),"due":len(self.due()),"recent_executions":history[:10],"completion_count":sum(r["completion_count"] for r in routines),"failure_count":sum(r["failure_count"] for r in routines),"max_streak":max((r["streak"] for r in routines),default=0),"health":self.health(),"execution_success":sum(e["status"]=="COMPLETED" for e in control),"execution_failure":sum(e["status"]=="FAILED" for e in control),"registry_registered":any(e.get("component_id")==self.subsystem_id for e in (self.database_foundation.registered_components() if self.database_foundation else []))}

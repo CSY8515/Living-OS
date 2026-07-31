@@ -104,7 +104,7 @@ class OfficialUiContractTests(unittest.TestCase):
         labels = {button.label for button in app.button}
         for label in ("◒  재무", "♡  건강", "◇  차량", "△  자기계발", "대시보드", "리포트"):
             self.assertIn(label, labels)
-        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.2")
+        self.assertEqual(app.sidebar.caption[0].value, "v2.0.9.3")
         self.assertEqual(app.sidebar.caption[1].value, "개인 생활 운영 시스템")
 
     def test_all_canonical_pages_render_without_ui_contract_errors(self) -> None:

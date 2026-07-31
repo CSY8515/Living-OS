@@ -5,13 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from subsystems.insight.engines.ai_credentials import (
-    CredentialError,
-    credential_status,
-    remove_saved_api_key,
-    resolve_api_key,
-    save_api_key,
-)
+from subsystems.insight.engines.ai_credentials import resolve_api_key
 from subsystems.insight.engines.ai_service import AI_MODELS, DEFAULT_AI_MODEL, test_connection
 from subsystems.compatibility.engines.storage import (
     ARCHIVE_FILE,
@@ -154,32 +148,18 @@ def render_settings() -> None:
         "OpenAI API Key",
         value=str(st.session_state.get("ai_session_api_key", "")),
         type="password",
-        placeholder="Session-only unless explicitly saved below",
     )
     st.session_state.ai_session_api_key = session_key.strip()
-    status = credential_status(st.session_state.ai_session_api_key)
-    if status.configured:
-        st.success(f"Configured from {status.source}: {status.masked}")
+    if st.session_state.ai_session_api_key:
+        st.success("A session-only API key is configured.")
     else:
-        st.info("No API key configured. You may also set OPENAI_API_KEY in the local environment.")
+        st.info("No API key configured. Keys remain in the current session only.")
 
-    credential_col, remove_col, test_col = st.columns(3)
-    if credential_col.button("Save Key to OS Credential Store"):
-        try:
-            save_api_key(st.session_state.ai_session_api_key)
-        except CredentialError as exc:
-            st.error(str(exc))
-        else:
-            st.success("API key saved to the operating-system credential store.")
-    if remove_col.button("Remove Saved Key"):
-        try:
-            remove_saved_api_key()
-        except CredentialError as exc:
-            st.error(str(exc))
-        else:
-            st.success("Saved API key removed. Session and environment keys were not changed.")
-    if test_col.button("Test OpenAI Connection"):
-        api_key, _ = resolve_api_key(st.session_state.ai_session_api_key)
+    if st.button("Test OpenAI Connection"):
+        api_key, _ = resolve_api_key(
+            st.session_state.ai_session_api_key,
+            allow_shared_sources=False,
+        )
         result = test_connection(api_key, st.session_state.ai_model)
         if result.ok:
             st.success(result.message)

@@ -17,9 +17,10 @@ SHELL = ROOT / "subsystems" / "experience" / "engines" / "shell.py"
 class OfficialUiRefinementTests(unittest.TestCase):
     def test_version_is_final_release(self) -> None:
         version = (ROOT / "VERSION.md").read_text(encoding="utf-8")
-        self.assertIn("Workspace version: Living OS v2.0.9.2", version)
-        self.assertIn("Production release: Living OS v2.0.9.1", version)
-        self.assertIn("Official Concept UI Implementation Release Candidate.", version)
+        self.assertIn("Workspace version: Living OS v2.0.9.3", version)
+        self.assertIn("Production release: Living OS v2.0.9.2", version)
+        self.assertIn("Final Hotfix Release Candidate.", version)
+        self.assertIn("Release pending user approval", version)
 
     def test_structural_design_components_exist_in_experience_engine(self) -> None:
         design = DESIGN.read_text(encoding="utf-8")
@@ -32,7 +33,7 @@ class OfficialUiRefinementTests(unittest.TestCase):
         self.assertIn("los-world-style-layer", design)
         self.assertIn('st.image(str(WORLD_ASSET), width="stretch")', design)
         self.assertNotIn("los-world-overlay-repair", design)
-        self.assertIn("living-os-v2092-official-style.png", design)
+        self.assertIn("living-os-v2092-official-style-clean.png", design)
 
     def test_key_screens_use_new_information_hierarchy(self) -> None:
         pages = PAGES.read_text(encoding="utf-8")

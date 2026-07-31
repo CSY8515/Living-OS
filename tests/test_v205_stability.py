@@ -230,14 +230,14 @@ class HealthUIAndDocumentationTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
 
     def test_active_version_and_generated_report_are_v205(self) -> None:
-        self.assertEqual(PRODUCT_VERSION, "v2.0.9.2")
-        self.assertIn("Living OS v2.0.9.2", (ROOT / "VERSION.md").read_text(encoding="utf-8"))
+        self.assertEqual(PRODUCT_VERSION, "v2.0.9.3")
+        self.assertIn("Living OS v2.0.9.3", (ROOT / "VERSION.md").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             hub = LivingHub(root)
             hub.bootstrap(V20_STABLE_MANIFESTS)
             self.assertIn(
-                "- Version: Living OS v2.0.9.2",
+                "- Version: Living OS v2.0.9.3",
                 ReportsService(hub).build("daily"),
             )
 

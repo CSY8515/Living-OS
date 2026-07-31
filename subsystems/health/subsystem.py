@@ -24,6 +24,7 @@ class HealthSubsystem:
     """The only supported Living OS boundary for Health Subsystem v1.0."""
 
     VERSION = "1.0.0"
+    subsystem_id = "SUB-HEALTH"
     LIVING_OS_COMPATIBILITY = ">=1.3,<2.0"
     PRIVACY_CLASS = "sensitive"
 
@@ -212,3 +213,20 @@ class HealthSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def owner_data_count(self) -> int:
+        snapshot = self.export_snapshot()
+        return sum(len(value) for value in snapshot.values() if isinstance(value, list))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self._store.reset_tables(
+            (
+                "nutrition_records",
+                "health_goals",
+                "exercise_records",
+                "sleep_records",
+                "health_checkups",
+                "body_compositions",
+                "weight_records",
+            )
+        )

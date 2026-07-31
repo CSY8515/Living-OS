@@ -96,6 +96,10 @@ class RoutineRepository(ComponentDatabaseAdapter):
     def health(self)->dict[str,Any]:
         if not self.initialized:return {"status":"READY","initialized":False,"schema_version":1}
         rows=self.query_rows("PRAGMA integrity_check");ok=bool(rows) and next(iter(rows[0].values()))=="ok";return {"status":"HEALTHY" if ok else "DEGRADED","initialized":True,"schema_version":1,"integrity":"ok" if ok else "failed"}
+    def owner_data_count(self)->int:
+        return len(self.list(include_archived=True,limit=1000))+len(self.executions(limit=1000))
+    def reset_owner_data(self)->dict[str,int]:
+        return self.reset_tables(("routine_executions","routines"))
     @staticmethod
     def _values(p:dict[str,Any])->tuple[Any,...]: return (p["routine_id"],p["name"],p.get("description",""),p.get("category","General"),p.get("frequency","DAILY"),p.get("schedule_rule",""),int(p.get("priority",3)),p.get("status","DRAFT"),p.get("start_date",""),p.get("end_date",""),p.get("last_executed_at"),p.get("next_due_at"),int(p.get("completion_count",0)),int(p.get("failure_count",0)),int(p.get("streak",0)),p["created_at"],p["updated_at"],json.dumps(p.get("metadata",{}),ensure_ascii=False,sort_keys=True))
     @staticmethod

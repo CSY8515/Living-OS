@@ -23,6 +23,10 @@ class InvestmentSubsystem:
         )
         self.database_foundation = database_foundation
 
+    @property
+    def database_path(self) -> Path:
+        return self.repository.database_path
+
     @record_failures("create")
     def create(self, name: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso()
@@ -72,6 +76,8 @@ class InvestmentSubsystem:
 
     def health(self) -> dict[str, Any]:
         return self.repository.health()
+    def owner_data_count(self) -> int: return self.repository.owner_data_count()
+    def reset_owner_data(self) -> dict[str, int]: return self.repository.reset_owner_data()
 
     def management_summary(self) -> dict[str, Any]:
         records = self.list(include_archived=True, limit=1000)

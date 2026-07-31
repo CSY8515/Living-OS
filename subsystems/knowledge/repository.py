@@ -84,6 +84,12 @@ class KnowledgeRepository(ComponentDatabaseAdapter):
         ok = bool(row) and next(iter(row[0].values())) == "ok"
         return {"status": "HEALTHY" if ok else "DEGRADED", "initialized": True, "schema_version": SCHEMA_VERSION, "integrity": "ok" if ok else "failed"}
 
+    def owner_data_count(self) -> int:
+        return len(self.list(include_archived=True, limit=1000))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self.reset_tables(("knowledge_records",))
+
     @staticmethod
     def _values(payload: dict[str, Any]) -> tuple[Any, ...]:
         return (payload["record_id"], payload["title"], payload["content"], payload.get("summary", ""), payload.get("category", "General"), json.dumps(payload.get("tags", []), ensure_ascii=False), payload.get("source_type", "manual"), payload.get("source_reference", ""), payload.get("status", "NEW"), int(payload.get("importance", 3)), payload["created_at"], payload["updated_at"], payload.get("archived_at"), json.dumps(payload.get("metadata", {}), ensure_ascii=False, sort_keys=True))

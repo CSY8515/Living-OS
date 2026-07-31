@@ -21,6 +21,7 @@ class FinanceSubsystem:
     """The only supported external facade for Finance Subsystem v1.0."""
 
     VERSION = "1.0.0"
+    subsystem_id = "SUB-FINANCE"
     LIVING_OS_COMPATIBILITY = ">=1.2,<2.0"
 
     def __init__(self, root: Path, database_path: Path | None = None,
@@ -165,6 +166,21 @@ class FinanceSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def owner_data_count(self) -> int:
+        snapshot = self.export_snapshot()
+        return sum(len(value) for value in snapshot.values() if isinstance(value, list))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self._store.reset_tables(
+            (
+                "savings_contributions",
+                "monthly_closings",
+                "budgets",
+                "ledger_transactions",
+                "savings_accounts",
+            )
+        )
 
     def dashboard(self, month: Any) -> dict[str, Any]:
         snapshot = self.export_snapshot()

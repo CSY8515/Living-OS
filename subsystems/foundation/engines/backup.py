@@ -66,6 +66,15 @@ class BackupService:
                 if snapshot_path.exists():
                     archive.write(snapshot_path, "hub/living_os.sqlite3")
                     manifest["files"]["hub/living_os.sqlite3"] = sha256_file(snapshot_path)  # type: ignore[index]
+                document_root = self.database_path.parent / "documents"
+                if document_root.is_dir():
+                    for path in sorted(document_root.rglob("*")):
+                        if not path.is_file():
+                            continue
+                        relative = path.relative_to(document_root).as_posix()
+                        archive_name = f"hub/documents/{relative}"
+                        archive.write(path, archive_name)
+                        manifest["files"][archive_name] = sha256_file(path)  # type: ignore[index]
                 for path in legacy_paths or []:
                     if not path.exists() or not path.is_file():
                         continue
@@ -107,6 +116,14 @@ class BackupService:
             for name in names:
                 if name == "hub/living_os.sqlite3":
                     target = self.database_path
+                elif name.startswith("hub/documents/"):
+                    relative = Path(name.removeprefix("hub/documents/"))
+                    target = (self.database_path.parent / "documents" / relative).resolve()
+                    document_root = (self.database_path.parent / "documents").resolve()
+                    try:
+                        target.relative_to(document_root)
+                    except ValueError as exc:
+                        raise ValueError("Backup contains an unsafe document path.") from exc
                 elif name.startswith("legacy/"):
                     relative = Path(name.removeprefix("legacy/"))
                     target = (self.repository_root / relative).resolve()

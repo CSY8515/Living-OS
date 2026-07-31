@@ -21,6 +21,7 @@ class FoodSubsystem:
     """The only supported Living OS boundary for Food Subsystem v1.0."""
 
     VERSION = "1.0.0"
+    subsystem_id = "SUB-FOOD"
     LIVING_OS_COMPATIBILITY = ">=1.6,<2.0"
     PRIVACY_CLASS = "sensitive"
 
@@ -168,6 +169,21 @@ class FoodSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def owner_data_count(self) -> int:
+        snapshot = self.export_snapshot()
+        return sum(len(value) for value in snapshot.values() if isinstance(value, list))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self._store.reset_tables(
+            (
+                "food_meals",
+                "food_cooking_records",
+                "food_recipe_ingredients",
+                "food_recipes",
+                "food_ingredients",
+            )
+        )
 
     def record_detail(self, record_id: Any) -> dict[str, Any]:
         snapshot = self.export_snapshot()

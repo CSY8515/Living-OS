@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 from contextlib import closing, contextmanager
 from pathlib import Path
 from typing import Any, Iterator
+from uuid import uuid4
 
 from subsystems.foundation.engines.contracts import DomainEvent, RecordRef, Relationship
 from subsystems.foundation.engines.errors import ConcurrencyError
@@ -333,3 +335,71 @@ class HubStore:
         with closing(self.connect()) as connection:
             row = connection.execute(f"SELECT COUNT(*) AS count FROM {table}").fetchone()
         return int(row["count"])
+
+    def owner_data_count(self) -> int:
+        """Count rows removed by an owner-data reset without changing storage."""
+        self.initialize()
+        queries = (
+            ("records", "module_id NOT IN ('SUB-DATABASE','settings')"),
+            ("domain_events", "module_id NOT IN ('SUB-DATABASE','settings')"),
+            ("audit_entries", "module_id NOT IN ('SUB-DATABASE','settings')"),
+            ("relationships", "1=1"),
+            ("documents", "1=1"),
+            ("projection_checkpoints", "1=1"),
+        )
+        total = 0
+        with closing(self.connect()) as connection:
+            for table, predicate in queries:
+                row = connection.execute(
+                    f"SELECT COUNT(*) FROM {table} WHERE {predicate}"
+                ).fetchone()
+                total += int(row[0]) if row else 0
+        return total
+
+    def reset_owner_data(self, document_root: Path) -> dict[str, int]:
+        """Remove owner content while preserving security and system contracts."""
+        self.initialize()
+        root = Path(document_root).resolve()
+        expected_parent = self.database_path.parent.resolve()
+        try:
+            root.relative_to(expected_parent)
+        except ValueError as exc:
+            raise ValueError("Document storage is outside the Hub data root.") from exc
+
+        staged_documents: Path | None = None
+        if root.exists():
+            staged_documents = root.with_name(f".documents-reset-{uuid4().hex}")
+            root.replace(staged_documents)
+
+        counts: dict[str, int] = {}
+        statements = (
+            (
+                "domain_events",
+                "DELETE FROM domain_events WHERE module_id NOT IN ('SUB-DATABASE','settings')",
+            ),
+            (
+                "audit_entries",
+                "DELETE FROM audit_entries WHERE module_id NOT IN ('SUB-DATABASE','settings')",
+            ),
+            ("relationships", "DELETE FROM relationships"),
+            ("documents", "DELETE FROM documents"),
+            (
+                "records",
+                "DELETE FROM records WHERE module_id NOT IN ('SUB-DATABASE','settings')",
+            ),
+            ("projection_checkpoints", "DELETE FROM projection_checkpoints"),
+        )
+        try:
+            with self.transaction() as connection:
+                for table, statement in statements:
+                    before = connection.total_changes
+                    connection.execute(statement)
+                    counts[table] = connection.total_changes - before
+        except Exception:
+            if staged_documents is not None and staged_documents.exists():
+                staged_documents.replace(root)
+            raise
+
+        if staged_documents is not None and staged_documents.exists():
+            shutil.rmtree(staged_documents)
+        return counts

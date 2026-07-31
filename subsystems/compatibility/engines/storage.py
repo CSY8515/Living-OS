@@ -31,46 +31,7 @@ DEFAULT_SETTINGS = {
     "default_report_range": "daily",
     "date_format": "YYYY-MM-DD",
 }
-DEFAULT_MODULE_REGISTRY = {
-    "modules": [
-        {
-            "id": "vehicle_os",
-            "name": "Vehicle OS",
-            "status": "planned",
-            "description": "Vehicle, driving, maintenance, mobility records.",
-        },
-        {
-            "id": "food_os",
-            "name": "Food OS",
-            "status": "planned",
-            "description": "Meals, ingredients, cooking, nutrition records.",
-        },
-        {
-            "id": "finance_os",
-            "name": "Finance OS",
-            "status": "planned",
-            "description": "Budget, expenses, savings, financial decisions.",
-        },
-        {
-            "id": "health_os",
-            "name": "Health OS",
-            "status": "planned",
-            "description": "Health logs and body condition records.",
-        },
-        {
-            "id": "housing_os",
-            "name": "Housing OS",
-            "status": "planned",
-            "description": "Housing candidates, home records, living environment.",
-        },
-        {
-            "id": "learning_os",
-            "name": "Learning OS",
-            "status": "planned",
-            "description": "Learning packs, notes, reports, casebook.",
-        },
-    ]
-}
+DEFAULT_MODULE_REGISTRY = {"modules": []}
 
 
 FILES: dict[str, tuple[Path, Any]] = {

@@ -81,8 +81,8 @@ def render_archive() -> None:
 
     with st.form("archive_form", clear_on_submit=True):
         title = st.text_input("Title")
-        source = st.text_input("Source", placeholder="daily log / decision / report / external")
-        tags = st.text_input("Tags", placeholder="casebook, rule-candidate")
+        source = st.text_input("Source")
+        tags = st.text_input("Tags")
         content = st.text_area("Content", height=180)
         submitted = st.form_submit_button("Save Archive Item")
 

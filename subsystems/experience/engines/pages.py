@@ -30,6 +30,11 @@ from subsystems.experience.engines.design_system import (
 )
 
 from subsystems.foundation.engines.errors import CoreError
+from subsystems.foundation.engines.data_reset import (
+    OwnerDataResetError,
+    OwnerDataResetService,
+    development_legacy_empty_states,
+)
 from subsystems.foundation.engines.hub import LivingHub
 from subsystems.foundation.engines.module_runtime import LIFECYCLE_TRANSITIONS
 from subsystems.foundation.engines.release_gate import evaluate_release_gate
@@ -258,7 +263,7 @@ def render_knowledge_subsystem(knowledge: KnowledgeSubsystem) -> None:
             content = st.text_area("Content")
             summary = st.text_input("Summary")
             category = st.text_input("Category", value="General")
-            tags = st.text_input("Tags", placeholder="comma, separated")
+            tags = st.text_input("Tags")
             importance = st.slider("Importance", 1, 5, 3)
             submitted = st.form_submit_button("Create")
         if submitted:
@@ -501,8 +506,8 @@ def render_journal(hub: LivingHub) -> None:
     with st.form("v2_journal_form", clear_on_submit=True):
         entry_date = st.date_input("Date").isoformat()
         title = st.text_input("Title")
-        mood = st.text_input("Status", placeholder="NORMAL / FOCUSED / TIRED")
-        tags = st.text_input("Tags", placeholder="work, learning, health")
+        mood = st.text_input("Status")
+        tags = st.text_input("Tags")
         content = st.text_area("Journal Entry", height=220)
         submitted = st.form_submit_button("Save Journal Entry")
     if submitted:
@@ -645,7 +650,7 @@ def render_global_search(hub: LivingHub) -> None:
     st = localized_streamlit()
     page_header("Global Search", "LIVING INDEX / SEARCH", "생활 기록 전체를 한 번에 탐색하고 원래 공간으로 이동할 단서를 찾습니다.", "READY")
     workspace_rail("통합 검색", "제목·요약·식별자·분류를 기준으로 모든 연결 기록을 찾습니다.", icon="⌕", meta="UNIFIED DISCOVERY")
-    query = st.text_input("Search all records", placeholder="Title, summary, ID, category…", key="global_search")
+    query = st.text_input("Search all records", key="global_search")
     cols = st.columns(4)
     subsystem = cols[0].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="search_subsystem")
     category = cols[1].selectbox("Category", ["All", *hub.timeline.categories()], key="search_category")
@@ -698,7 +703,10 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
     _ensure_ai_model(st)
     official_document("결정론적 리포트 원문", preview, caption="AI 초안 생성 전에 확인하는 공식 리포트 본문")
     if st.button("Generate AI Report Draft"):
-        api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
+        api_key, _ = resolve_api_key(
+            str(st.session_state.get("ai_session_api_key", "")),
+            allow_shared_sources=not hub.runtime_config.production,
+        )
         if not api_key: st.error("Configure an OpenAI API key in Settings first.")
         else:
             try: st.session_state.v2_ai_report_draft = AIBriefingService(hub, OpenAITextProvider(api_key)).analyze("report", st.session_state.ai_model, preview)
@@ -814,7 +822,10 @@ def _ai_panel(
     st.warning("Only the visible selected fields will be sent after explicit approval.")
     official_document("전송 전 확인", source, caption="선택한 기록에서 AI 분석에 사용할 항목")
     if st.button("Request Read-only Analysis", key=f"request_{state_key}"):
-        api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
+        api_key, _ = resolve_api_key(
+            str(st.session_state.get("ai_session_api_key", "")),
+            allow_shared_sources=not hub.runtime_config.production,
+        )
         if not api_key:
             st.error("Configure an OpenAI API key in Settings first.")
         else:
@@ -834,6 +845,12 @@ def render_ai_briefing(hub: LivingHub) -> None:
     st = localized_streamlit()
     page_header("AI Briefing", "AI 브리핑", "내가 선택한 생활 기록을 읽기 전용으로 분석합니다.", "READY")
     st.caption("Source-attributed, explicit, read-only AI analysis.")
+    st.text_input(
+        "OpenAI API Key",
+        type="password",
+        key="ai_session_api_key",
+    )
+    st.caption("키는 현재 브라우저 세션에서만 사용되며 저장되지 않습니다.")
     _ensure_ai_model(st)
     journal_tab, decision_tab = st.tabs(["Journal", "Decision"])
     with journal_tab:
@@ -903,6 +920,62 @@ def render_module_manager(hub: LivingHub) -> None:
                     try: hub.modules.transition(module_id, target)
                     except ValueError as exc: st.error(str(exc))
                     else: st.success(f"{module_id}: {current} → {target}"); st.rerun()
+
+def render_owner_data_control(
+    hub: LivingHub, systems: dict[str, Any]
+) -> None:
+    from subsystems.experience.engines.localization import localized_streamlit
+    st = localized_streamlit()
+    legacy = (
+        {}
+        if hub.runtime_config.production
+        else development_legacy_empty_states(hub.repository_root)
+    )
+    service = OwnerDataResetService(
+        hub,
+        tuple(systems.values()),
+        legacy_empty_states=legacy,
+    )
+    preview = service.preview()
+    total = sum(preview.values())
+    st.subheader("내 데이터 관리")
+    st.caption(
+        "생활 기록을 초기 상태로 되돌립니다. 소유자 인증, 시스템 구조와 "
+        "마이그레이션 정보는 보존됩니다."
+    )
+    st.write(f"초기화 대상: {total:,}개")
+    if total == 0:
+        st.info("초기화할 사용자 데이터가 없습니다.")
+        return
+    st.warning(
+        "실행 전에 검증된 백업을 만듭니다. 이 작업은 모든 생활 영역의 "
+        "사용자 기록을 삭제합니다."
+    )
+    confirmed = st.checkbox(
+        "초기화 범위와 영향을 확인했습니다.",
+        key="owner_data_reset_scope_confirmed",
+    )
+    phrase = st.text_input(
+        "확인을 위해 초기화를 입력하세요.",
+        key="owner_data_reset_phrase",
+    )
+    if st.button(
+        "사용자 데이터 초기화",
+        disabled=not confirmed or phrase.strip() != "초기화",
+        key="owner_data_reset_execute",
+    ):
+        try:
+            report = service.reset(actor="owner")
+        except OwnerDataResetError as exc:
+            st.error(str(exc))
+        else:
+            st.session_state.ai_session_api_key = ""
+            st.session_state.owner_data_reset_result = report.to_dict()
+            st.success(
+                f"사용자 데이터 {report.total_removed:,}개를 초기화했습니다."
+            )
+            st.rerun()
+
 
 def render_settings(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
@@ -989,7 +1062,6 @@ def render_settings(hub: LivingHub) -> None:
         "OpenAI API Key",
         value=str(st.session_state.get("ai_session_api_key", "")),
         type="password",
-        placeholder="Session-only; never stored in canonical records",
     )
     st.session_state.ai_session_api_key = session_key.strip()
     _ensure_ai_model(st)
@@ -1736,9 +1808,13 @@ def render_housing(housing: HousingSubsystem) -> None:
                 key="housing_delete_candidate",
                 disabled=not confirm_delete,
             ):
-                housing.delete_candidate(selected_id)
-                st.success("Candidate deleted.")
-                st.rerun()
+                try:
+                    housing.delete_candidate(selected_id)
+                except (KeyError, ValueError) as exc:
+                    st.error(f"Candidate could not be deleted: {exc}")
+                else:
+                    st.success("Candidate deleted.")
+                    st.rerun()
 
     with comparison_tab:
         official_records(housing.rank_candidates(), title="주거 비교", empty="비교할 주거 후보가 없습니다.")

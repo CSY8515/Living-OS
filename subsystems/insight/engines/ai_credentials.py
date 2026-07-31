@@ -69,10 +69,14 @@ def remove_saved_api_key() -> None:
         raise CredentialError("The saved API key could not be removed from the operating-system credential store.") from exc
 
 
-def resolve_api_key(session_key: str = "") -> tuple[str, str]:
+def resolve_api_key(
+    session_key: str = "", *, allow_shared_sources: bool = True
+) -> tuple[str, str]:
     clean_session_key = session_key.strip()
     if clean_session_key:
         return clean_session_key, "session"
+    if not allow_shared_sources:
+        return "", "not configured"
 
     try:
         saved = load_saved_api_key()
@@ -87,6 +91,10 @@ def resolve_api_key(session_key: str = "") -> tuple[str, str]:
     return "", "not configured"
 
 
-def credential_status(session_key: str = "") -> CredentialStatus:
-    api_key, source = resolve_api_key(session_key)
+def credential_status(
+    session_key: str = "", *, allow_shared_sources: bool = True
+) -> CredentialStatus:
+    api_key, source = resolve_api_key(
+        session_key, allow_shared_sources=allow_shared_sources
+    )
     return CredentialStatus(bool(api_key), source, mask_api_key(api_key))

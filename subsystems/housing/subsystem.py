@@ -20,6 +20,7 @@ class HousingSubsystem:
     """The only supported Living OS boundary for Housing Subsystem v1.0."""
 
     VERSION = "1.0.0"
+    subsystem_id = "SUB-HOUSING"
     LIVING_OS_COMPATIBILITY = ">=1.4,<2.0"
     PRIVACY_CLASS = "sensitive"
 
@@ -144,3 +145,12 @@ class HousingSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def owner_data_count(self) -> int:
+        snapshot = self.export_snapshot()
+        return sum(len(value) for value in snapshot.values() if isinstance(value, list))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self._store.reset_tables(
+            ("housing_charges", "housing_contracts", "housing_candidates")
+        )

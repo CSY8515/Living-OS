@@ -1,8 +1,8 @@
-# Living OS v2.0.9.2
+# Living OS v2.0.9.3
 
-> Living OS v2.0.9.2 is the Official Concept UI Implementation release.
+> Living OS v2.0.9.3 is the Stable Final Hotfix release. Production release: v2.0.9.3.
 
-v2.0.9.2 implements the supplied concept structure as the real user shell: Image 1 keeps its nine life spaces and exact composition, rendered with Image 2's OS Ecosystem material, lighting, glass, depth, and premium visual style. Vehicle is added only as a compact central mobility gateway without moving the nine blueprint objects. It also provides a five-action dock, user-only navigation, and distinct Finance, Investment, Job, Health, Vehicle, Housing, Food, Knowledge, Routine, and Personal Growth worlds. Collaboration remains developer-only and is not exposed in the general user interface. Internal administration remains available to the backend but is not exposed in the general user interface.
+v2.0.9.3 preserves the v2.0.9.2 official concept UI while completing the Stable data-control hotfix: production dummy data is removed, owner data can be reset with verified recovery backups, existing policy-approved deletion paths remain available, and production BYOK accepts only the current user's session key. Collaboration remains developer-only and is not exposed in the general user interface. Internal administration remains available to the backend but is not exposed in the general user interface.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

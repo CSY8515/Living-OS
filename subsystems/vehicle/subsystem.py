@@ -21,6 +21,7 @@ class VehicleSubsystem:
     """The only supported Living OS boundary for Vehicle Subsystem v1.0."""
 
     VERSION = "1.0.0"
+    subsystem_id = "SUB-VEHICLE"
     LIVING_OS_COMPATIBILITY = ">=1.5,<2.0"
     PRIVACY_CLASS = "sensitive"
 
@@ -189,3 +190,19 @@ class VehicleSubsystem:
 
     def export_snapshot(self) -> dict[str, Any]:
         return self._store.export_snapshot()
+
+    def owner_data_count(self) -> int:
+        snapshot = self.export_snapshot()
+        return sum(len(value) for value in snapshot.values() if isinstance(value, list))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self._store.reset_tables(
+            (
+                "vehicle_maintenance_schedules",
+                "vehicle_trips",
+                "vehicle_energy_logs",
+                "vehicle_maintenance_records",
+                "vehicle_odometer_readings",
+                "vehicle_vehicles",
+            )
+        )

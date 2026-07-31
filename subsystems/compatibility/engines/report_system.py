@@ -188,7 +188,10 @@ def render_reports() -> None:
     st.warning("Only the selected report inputs shown below will be sent to OpenAI after explicit approval.")
     st.code(ai_source, language="text")
     if st.button("Generate AI Report Draft"):
-        api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
+        api_key, _ = resolve_api_key(
+            str(st.session_state.get("ai_session_api_key", "")),
+            allow_shared_sources=False,
+        )
         if not api_key:
             st.error("Configure an OpenAI API key in Settings first.")
         else:

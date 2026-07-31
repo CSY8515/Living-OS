@@ -46,7 +46,10 @@ def _render_analysis(
     st.warning("Only the selected fields shown below will be sent to OpenAI after you press the analysis button.")
     st.code(source, language="text")
     if st.button(button_label, key=f"{state_key}_button"):
-        api_key, _ = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
+        api_key, _ = resolve_api_key(
+            str(st.session_state.get("ai_session_api_key", "")),
+            allow_shared_sources=False,
+        )
         if not api_key:
             st.error("Configure an OpenAI API key in Settings first.")
         else:
@@ -71,7 +74,10 @@ def render_ai_analysis() -> None:
         st.session_state.ai_model = DEFAULT_AI_MODEL
     st.selectbox("Model", AI_MODELS, key="ai_model")
 
-    api_key, source_name = resolve_api_key(str(st.session_state.get("ai_session_api_key", "")))
+    api_key, source_name = resolve_api_key(
+        str(st.session_state.get("ai_session_api_key", "")),
+        allow_shared_sources=False,
+    )
     if api_key:
         st.success(f"AI is configured from: {source_name}.")
     else:

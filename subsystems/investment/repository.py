@@ -108,6 +108,12 @@ class InvestmentRepository(ComponentDatabaseAdapter):
         return {"status": "HEALTHY" if ok else "DEGRADED", "initialized": True,
                 "schema_version": SCHEMA_VERSION, "integrity": "ok" if ok else "failed"}
 
+    def owner_data_count(self) -> int:
+        return len(self.list(include_archived=True, limit=1000))
+
+    def reset_owner_data(self) -> dict[str, int]:
+        return self.reset_tables(("records",))
+
     @staticmethod
     def _domain(record: dict[str, Any]) -> dict[str, Any]:
         return {key: value for key, value in record.items() if key != "id" and not key.startswith("_")}

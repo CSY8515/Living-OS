@@ -19,6 +19,8 @@ class CollaborationSubsystem:
         self.repository = CollaborationRepository(path, database_foundation)
         self.repository.register_contract(schema_version=1, migration_id="collaboration-schema-v1", integration_mode="record-repository")
         self.database_foundation = database_foundation
+    @property
+    def database_path(self) -> Path: return self.repository.database_path
     @record_failures("create")
     def create(self, title: str, partner: str, **fields: Any) -> dict[str, Any]:
         now = utc_now_iso(); record = CollaborationItem(collaboration_id=str(fields.pop("collaboration_id", "") or uuid4()), title=title, partner=partner, created_at=now, updated_at=now, **fields)
@@ -36,6 +38,8 @@ class CollaborationSubsystem:
     def restore(self, item_id: str) -> dict[str, Any]: return self.update(item_id, status="PLANNED")
     def list(self, **filters: Any) -> list[dict[str, Any]]: return self.repository.list(**filters)
     def health(self) -> dict[str, Any]: return self.repository.health()
+    def owner_data_count(self) -> int: return self.repository.owner_data_count()
+    def reset_owner_data(self) -> dict[str, int]: return self.repository.reset_owner_data()
     def management_summary(self) -> dict[str, Any]:
         records = self.list(include_archived=True); today = date.today().isoformat(); active = [r for r in records if r["status"] in {"PLANNED", "ACTIVE", "BLOCKED"}]
         return {"total": len(records), "active": sum(r["status"] == "ACTIVE" for r in records), "blocked": sum(r["status"] == "BLOCKED" for r in records), "completed": sum(r["status"] == "COMPLETED" for r in records), "due": sum(bool(r["status"] in {"PLANNED", "ACTIVE", "BLOCKED"} and r["due_date"] and r["due_date"] <= today) for r in records), "by_status": dict(Counter(r["status"] for r in records)), "by_partner": dict(Counter(r["partner"] for r in records)), "priorities": active[:8], "health": self.health(), "registry_registered": self._registered()}

@@ -55,3 +55,5 @@ class CollaborationRepository(ComponentDatabaseAdapter):
         if not self.initialized: return {"status": "READY", "initialized": False, "schema_version": 1}
         rows = self.query_rows("PRAGMA integrity_check"); ok = bool(rows) and next(iter(rows[0].values())) == "ok"
         return {"status": "HEALTHY" if ok else "DEGRADED", "initialized": True, "schema_version": 1, "integrity": "ok" if ok else "failed"}
+    def owner_data_count(self) -> int: return len(self.list(include_archived=True, limit=1000))
+    def reset_owner_data(self) -> dict[str, int]: return self.reset_tables(("records",))

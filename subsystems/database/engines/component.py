@@ -4,6 +4,7 @@ import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any, Iterator
 
 from subsystems.database.engines.connection import SQLiteConnectionLayer
@@ -116,6 +117,32 @@ class ComponentDatabaseAdapter:
             return []
         with self.connections.connection(read_only=True) as connection:
             return [dict(row) for row in connection.execute(sql, parameters).fetchall()]
+
+    def reset_tables(self, tables: tuple[str, ...]) -> dict[str, int]:
+        """Delete owner rows transactionally while retaining schema and migrations."""
+        if not self.initialized:
+            return {table: 0 for table in tables}
+        for table in tables:
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", table):
+                raise ValueError("Invalid owner-data table.")
+        counts: dict[str, int] = {}
+        with self.transaction() as connection:
+            existing = {
+                str(row[0])
+                for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            for table in tables:
+                if table not in existing:
+                    counts[table] = 0
+                    continue
+                row = connection.execute(
+                    f'SELECT COUNT(*) FROM "{table}"'
+                ).fetchone()
+                counts[table] = int(row[0]) if row else 0
+                connection.execute(f'DELETE FROM "{table}"')
+        return counts
 
     def register_contract(
         self,

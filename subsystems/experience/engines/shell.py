@@ -36,6 +36,7 @@ from subsystems.experience.engines.pages import (
     render_collaboration_management,
     render_database,
     render_database_management,
+    render_owner_data_control,
 )
 from subsystems.experience.engines.design_system import (
     navigation_identity,
@@ -535,7 +536,23 @@ def main() -> None:
     collaboration = _collaboration_subsystem()
     if not _authorize(hub):
         return
+    managed_systems = {
+        "Finance": finance,
+        "Food": food,
+        "Health": health,
+        "Housing": housing,
+        "Vehicle": vehicle,
+        "Knowledge": knowledge,
+        "Routine": routine,
+        "Investment": investment,
+        "Job": job,
+        "Personal Growth": growth,
+        "Collaboration": collaboration,
+    }
     pages = _canonical_pages(hub, finance, food, health, housing, vehicle, knowledge, routine, investment, job, growth, collaboration)
+
+    with st.popover("내 데이터", use_container_width=False):
+        render_owner_data_control(hub, managed_systems)
 
     module_by_page = {
         "Command Center": "dashboard",

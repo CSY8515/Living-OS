@@ -18,8 +18,8 @@ DESIGN = ROOT / "subsystems" / "experience" / "engines" / "design_system.py"
 class OfficialConceptUiTests(unittest.TestCase):
     def test_candidate_version_and_release_boundary(self) -> None:
         version = (ROOT / "VERSION.md").read_text(encoding="utf-8")
-        self.assertIn("Workspace version: Living OS v2.0.9.2", version)
-        self.assertIn("Production release: Living OS v2.0.9.1", version)
+        self.assertIn("Workspace version: Living OS v2.0.9.3", version)
+        self.assertIn("Production release: Living OS v2.0.9.2", version)
         self.assertIn("Release pending user approval", version)
 
     def test_general_user_navigation_exposes_only_life_surfaces(self) -> None:
@@ -55,7 +55,7 @@ class OfficialConceptUiTests(unittest.TestCase):
             self.assertIn(marker, design)
         self.assertIn('WORLD_ASSET = ROOT / "assets" / "living-os-v2092-official-style-clean.png"', design)
         self.assertNotIn("los-world-overlay-repair", design)
-        asset = ROOT / "assets" / "living-os-v2092-official-style.png"
+        asset = ROOT / "assets" / "living-os-v2092-official-style-clean.png"
         self.assertTrue(asset.exists())
         self.assertGreater(asset.stat().st_size, 1_000_000)
         for key in (

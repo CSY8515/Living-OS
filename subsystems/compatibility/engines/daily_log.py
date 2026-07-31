@@ -75,8 +75,8 @@ def render_daily_log() -> None:
     with st.form("daily_log_form", clear_on_submit=True):
         log_date = st.date_input("Date").isoformat()
         title = st.text_input("Title")
-        mood = st.text_input("Today Status", placeholder="NORMAL / TIRED / FOCUSED")
-        tags = st.text_input("Tags", placeholder="work, learning, health")
+        mood = st.text_input("Today Status")
+        tags = st.text_input("Tags")
         content = st.text_area("Daily Log", height=220)
         submitted = st.form_submit_button("Save Daily Log")
 
