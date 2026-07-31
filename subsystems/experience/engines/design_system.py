@@ -379,7 +379,7 @@ def official_document(title: str, content: Any, *, caption: str = "공식 기록
     body = escape(str(content or "기록이 없습니다.")).replace("\n", "<br>")
     st.markdown(
         f'''<section class="los-document-canvas"><header><div><small>생활 문서</small>
-        <h3>{escape(str(ui_text(title)))}</h3><p>{escape(str(ui_text(caption, context="caption")))}</p></div><span>DOCUMENT</span></header>
+        <h3>{escape(str(ui_text(title)))}</h3><p>{escape(str(ui_text(caption, context="caption")))}</p></div><span>문서</span></header>
         <article>{body}</article></section>''',
         unsafe_allow_html=True,
     )

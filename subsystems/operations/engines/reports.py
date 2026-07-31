@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import date, timedelta
 import json
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Collection, Mapping
 from uuid import uuid4
 
 from subsystems.foundation.engines.commands import CommandResult
@@ -198,10 +198,17 @@ class ReportsService:
         report_type: str,
         *,
         as_of: date | None = None,
+        visible_subsystems: Collection[str] | None = None,
     ) -> dict[str, Any]:
         selected = report_type if report_type in REPORT_TYPES else "daily"
         start, end = self._range(selected, as_of)
-        timeline = self.hub.timeline.query(start=start, end=end, limit=1000)
+        visible = frozenset(visible_subsystems) if visible_subsystems is not None else None
+        timeline = [
+            item
+            for item in self.hub.timeline.query(start=start, end=end, limit=1000)
+            if "execution_id" not in item.metadata
+            and (visible is None or item.subsystem in visible)
+        ]
         by_subsystem: dict[str, int] = {}
         by_category: dict[str, int] = {}
         for item in timeline:
@@ -223,8 +230,13 @@ class ReportsService:
         report_type: str,
         *,
         as_of: date | None = None,
+        visible_subsystems: Collection[str] | None = None,
     ) -> list[dict[str, Any]]:
-        summary = self.report_summary(report_type, as_of=as_of)
+        summary = self.report_summary(
+            report_type,
+            as_of=as_of,
+            visible_subsystems=visible_subsystems,
+        )
         return [
             {"subsystem": name, "activity": count}
             for name, count in summary["by_subsystem"].items()

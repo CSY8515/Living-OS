@@ -516,12 +516,12 @@ def main() -> None:
     apply_responsive_layout()
     try:
         hub = _hub()
-    except RuntimeConfigurationError as exc:
+    except RuntimeConfigurationError:
         st.error(
             "리빙 OS 저장소 또는 인증 구성이 안전하지 않습니다. "
             "소유자 데이터를 열기 전에 앱을 잠갔습니다."
         )
-        st.code(str(exc))
+        st.caption("운영 설정을 확인한 뒤 다시 접속해 주세요.")
         st.stop()
     finance = _finance()
     food = _food()

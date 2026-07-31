@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from datetime import date, timedelta
-from typing import Any, Iterable
+from typing import Any, Collection, Iterable
 
 from subsystems.foundation.engines.timeline import TimelineRecord, TimelineService
 
@@ -24,8 +24,27 @@ def _percent_change(current: int, previous: int) -> float | None:
 class AnalyticsEngine:
     """Read-only analytics derived from the common Timeline contract."""
 
-    def __init__(self, timeline: TimelineService) -> None:
+    def __init__(
+        self,
+        timeline: TimelineService,
+        *,
+        visible_subsystems: Collection[str] | None = None,
+    ) -> None:
         self.timeline = timeline
+        self.visible_subsystems = (
+            frozenset(visible_subsystems) if visible_subsystems is not None else None
+        )
+
+    def _visible(self, records: Iterable[TimelineRecord]) -> list[TimelineRecord]:
+        return [
+            item
+            for item in records
+            if "execution_id" not in item.metadata
+            and (
+                self.visible_subsystems is None
+                or item.subsystem in self.visible_subsystems
+            )
+        ]
 
     def summary(
         self,
@@ -37,12 +56,14 @@ class AnalyticsEngine:
     ) -> dict[str, Any]:
         if start > end:
             raise ValueError("start cannot be after end")
-        records = self.timeline.query(
-            start=start,
-            end=end,
-            subsystem=subsystem,
-            include_archived=include_archived,
-            limit=1000,
+        records = self._visible(
+            self.timeline.query(
+                start=start,
+                end=end,
+                subsystem=subsystem,
+                include_archived=include_archived,
+                limit=1000,
+            )
         )
         by_subsystem = Counter(item.subsystem for item in records)
         by_status = Counter(item.status for item in records)
@@ -90,8 +111,10 @@ class AnalyticsEngine:
     ) -> list[dict[str, Any]]:
         if granularity not in {"day", "month", "year"}:
             raise ValueError("granularity must be day, month, or year")
-        records = self.timeline.query(
-            start=start, end=end, subsystem=subsystem, limit=1000
+        records = self._visible(
+            self.timeline.query(
+                start=start, end=end, subsystem=subsystem, limit=1000
+            )
         )
         grouped: dict[str, list[TimelineRecord]] = defaultdict(list)
         sizes = {"day": 10, "month": 7, "year": 4}
@@ -176,7 +199,9 @@ class AnalyticsEngine:
         selected = as_of or date.today()
         start = selected - timedelta(days=29)
         summary = self.summary(start, selected)
-        recent = self.timeline.query(limit=max(1, min(recent_limit, 20)))
+        recent = self._visible(
+            self.timeline.query(limit=max(1, min(recent_limit, 20)))
+        )
         busiest = max(
             summary["by_subsystem"],
             key=summary["by_subsystem"].get,

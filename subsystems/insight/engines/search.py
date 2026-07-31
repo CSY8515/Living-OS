@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-from typing import Any
+from typing import Any, Collection
 
 from subsystems.foundation.engines.timeline import TimelineRecord, TimelineService
 
@@ -40,8 +40,16 @@ class SearchResult:
 class GlobalSearchEngine:
     """Unified read-only search over Timeline-backed subsystem records."""
 
-    def __init__(self, timeline: TimelineService) -> None:
+    def __init__(
+        self,
+        timeline: TimelineService,
+        *,
+        visible_subsystems: Collection[str] | None = None,
+    ) -> None:
         self.timeline = timeline
+        self.visible_subsystems = (
+            frozenset(visible_subsystems) if visible_subsystems is not None else None
+        )
 
     @staticmethod
     def _score(item: TimelineRecord, needle: str) -> int:
@@ -88,6 +96,15 @@ class GlobalSearchEngine:
             include_archived=include_archived,
             limit=1000,
         )
+        records = [
+            item
+            for item in records
+            if "execution_id" not in item.metadata
+            and (
+                self.visible_subsystems is None
+                or item.subsystem in self.visible_subsystems
+            )
+        ]
         unique: dict[tuple[str, str, str], TimelineRecord] = {}
         for item in records:
             key = (item.subsystem, item.record_type, item.record_id)

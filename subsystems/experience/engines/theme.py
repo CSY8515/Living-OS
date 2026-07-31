@@ -508,17 +508,20 @@ a{color:var(--los-gold-bright)}*:focus-visible{outline:2px solid var(--los-gold-
 .st-key-world_node_vehicle .stButton>button:after{display:none!important;content:none!important}
 /* The subsystem artwork stays visible; identity information is a compact glass plaque. */
 .los-world-scene-scope .los-subsystem-world-hero>.los-page-hero{
- inset:auto auto 5% 4%!important;width:min(420px,36%)!important;height:auto!important;
+ inset:auto auto 5% 4%!important;width:min(520px,46%)!important;height:auto!important;
  min-height:220px!important;padding:25px 27px 23px!important;
+ grid-template-columns:minmax(180px,44%) minmax(0,1fr)!important;gap:20px!important;
  border:1px solid rgba(var(--los-space-ambient),.28)!important;border-radius:24px!important;
  background:linear-gradient(145deg,rgba(2,12,11,.65),rgba(2,8,9,.42))!important;
  box-shadow:inset 0 1px rgba(255,255,255,.03),0 22px 54px rgba(0,0,0,.35),0 0 30px rgba(var(--los-space-ambient),.08)!important;
  backdrop-filter:blur(14px) saturate(1.06)!important;overflow:hidden!important
 }
+.los-world-scene-scope .los-subsystem-world-hero .los-page-glyph{display:none!important}
+.los-world-scene-scope .los-subsystem-world-hero .los-feature-scene{width:100%!important;max-width:210px!important;height:170px!important;justify-self:stretch!important}
 .los-world-scene-scope .los-subsystem-world-hero>.los-page-hero:before{inset:0!important;background:radial-gradient(circle at 12% 12%,rgba(var(--los-space-ambient),.11),transparent 48%),linear-gradient(120deg,rgba(255,255,255,.016),transparent 52%)!important}
 .los-world-scene-scope .los-subsystem-world-hero>.los-page-hero:after{left:22px!important;right:22px!important;bottom:0!important;width:auto!important;height:1px!important;border:0!important;border-radius:0!important;background:linear-gradient(90deg,rgb(var(--los-space-ambient)),transparent)!important;box-shadow:0 0 13px rgba(var(--los-space-ambient),.40)!important}
 .los-world-scene-scope .los-subsystem-world-hero .los-page-copy{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:auto!important;max-width:none!important;transform:none!important;text-shadow:0 3px 18px rgba(0,0,0,.75)!important}
-.los-world-scene-scope .los-subsystem-world-hero .los-page-copy h1{margin:.5rem 0 .58rem!important;font-size:clamp(2rem,3vw,3rem)!important;line-height:1!important}
+.los-world-scene-scope .los-subsystem-world-hero .los-page-copy h1{max-width:100%!important;margin:.5rem 0 .58rem!important;font-size:clamp(2rem,2.45vw,2.7rem)!important;line-height:1.08!important;overflow-wrap:anywhere!important}
 .los-world-scene-scope .los-subsystem-world-hero .los-page-copy p{max-width:350px!important;font-size:clamp(.75rem,.86vw,.88rem)!important;line-height:1.55!important}
 .los-world-scene-scope .los-subsystem-world-hero .los-page-copy small{margin-top:10px!important;font-size:.58rem!important;letter-spacing:.11em!important}
 .los-world-scene-scope .los-subsystem-world-hero .los-badge{left:auto!important;right:18px!important;bottom:16px!important;padding:6px 9px!important;font-size:.56rem!important}
@@ -528,6 +531,7 @@ a{color:var(--los-gold-bright)}*:focus-visible{outline:2px solid var(--los-gold-
  .los-world-scene-scope .los-subsystem-world-hero>.los-page-hero{left:14px!important;right:14px!important;bottom:14px!important;width:auto!important;min-height:0!important;padding:20px 19px 52px!important;border-radius:19px!important}
  .los-world-scene-scope .los-subsystem-world-hero .los-page-copy h1{font-size:2rem!important}
  .los-world-scene-scope .los-subsystem-world-hero .los-page-copy p{max-width:none!important}
+ .los-world-scene-scope .los-subsystem-world-hero .los-feature-scene{position:absolute!important;right:50%!important;bottom:-2px!important;width:220px!important;height:140px!important;translate:50% 0!important;transform:scale(.84)!important}
  .los-world-scene-scope .los-subsystem-world-hero .los-badge{left:19px!important;right:auto!important;bottom:15px!important}
 }
 /* Premium raster roofs: attached to the glass crown, never floating button glyphs. */

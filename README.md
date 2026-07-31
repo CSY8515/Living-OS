@@ -1,8 +1,8 @@
-# Living OS v2.0.9.3
+# Living OS v2.0.9.4
 
-> Living OS v2.0.9.3 is the Stable Final Hotfix release. Production release: v2.0.9.3.
+> Living OS v2.0.9.4 is the Stable UI Privacy Hotfix release. Production release: v2.0.9.4.
 
-v2.0.9.3 preserves the v2.0.9.2 official concept UI while completing the Stable data-control hotfix: production dummy data is removed, owner data can be reset with verified recovery backups, existing policy-approved deletion paths remain available, and production BYOK accepts only the current user's session key. Collaboration remains developer-only and is not exposed in the general user interface. Internal administration remains available to the backend but is not exposed in the general user interface.
+v2.0.9.4 preserves every v2.0.9.3 data-control contract while completing the user-facing presentation hotfix: long subsystem titles stay within their world plaque, report storage payloads remain internal, report previews expose only readable life summaries, and production hides developer toolbar options and detailed runtime exceptions. Dummy data remains absent, owner reset and approved deletion paths remain available, and production BYOK continues to accept only the current user's session key. Collaboration and internal administration remain available to the backend but are not exposed in the general user interface.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

@@ -57,6 +57,32 @@ from subsystems.insight.engines.search import GlobalSearchEngine
 from subsystems.operations.engines.reports import ReportsService
 
 
+USER_TIMELINE_SUBSYSTEMS = (
+    "journal",
+    "decision",
+    "finance",
+    "health",
+    "vehicle",
+    "housing",
+    "food",
+    "investment",
+    "job",
+    "knowledge",
+    "routine",
+    "personal-growth",
+)
+
+
+def _user_timeline_records(records: list[Any]) -> list[Any]:
+    """Keep operational execution metadata outside ordinary user surfaces."""
+    visible = set(USER_TIMELINE_SUBSYSTEMS)
+    return [
+        item
+        for item in records
+        if item.subsystem in visible and "execution_id" not in item.metadata
+    ]
+
+
 def _tags(raw: str) -> list[str]:
     return [tag.strip() for tag in raw.split(",") if tag.strip()]
 
@@ -610,29 +636,39 @@ def render_knowledge(hub: LivingHub) -> None:
 def render_timeline(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    page_header("Global Timeline", "MEMORY ORBIT / TIMELINE", "모든 하위 시스템의 생활 사건을 하나의 시간 궤도에서 탐색합니다.", "ACTIVE")
-    workspace_rail("타임라인 필터", "기간·하위 시스템·분류·검색어를 조합해 생활의 흐름을 좁힙니다.", icon="↕", meta="ORBIT FILTER")
+    page_header("Global Timeline", "MEMORY ORBIT / TIMELINE", "모든 생활 영역의 사건을 하나의 시간 궤도에서 탐색합니다.", "ACTIVE")
+    workspace_rail("타임라인 필터", "기간·생활 영역·분류·검색어를 조합해 생활의 흐름을 좁힙니다.", icon="↕", meta="흐름 필터")
     dates = st.columns(2)
     start = dates[0].date_input("From", value=date.today().replace(day=1), key="timeline_start")
     end = dates[1].date_input("To", value=date.today(), key="timeline_end")
     filters = st.columns(4)
-    subsystem = filters[0].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="timeline_subsystem")
-    categories = hub.timeline.categories(subsystem=None if subsystem == "All" else subsystem)
+    subsystem = filters[0].selectbox("Subsystem", ["All", *USER_TIMELINE_SUBSYSTEMS], key="timeline_subsystem")
+    category_records = _user_timeline_records(
+        hub.timeline.query(subsystem=None if subsystem == "All" else subsystem, limit=1000)
+    )
+    categories = tuple(sorted({item.category for item in category_records if item.category}))
     category = filters[1].selectbox("Category", ["All", *categories], key="timeline_category")
     query = filters[2].text_input("Search", key="timeline_search")
-    order = filters[3].selectbox("Order", ["Newest", "Oldest"], key="timeline_sort")
+    order = filters[3].selectbox(
+        "Order",
+        ["Newest", "Oldest"],
+        key="timeline_sort",
+        format_func=lambda value: "최신순" if value == "Newest" else "오래된순",
+    )
     include_archived = st.toggle("Include archived", value=True, key="timeline_archived")
     if start > end:
         st.error("The start date cannot be after the end date."); return
-    records = hub.timeline.query(start=start, end=end, subsystem=None if subsystem == "All" else subsystem,
-        category=None if category == "All" else category, search=query, include_archived=include_archived,
-        sort_order="desc" if order == "Newest" else "asc", limit=1000)
+    records = _user_timeline_records(
+        hub.timeline.query(start=start, end=end, subsystem=None if subsystem == "All" else subsystem,
+            category=None if category == "All" else category, search=query, include_archived=include_archived,
+            sort_order="desc" if order == "Newest" else "asc", limit=1000)
+    )
     metric_deck((
         {"label": "Results", "value": len(records), "detail": "선택한 조건의 사건", "status": "ACTIVE"},
-        {"label": "Subsystems", "value": len({item.subsystem for item in records}), "detail": "연결된 생활 영역", "status": "READY"},
+        {"label": "생활 영역", "value": len({item.subsystem for item in records}), "detail": "연결된 생활 영역", "status": "READY"},
         {"label": "Archived", "value": sum(item.archived for item in records), "detail": "보관된 기록", "status": "ARCHIVED"},
-    ), label="TIMELINE SIGNALS")
-    workspace_rail("시간 궤도", "최신 사건과 상태 이동을 카드와 상세 기록으로 확인합니다.", icon="⌁", meta="EVENT STREAM")
+    ), label="타임라인 요약")
+    workspace_rail("시간 궤도", "최신 사건과 상태 이동을 카드와 상세 기록으로 확인합니다.", icon="⌁", meta="활동 흐름")
     if not records:
         state_panel("일치하는 타임라인이 없습니다", "기간을 넓히거나 필터를 해제해 보세요."); return
     payload = [item.to_dict() for item in records]
@@ -640,7 +676,7 @@ def render_timeline(hub: LivingHub) -> None:
     labels = [f"{item.subsystem} · {item.title} · {item.record_id}" for item in records]
     detail = records[labels.index(st.selectbox("Detail view", labels, key="timeline_detail"))]
     official_insight("선택한 타임라인", detail.to_dict(), caption="생활 기록의 현재 상태와 연결 정보")
-    history = hub.timeline.status_history(detail.subsystem, detail.record_id)
+    history = _user_timeline_records(hub.timeline.status_history(detail.subsystem, detail.record_id))
     if history:
         panel_header("상태 이동 이력", "선택한 기록의 시간별 상태 변경", "HISTORY")
         official_records([item.to_dict() for item in history], title="상태 이동 이력", empty="상태 이동 이력이 없습니다.", limit=24)
@@ -649,21 +685,37 @@ def render_global_search(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
     page_header("Global Search", "LIVING INDEX / SEARCH", "생활 기록 전체를 한 번에 탐색하고 원래 공간으로 이동할 단서를 찾습니다.", "READY")
-    workspace_rail("통합 검색", "제목·요약·식별자·분류를 기준으로 모든 연결 기록을 찾습니다.", icon="⌕", meta="UNIFIED DISCOVERY")
+    workspace_rail("통합 검색", "제목·요약·분류를 기준으로 연결된 생활 기록을 찾습니다.", icon="⌕", meta="생활 기록 찾기")
     query = st.text_input("Search all records", key="global_search")
     cols = st.columns(4)
-    subsystem = cols[0].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="search_subsystem")
-    category = cols[1].selectbox("Category", ["All", *hub.timeline.categories()], key="search_category")
-    sort_by = cols[2].selectbox("Sort by", ["relevance", "event_time", "title", "subsystem"], key="search_sort")
+    subsystem = cols[0].selectbox("Subsystem", ["All", *USER_TIMELINE_SUBSYSTEMS], key="search_subsystem")
+    search_categories = tuple(sorted({
+        item.category
+        for item in _user_timeline_records(hub.timeline.query(limit=1000))
+        if item.category
+    }))
+    category = cols[1].selectbox("Category", ["All", *search_categories], key="search_category")
+    search_sort_labels = {
+        "relevance": "관련도순",
+        "event_time": "시간순",
+        "title": "제목순",
+        "subsystem": "생활 영역순",
+    }
+    sort_by = cols[2].selectbox(
+        "Sort by",
+        ["relevance", "event_time", "title", "subsystem"],
+        key="search_sort",
+        format_func=lambda value: search_sort_labels[value],
+    )
     include_archived = cols[3].toggle("Archived", value=True, key="search_archived")
-    results = GlobalSearchEngine(hub.timeline).search(query, subsystem=None if subsystem == "All" else subsystem,
+    results = GlobalSearchEngine(hub.timeline, visible_subsystems=USER_TIMELINE_SUBSYSTEMS).search(query, subsystem=None if subsystem == "All" else subsystem,
         category=None if category == "All" else category, include_archived=include_archived, sort_by=sort_by, limit=200)
     metric_deck((
         {"label": "Results", "value": len(results), "detail": "검색된 생활 기록", "status": "ACTIVE" if results else "READY"},
-        {"label": "Subsystems", "value": len({item.subsystem for item in results}), "detail": "결과가 있는 영역", "status": "READY"},
+        {"label": "생활 영역", "value": len({item.subsystem for item in results}), "detail": "결과가 있는 영역", "status": "READY"},
         {"label": "Archived", "value": sum(item.archived for item in results), "detail": "보관 결과 포함", "status": "ARCHIVED"},
-    ), label="SEARCH SIGNALS")
-    workspace_rail("검색 결과", "관련도와 시간 흐름을 함께 확인할 수 있습니다.", icon="◇", meta="RESULT CONSTELLATION")
+    ), label="검색 요약")
+    workspace_rail("검색 결과", "관련도와 시간 흐름을 함께 확인할 수 있습니다.", icon="◇", meta="검색 결과")
     if not results:
         state_panel("검색 결과가 없습니다", "검색어를 줄이거나 필터를 제거해 보세요."); return
     official_records([item.to_dict() for item in results], title="전체 검색 결과", empty="검색 결과가 없습니다.", limit=24)
@@ -674,34 +726,64 @@ def render_global_search(hub: LivingHub) -> None:
 def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
+    report_labels = {
+        "daily": "일간",
+        "weekly": "주간",
+        "monthly": "월간",
+        "yearly": "연간",
+    }
     sources = {name.casefold().replace(" ", "-"): provider for name, provider in (systems or {}).items()}
     service = ReportsService(hub, sources)
     page_header("Reports", "MEMORY ATLAS / REPORT", "기존 생활 기록을 일·주·월·연 단위의 결정 가능한 서사로 정리합니다.", "READY")
-    workspace_rail("리포트 범위", "AI 없이도 재현 가능한 결정론적 요약을 생성합니다.", icon="▤", meta="REPORT COMPASS")
-    report_type = st.selectbox("Report Type", ["daily", "weekly", "monthly", "yearly"])
-    summary = service.report_summary(report_type)
+    workspace_rail("리포트 범위", "선택한 기간의 생활 기록을 한눈에 정리합니다.", icon="▤", meta="생활 리포트")
+    report_type = st.selectbox(
+        "Report Type",
+        ["daily", "weekly", "monthly", "yearly"],
+        format_func=lambda value: report_labels[value],
+    )
+    summary = service.report_summary(report_type, visible_subsystems=USER_TIMELINE_SUBSYSTEMS)
     metric_deck((
-        {"label": "Timeline events", "value": summary["timeline_events"], "detail": "기간 내 생활 사건", "status": "ACTIVE"},
+        {"label": "생활 기록", "value": summary["timeline_events"], "detail": "기간 내 생활 사건", "status": "ACTIVE"},
         {"label": "Active", "value": summary["active_events"], "detail": "진행 중 기록", "status": "HEALTHY"},
         {"label": "Archived", "value": summary["archived_events"], "detail": "보관된 기록", "status": "ARCHIVED"},
-        {"label": "Subsystems", "value": len(summary["by_subsystem"]), "detail": "요약에 연결된 영역", "status": "READY"},
-    ), label="REPORT SIGNALS")
-    cross = service.cross_subsystem_summary(report_type)
-    workspace_rail("교차 하위 시스템 요약", "서로 다른 생활 영역의 사건을 하나의 보고 흐름으로 연결합니다.", icon="◉", meta="CROSS SYSTEM")
+        {"label": "생활 영역", "value": len(summary["by_subsystem"]), "detail": "요약에 연결된 영역", "status": "READY"},
+    ), label="리포트 요약")
+    cross = service.cross_subsystem_summary(report_type, visible_subsystems=USER_TIMELINE_SUBSYSTEMS)
+    workspace_rail("생활 영역 요약", "서로 다른 생활 영역의 활동을 하나의 흐름으로 확인합니다.", icon="◉", meta="영역별 활동")
     if cross:
-        official_records(cross, title="교차 영역 활동", empty="이 기간에는 교차 영역 활동이 없습니다.", limit=18)
+        from subsystems.experience.engines.localization import ui_text
+        user_cross = [
+            {
+                "title": ui_text(str(item["subsystem"]).replace("-", " ").title()),
+                "activity": item["activity"],
+            }
+            for item in cross
+        ]
+        official_records(user_cross, title="영역별 활동", empty="이 기간에는 영역별 활동이 없습니다.", limit=18)
     else:
-        state_panel("요약할 활동이 없습니다", "이 리포트 기간에는 하위 시스템 활동이 없습니다.")
+        state_panel("요약할 활동이 없습니다", "이 리포트 기간에는 기록된 생활 활동이 없습니다.")
     preview = service.build(report_type)
-    workspace_rail("결정론적 리포트", "편집 후 명시적으로 저장할 수 있는 공식 리포트 본문입니다.", icon="◇", meta="CANONICAL DRAFT")
-    edited = st.text_area("Deterministic Report", value=preview, height=400)
+    period = summary["period_start"]
+    if summary["period_end"] != summary["period_start"]:
+        period = f"{summary['period_start']} ~ {summary['period_end']}"
+    area_summary = " · ".join(
+        f"{item['title']} {item['activity']}건" for item in user_cross
+    ) if cross else "기록된 영역 없음"
+    user_preview = (
+        f"{report_labels[report_type]} 생활 리포트\n\n"
+        f"기간: {period}\n"
+        f"전체 생활 기록 {summary['timeline_events']}건 · "
+        f"진행 중 {summary['active_events']}건 · 보관 {summary['archived_events']}건\n\n"
+        f"영역별 활동: {area_summary}"
+    )
+    workspace_rail("리포트 미리보기", "저장 전에 사용자에게 필요한 생활 요약만 보여드립니다.", icon="◇", meta="미리보기")
+    official_document("생활 리포트", user_preview, caption="내 생활 기록에서 정리한 기간별 요약")
     if st.button("Save Report"):
-        try: record = service.save(report_type, edited)
+        try: service.save(report_type, preview)
         except (CoreError, OSError, ValueError): st.error("The report could not be saved.")
-        else: st.success(f"Saved {record['id']}")
-    workspace_rail("선택적 AI 초안", "AI는 정식 데이터를 직접 변경하지 않으며 별도의 승인이 필요합니다.", icon="✧", meta="OPTIONAL INTELLIGENCE")
+        else: st.success("리포트가 저장되었습니다.")
+    workspace_rail("선택적 AI 초안", "AI는 저장된 데이터를 직접 변경하지 않으며 별도의 승인이 필요합니다.", icon="✧", meta="선택 기능")
     _ensure_ai_model(st)
-    official_document("결정론적 리포트 원문", preview, caption="AI 초안 생성 전에 확인하는 공식 리포트 본문")
     if st.button("Generate AI Report Draft"):
         api_key, _ = resolve_api_key(
             str(st.session_state.get("ai_session_api_key", "")),
@@ -709,7 +791,7 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
         )
         if not api_key: st.error("Configure an OpenAI API key in Settings first.")
         else:
-            try: st.session_state.v2_ai_report_draft = AIBriefingService(hub, OpenAITextProvider(api_key)).analyze("report", st.session_state.ai_model, preview)
+            try: st.session_state.v2_ai_report_draft = AIBriefingService(hub, OpenAITextProvider(api_key)).analyze("report", st.session_state.ai_model, user_preview)
             except AIServiceError as exc: st.error(str(exc))
     draft = str(st.session_state.get("v2_ai_report_draft", ""))
     if draft:
@@ -717,11 +799,16 @@ def render_reports(hub: LivingHub, systems: dict[str, Any] | None = None) -> Non
         if st.button("Save AI Draft (Explicit Approval)"):
             try: service.save(report_type, edited_draft, generated_by="ai-approved-draft")
             except (CoreError, OSError, ValueError): st.error("The AI draft could not be saved.")
-            else: st.success("AI draft saved as a canonical report artifact.")
+            else: st.success("AI 리포트 초안이 저장되었습니다.")
     saved = service.list(include_archived=True)[:50]
-    workspace_rail("저장된 리포트", "명시적으로 저장된 공식 리포트 아카이브입니다.", icon="▣", meta="REPORT ARCHIVE")
+    user_saved = []
+    for item in saved:
+        user_item = dict(item)
+        user_item["title"] = f"{report_labels.get(str(item.get('report_type')), '생활')} 리포트"
+        user_saved.append(user_item)
+    workspace_rail("저장된 리포트", "내가 저장한 생활 리포트를 모아 봅니다.", icon="▣", meta="리포트 보관함")
     if not saved: state_panel("저장된 리포트가 없습니다", "리포트를 생성하고 저장하면 여기에 표시됩니다.")
-    else: record_gallery(saved, empty="저장된 리포트가 없습니다.", limit=8)
+    else: record_gallery(user_saved, empty="저장된 리포트가 없습니다.", limit=8)
 
 def _render_counter(title: str, counter: Counter[str]) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
@@ -736,13 +823,13 @@ def _render_counter(title: str, counter: Counter[str]) -> None:
 def render_analytics(hub: LivingHub) -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
-    engine = AnalyticsEngine(hub.timeline)
+    engine = AnalyticsEngine(hub.timeline, visible_subsystems=USER_TIMELINE_SUBSYSTEMS)
     page_header("Analytics", "LIFE OBSERVATORY / ANALYTICS", "생활 데이터의 추세·비교·성장 신호를 읽기 전용 관측소에서 확인합니다.", "ACTIVE")
-    workspace_rail("관측 범위", "분석할 기간과 하위 시스템을 선택합니다.", icon="⌁", meta="OBSERVATION WINDOW")
+    workspace_rail("관측 범위", "분석할 기간과 생활 영역을 선택합니다.", icon="⌁", meta="분석 범위")
     cols = st.columns(3)
     start = cols[0].date_input("From", value=date.today().replace(day=1), key="analytics_start")
     end = cols[1].date_input("To", value=date.today(), key="analytics_end")
-    subsystem = cols[2].selectbox("Subsystem", ["All", *hub.timeline.supported_subsystems()], key="analytics_subsystem")
+    subsystem = cols[2].selectbox("Subsystem", ["All", *USER_TIMELINE_SUBSYSTEMS], key="analytics_subsystem")
     if start > end: st.error("The start date cannot be after the end date."); return
     selected = None if subsystem == "All" else subsystem
     summary = engine.summary(start, end, subsystem=selected)
@@ -750,10 +837,10 @@ def render_analytics(hub: LivingHub) -> None:
         {"label": "Activity", "value": summary["total_activity"], "detail": "선택 기간 전체 활동", "status": "ACTIVE"},
         {"label": "Active", "value": summary["active_activity"], "detail": "현재 진행 중인 흐름", "status": "HEALTHY"},
         {"label": "Archived", "value": summary["archived_activity"], "detail": "보관된 흐름", "status": "ARCHIVED"},
-        {"label": "Subsystems", "value": summary["subsystem_count"], "detail": "관측된 생활 영역", "status": "READY"},
-    ), label="OBSERVATORY SIGNALS")
-    workspace_rail("인사이트 관측소", "추세·비교·월간/연간·성장 분석을 전환해 확인합니다.", icon="◎", meta="INSIGHT CHAMBERS")
-    trend_tab, compare_tab, summary_tab, growth_tab = st.tabs(["Trend", "Comparison", "Monthly / Yearly", "Growth"])
+        {"label": "생활 영역", "value": summary["subsystem_count"], "detail": "관측된 생활 영역", "status": "READY"},
+    ), label="분석 요약")
+    workspace_rail("인사이트 관측소", "추세·비교·월간/연간·성장 분석을 전환해 확인합니다.", icon="◎", meta="분석 보기")
+    trend_tab, compare_tab, summary_tab, growth_tab = st.tabs(["추세", "비교", "월간 / 연간", "성장"])
     with trend_tab:
         panel_header("추세 궤도", "월 단위 활동 변화", "TREND")
         trend = engine.trend(start, end, subsystem=selected, granularity="month")

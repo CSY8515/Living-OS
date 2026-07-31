@@ -1,12 +1,12 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.9.3
+Workspace version: Living OS v2.0.9.4
 
 Implementation verification date: 2026-07-31
 
-Production release: Living OS v2.0.9.3
+Production release: Living OS v2.0.9.4
 
-Status: Living OS v2.0.9.3 Stable Final Hotfix Release.
+Status: Living OS v2.0.9.4 Stable UI Privacy Hotfix Release.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
