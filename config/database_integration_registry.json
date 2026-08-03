@@ -12,6 +12,28 @@
     "execution_database_required": true,
     "migration_id_required": true,
     "integrity_check_required": true,
-    "backup_restore_required": true
+    "backup_restore_required": true,
+    "operational_data_preservation_required": true,
+    "physical_deduplication_forbidden": true
+  },
+  "operational_data_contract": {
+    "version": 1,
+    "storage": "SUB-DATABASE/operational_data",
+    "retention_policy": "PRESERVE",
+    "deduplication_policy": "LOGICAL_ONLY",
+    "types": [
+      "SUCCESS",
+      "FAILURE",
+      "ERROR",
+      "WARNING",
+      "INCIDENT",
+      "RECOVERY",
+      "ROLLBACK",
+      "VALIDATION_FAILURE",
+      "EXECUTION_FAILURE",
+      "INVALID_DATA",
+      "REJECTED_DECISION",
+      "UNRESOLVED_ISSUE"
+    ]
   }
 }

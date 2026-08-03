@@ -147,9 +147,11 @@ Expected Version 불일치, Permission 거부, Validation 실패, Integrity 실�
 - Control Plane: `subsystems.database_management.DatabaseManagementSubsystem`
 - Control contract: `subsystems.database.engines.contracts.DatabaseControlInterface`
 
-Data Plane은 `initialize`, `transaction`, `create`, `read`, `update`, `archive`, `list`, `search`, `apply_migrations`, `integrity_check`, `create_backup`, `validate_restore`, `restore`, `schema_registry`, `execution_records`를 제공한다.
+Data Plane은 `initialize`, `transaction`, `create`, `read`, `update`, `archive`, `list`, `search`, `apply_migrations`, `integrity_check`, `create_backup`, `validate_restore`, `restore`, `schema_registry`, `execution_records`, `record_operational_data`, `operational_data`, `operational_data_registry`를 제공한다.
 
-Control Plane은 `health_check`, `schema_registry`, `migration_status`, `request_migration`, `backup_status`, `request_backup`, `restore_candidates`, `preflight_restore`, `request_restore`, `operational_report`를 제공한다.
+Control Plane은 `health_check`, `schema_registry`, `migration_status`, `request_migration`, `backup_status`, `request_backup`, `restore_candidates`, `preflight_restore`, `request_restore`, `operational_analysis`, `operational_report`, `report_to_personal_secretary`를 제공한다.
+
+v2.095 운영 데이터 계약은 `PRESERVE` 보존 정책과 `LOGICAL_ONLY` 중복 처리 정책을 강제한다. Database Manager는 원본을 삭제하거나 다시 쓰지 않고 검증·분류·패턴·후보·보고 결과만 생성한다. Personal Secretary 전달은 `OperationalReportEnvelope`와 `PersonalSecretaryContract`를 사용한다.
 
 ## Related Documents
 

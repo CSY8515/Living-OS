@@ -3,17 +3,24 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from subsystems.database.engines.contracts import DatabaseControlInterface, RestoreCandidate
 from subsystems.database_management.engines.health import DatabaseHealthEngine
+from subsystems.database_management.engines.operational import OperationalAnalysisEngine
 from subsystems.database_management.engines.report import build_management_report
+from subsystems.foundation.engines.personal_secretary import (
+    OperationalReportEnvelope,
+    PersonalSecretaryContract,
+)
+from subsystems.foundation.engines.time import utc_now_iso
 
 
 class DatabaseManagementSubsystem:
     """Control-plane facade; it never edits business records directly."""
 
     subsystem_id = "SUB-DATABASE-MANAGEMENT"
-    version = "1.7.1"
+    version = "1.7.2"
     statuses = ("HEALTHY", "WARNING", "DEGRADED", "FAILED", "MAINTENANCE")
 
     def __init__(
@@ -31,6 +38,7 @@ class DatabaseManagementSubsystem:
             capacity_warning_bytes=capacity_warning_bytes,
             degraded_check_ms=degraded_check_ms,
         )
+        self.operational = OperationalAnalysisEngine(database)
 
     def health_check(self, *, record: bool = False, actor: str = "system") -> dict[str, Any]:
         return self.health.inspect(record=record, actor=actor)
@@ -108,13 +116,19 @@ class DatabaseManagementSubsystem:
             archive_path, actor=actor, correlation_id=correlation_id
         )
 
+    def operational_analysis(self, *, limit: int = 1000) -> dict[str, Any]:
+        return self.operational.analyze(limit=limit)
+
     def operational_report(self, *, record: bool = False, actor: str = "system") -> dict[str, Any]:
         health = self.health_check(record=record, actor=actor)
         schema = self.schema_registry()
         backups = self.backup_status()
         restores = self.database.restore_history()
         failures = self.database.failed_migrations()
-        report = build_management_report(health, schema, backups, restores, failures)
+        operational = self.operational_analysis()
+        report = build_management_report(
+            health, schema, backups, restores, failures, operational
+        )
         report["registered_components"] = self.component_status()
         if record and self.database.current_schema_version() >= self.database.expected_schema_version:
             self.database.record_execution(
@@ -124,6 +138,51 @@ class DatabaseManagementSubsystem:
                 result={
                     "database_status": report["database_status"],
                     "recommendations": len(report["recommendations"]),
+                    "operational_records": report["operational_summary"]["records_total"],
+                    "unresolved_issues": report["operational_summary"]["unresolved_issues"],
                 },
             )
         return report
+
+    def report_to_personal_secretary(
+        self,
+        personal_secretary: PersonalSecretaryContract,
+        *,
+        record: bool = True,
+        actor: str = "system",
+    ) -> dict[str, Any]:
+        """Generate and hand off one read-only report through the capability contract."""
+        report = self.operational_report(record=record, actor=actor)
+        summary = report["operational_summary"]
+        envelope = OperationalReportEnvelope(
+            report_id=f"DBR-{uuid4()}",
+            source=self.subsystem_id,
+            generated_at=utc_now_iso(),
+            priority=str(summary["priority"]),
+            summary={
+                "records_total": summary["records_total"],
+                "records_preserved": summary["records_preserved"],
+                "unresolved_issues": summary["unresolved_issues"],
+                "classification": summary["classification"],
+            },
+            findings=tuple(
+                dict(item) for item in report["unresolved_findings"]
+            ),
+            recommendations=tuple(str(item) for item in report["recommendations"]),
+            rule_candidates=tuple(report["rule_candidates"]),
+            standard_candidates=tuple(report["standard_candidates"]),
+        )
+        brief = personal_secretary.aggregate_operational_reports((envelope,))
+        if record:
+            self.database.record_execution(
+                self.subsystem_id,
+                "personal_secretary_operational_report",
+                actor=actor,
+                result={
+                    "report_id": envelope.report_id,
+                    "briefing_id": brief.briefing_id,
+                    "priority": brief.priority,
+                    "recommendations": len(brief.recommendations),
+                },
+            )
+        return brief.to_payload()

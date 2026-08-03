@@ -18,9 +18,9 @@ DESIGN = ROOT / "subsystems" / "experience" / "engines" / "design_system.py"
 class OfficialConceptUiTests(unittest.TestCase):
     def test_candidate_version_and_release_boundary(self) -> None:
         version = (ROOT / "VERSION.md").read_text(encoding="utf-8")
-        self.assertIn("Workspace version: Living OS v2.0.9.4", version)
-        self.assertIn("Production release: Living OS v2.0.9.4", version)
-        self.assertIn("Stable UI Privacy Hotfix Release", version)
+        self.assertIn("Workspace version: Living OS v2.0.9.5", version)
+        self.assertIn("Production release: Living OS v2.0.9.5", version)
+        self.assertIn("Database Architecture Recovery Hotfix", version)
 
     def test_general_user_navigation_exposes_only_life_surfaces(self) -> None:
         forbidden = {

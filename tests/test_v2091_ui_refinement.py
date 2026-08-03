@@ -17,9 +17,9 @@ SHELL = ROOT / "subsystems" / "experience" / "engines" / "shell.py"
 class OfficialUiRefinementTests(unittest.TestCase):
     def test_version_is_final_release(self) -> None:
         version = (ROOT / "VERSION.md").read_text(encoding="utf-8")
-        self.assertIn("Workspace version: Living OS v2.0.9.4", version)
-        self.assertIn("Production release: Living OS v2.0.9.4", version)
-        self.assertIn("Stable UI Privacy Hotfix Release", version)
+        self.assertIn("Workspace version: Living OS v2.0.9.5", version)
+        self.assertIn("Production release: Living OS v2.0.9.5", version)
+        self.assertIn("Database Architecture Recovery Hotfix", version)
 
     def test_structural_design_components_exist_in_experience_engine(self) -> None:
         design = DESIGN.read_text(encoding="utf-8")

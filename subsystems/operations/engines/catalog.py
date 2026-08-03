@@ -151,12 +151,14 @@ V20_STABLE_MANIFESTS = V19_STABLE_MANIFESTS + (
         privacy_class="sensitive",
     ),
     ModuleManifest(
-        "database", "Database", "2.0.0", ">=2.0,<3.0", "Database contract and execution status.",
-        status="enabled", capabilities=("contract", "execution", "integrity"),
+        "database", "Database", "2.0.9.5", ">=2.0,<3.0", "Database contract, preservation, and execution status.",
+        status="enabled",
+        capabilities=("contract", "registry", "data-plane", "execution", "integrity", "operational-data-preservation"),
     ),
     ModuleManifest(
-        "database_management", "Database Management", "2.0.0", ">=2.0,<3.0", "Database operations control plane.",
-        status="enabled", capabilities=("health", "backup", "restore", "maintenance"),
+        "database_management", "Database Management", "2.0.9.5", ">=2.0,<3.0", "Database operations analysis and reporting control plane.",
+        status="enabled",
+        capabilities=("health", "backup", "restore", "maintenance", "validation", "classification", "logical-deduplication", "pattern-analysis", "recommendation", "candidate-generation", "operational-report", "personal-secretary-contract"),
     ),
 )
 

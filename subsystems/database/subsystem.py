@@ -11,7 +11,12 @@ from uuid import uuid4
 
 from subsystems.database.engines.connection import SQLiteConnectionLayer
 from subsystems.database.engines.component import DatabaseIntegrationContract
-from subsystems.database.engines.contracts import IntegrityResult, RestoreCandidate
+from subsystems.database.engines.contracts import (
+    IntegrityResult,
+    OPERATIONAL_DATA_REGISTRY,
+    OperationalDataRecord,
+    RestoreCandidate,
+)
 from subsystems.database.engines.execution import ExecutionRecorder
 from subsystems.database.engines.integrity import IntegrityEngine
 from subsystems.database.engines.migrations import MigrationRegistry
@@ -25,7 +30,7 @@ class DatabaseSubsystem:
     """Living OS data-plane facade for the canonical SQLite database."""
 
     subsystem_id = "SUB-DATABASE"
-    version = "1.7.1"
+    version = "1.7.2"
     expected_schema_version = 4
 
     def __init__(
@@ -483,6 +488,57 @@ class DatabaseSubsystem:
 
     def execution_records(self, limit: int = 50) -> list[dict[str, Any]]:
         return self.executions.list(limit)
+
+    def record_operational_data(
+        self, record: OperationalDataRecord, *, actor: str = "system"
+    ) -> dict[str, Any]:
+        """Persist one operational fact without deleting or merging source data."""
+        payload = record.to_payload()
+        result = self.repository.create(
+            self.subsystem_id,
+            "operational_data",
+            record.operational_id,
+            payload,
+            owner=record.source_subsystem,
+            source="database-operational-contract",
+            privacy_class="system",
+            correlation_id=record.related_execution_id,
+        )
+        self.executions.record(
+            self.subsystem_id,
+            "operational_data_record",
+            record.operational_id,
+            "COMPLETED",
+            actor=actor,
+            result={
+                "data_type": record.data_type,
+                "severity": result["severity"],
+                "resolution_status": result["resolution_status"],
+            },
+            correlation_id=record.related_execution_id,
+        )
+        return result
+
+    def operational_data(
+        self, *, include_archived: bool = True, limit: int = 1000
+    ) -> list[dict[str, Any]]:
+        """Return preserved operational facts through the canonical repository."""
+        return self.repository.list(
+            self.subsystem_id,
+            "operational_data",
+            include_archived=include_archived,
+            limit=limit,
+        )
+
+    def operational_data_registry(self) -> dict[str, Any]:
+        """Expose the versioned operational-data contract without mutable state."""
+        return {
+            "contract_version": 1,
+            "storage": f"{self.subsystem_id}/operational_data",
+            "retention_policy": "PRESERVE",
+            "deduplication_policy": "LOGICAL_ONLY",
+            "types": {name: dict(values) for name, values in OPERATIONAL_DATA_REGISTRY.items()},
+        }
 
     def record_execution(
         self,

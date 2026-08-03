@@ -36,6 +36,12 @@ Finance, Health, Housing, Vehicle, and Food retain domain-owned schemas and publ
 
 Schema v3 is the v1.7.1 integration marker retained by v1.8. Knowledge and Routine now satisfy `docs/03_Database/Database_Integration_Contract.md`; future Investment, Job, Personal Growth, and Collaboration components, and every data-owning OS System, Capability, Module, Subsystem, Engine Group, Engine, or Function, must satisfy the same contract at bootstrap. Direct component-level SQLite connections are prohibited.
 
+## Database Architecture Recovery v2.095
+
+The Database Subsystem keeps its existing canonical SQLite storage and adds the missing versioned operational-data Interface, Contract, Registry, and Data Plane on top of `records`. The contract preserves Success, Failure, Error, Warning, Incident, Recovery, Rollback, Validation Failure, Execution Failure, Invalid Data, Rejected Decision, and Unresolved Issue. Retention is permanent by contract until an independently approved retention change; v2.095 performs no delete, merge, archive, migration, or schema change.
+
+The peer Database Management Subsystem validates and classifies operational facts and execution records, detects duplicates logically, identifies repeated patterns, and generates deterministic recommendations, Rule Candidates, Standard Candidates, and Operational Reports. These outputs are advisory and cannot mutate business records or automatically apply rules. Operational Reports cross the Foundation Personal Secretary capability contract as safe summaries and references only: `Database → Database Management → Operational Report → Personal Secretary → User`. Personal Secretary aggregates, prioritizes, recommends, and formats the user report. UI and runtime composition remain unchanged.
+
 ## Official reference subsystem
 
 Finance Subsystem v1.0 is the production reference for future Living OS subsystems. A reference subsystem must expose one facade, keep engines private, inject its storage boundary, avoid write-on-read behavior, validate at its boundary, use transactions for multi-record changes, publish a compatibility range and version, support isolated testing, and document migration and rollback behavior.

@@ -76,6 +76,13 @@ Monitor 결과와 Maintenance 작업은 공통 Execution Database에 기록한�
 
 ## Actual Implementation and Deferred Scope
 
+## v2.095 Operational Analysis and Reporting Recovery
+
+`engines/operational.py` provides read-only validation, classification, logical duplicate detection, repeated-pattern analysis, deterministic recommendations, Rule Candidates, Standard Candidates, unresolved-issue prioritization, and safe operational findings. It analyzes both explicit operational-data records and the existing execution history without rewriting either source.
+
+`operational_report` combines Database health and recovery state with the operational analysis. `report_to_personal_secretary` sends a versioned safe envelope through `PersonalSecretaryContract`: `Database → Database Management → Operational Report → Personal Secretary → User`. The Personal Secretary contract aggregates reports, selects the highest priority, consolidates recommendations, and creates a user report. Raw business payloads and secrets are excluded. Logical deduplication never deletes a source record, and candidates are never automatically applied.
+
+
 공식 facade는 `subsystems/database_management/subsystem.py`의 `DatabaseManagementSubsystem`이다. `engines/health.py`는 연결, 파일, Schema, Migration, Integrity, Backup, Restore, 검사 시간과 Capacity 상태를 읽고, `engines/report.py`는 권장 조치가 포함된 운영 보고를 생성한다.
 
 Settings는 상태 조회, 명시적 Migration, 기록되는 Health Check, Backup, Restore candidate와 승인, Report 생성을 제공한다. 연속 Background Monitor, 자동 Optimization, 자동 Cleanup, 분산 Capacity 관리와 자동 Recovery orchestration은 v1.7 범위에서 제외한다.

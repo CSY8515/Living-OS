@@ -101,6 +101,13 @@ Engine 경로:
 
 ## Acceptance Criteria
 
+## v2.095 Operational Data Recovery
+
+`OperationalDataRecord` and `DatabaseControlInterface` define the restored versioned contract. `DatabaseSubsystem.record_operational_data` writes through the canonical `RecordRepository`, and `operational_data` reads the preserved records. `operational_data_registry` exposes the contract version, storage identity, retention policy, logical-only deduplication policy, and registered types.
+
+The registered types are `SUCCESS`, `FAILURE`, `ERROR`, `WARNING`, `INCIDENT`, `RECOVERY`, `ROLLBACK`, `VALIDATION_FAILURE`, `EXECUTION_FAILURE`, `INVALID_DATA`, `REJECTED_DECISION`, and `UNRESOLVED_ISSUE`. Each record has stable identity, source, title, summary, occurrence time, severity, resolution status, optional execution/recovery/validation references, a stable fingerprint, and safe metadata. Records use `SUB-DATABASE/operational_data` in the existing canonical SQLite `records` table. No schema migration or destructive duplicate removal is performed.
+
+
 - 공개 Interface 외 내부 저장 구현에 직접 접근하지 않음
 - Module별 Data Owner와 Entity Schema가 식별됨
 - Transaction, Integrity, Migration, Backup, Restore가 테스트됨

@@ -1,18 +1,20 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.9.4
+Workspace version: Living OS v2.0.9.5
 
-Implementation verification date: 2026-07-31
+Implementation verification date: 2026-08-03
 
-Production release: Living OS v2.0.9.4
+Production release: Living OS v2.0.9.5 (GitHub tag `v2.095`)
 
-Status: Living OS v2.0.9.4 Stable UI Privacy Hotfix Release.
+Status: Living OS v2.0.9.5 Database Architecture Recovery Hotfix.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
 
 Database Foundation: Database and Database Management remain independent peer Subsystems. Foundation schema migrations are additive and idempotent at startup. Legacy business-data migration, backup, and restore remain explicit owner actions.
+
+v2.095 recovery: the existing canonical SQLite Data Plane preserves the 12 registered operational-data categories. Database Management performs read-only validation, classification, logical duplicate detection, pattern analysis, recommendations, Rule/Standard candidate generation, and safe Operational Reporting to the Personal Secretary contract. There is no schema migration, business-data rewrite, physical deduplication, UI change, or runtime-composition change.
 
 v2.0 additions: Personal Growth Subsystem v1.0.0 and Collaboration Subsystem v1.0.0 are independent sensitive-data owners registered through the common Database Foundation adapter, Registry, Execution Database, integrity, backup, and restore contracts.
 

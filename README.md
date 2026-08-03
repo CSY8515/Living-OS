@@ -1,8 +1,8 @@
-# Living OS v2.0.9.4
+# Living OS v2.0.9.5
 
-> Living OS v2.0.9.4 is the Stable UI Privacy Hotfix release. Production release: v2.0.9.4.
+> Living OS v2.0.9.5 is the Database Architecture Recovery Hotfix. GitHub release tag: v2.095.
 
-v2.0.9.4 preserves every v2.0.9.3 data-control contract while completing the user-facing presentation hotfix: long subsystem titles stay within their world plaque, report storage payloads remain internal, report previews expose only readable life summaries, and production hides developer toolbar options and detailed runtime exceptions. Dummy data remains absent, owner reset and approved deletion paths remain available, and production BYOK continues to accept only the current user's session key. Collaboration and internal administration remain available to the backend but are not exposed in the general user interface.
+v2.0.9.5 restores the missing Database operational-data contract and Database Manager analysis/reporting contract on the unchanged canonical SQLite foundation. Operational facts are preserved, duplicate handling is logical and non-destructive, and safe Operational Reports can be handed to the Personal Secretary capability for aggregation, prioritization, recommendations, and user reporting. No UI, navigation, deployment, authentication, or runtime-composition behavior changes in this hotfix.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

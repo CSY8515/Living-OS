@@ -11,7 +11,9 @@ def build_management_report(
     backups: list[dict[str, Any]],
     restores: list[dict[str, Any]],
     failures: list[dict[str, Any]],
+    operational: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    operational = operational or {}
     recommendations: list[str] = []
     if health.get("migration_status") == "PENDING":
         recommendations.append("Review and explicitly apply the pending v1.7 database migration.")
@@ -21,6 +23,8 @@ def build_management_report(
         recommendations.append("Create and verify a manual database backup.")
     if failures:
         recommendations.append("Review failed migration records before further schema changes.")
+    recommendations.extend(str(item) for item in operational.get("recommendations", []))
+    recommendations = list(dict.fromkeys(recommendations))
     if not recommendations:
         recommendations.append("No immediate database management action is required.")
     return {
@@ -54,4 +58,27 @@ def build_management_report(
         },
         "recent_error": health.get("recent_error", ""),
         "recommendations": recommendations,
+        "operational_summary": {
+            "records_total": operational.get("records_total", 0),
+            "records_preserved": operational.get("records_preserved", 0),
+            "logical_records": operational.get("logical_records", 0),
+            "duplicates": len(operational.get("duplicates", [])),
+            "invalid_records": len(operational.get("invalid_records", [])),
+            "unresolved_issues": len(operational.get("unresolved_issues", [])),
+            "classification": dict(operational.get("classification", {})),
+            "by_source": dict(operational.get("by_source", {})),
+            "priority": operational.get("priority", "LOW"),
+        },
+        "patterns": dict(operational.get("patterns", {})),
+        "unresolved_findings": [
+            {
+                "record_id": str(item.get("record_id", "")),
+                "source_subsystem": str(item.get("source_subsystem", "")),
+                "severity": str(item.get("severity", "")),
+                "categories": list(item.get("categories", [])),
+            }
+            for item in operational.get("unresolved_issues", [])
+        ],
+        "rule_candidates": list(operational.get("rule_candidates", [])),
+        "standard_candidates": list(operational.get("standard_candidates", [])),
     }

@@ -30,6 +30,12 @@ Canonical subsystem code may not import app.*, core.*, modules.*, shared.*, or e
 
 Existing Module databases remain independently owned and unchanged. v1.7 performs no automatic real-data migration and adds no direct cross-domain database access.
 
+### v2.095 Database architecture recovery
+
+The existing canonical `records` and `execution_records` Data Plane now exposes a versioned operational-data contract and registry. Operational facts are preserved under `SUB-DATABASE/operational_data` for Success, Failure, Error, Warning, Incident, Recovery, Rollback, Validation Failure, Execution Failure, Invalid Data, Rejected Decision, and Unresolved Issue. Retention is `PRESERVE`; duplicate handling is a read-only logical projection and never deletes or rewrites source records.
+
+Database Management validates and classifies preserved facts and execution history, detects logical duplicates and repeated patterns, and produces deterministic recommendations, Rule Candidates, Standard Candidates, and Operational Reports. Candidates are advisory and are never applied automatically. The Personal Secretary capability contract accepts safe report envelopes, aggregates and prioritizes reports, and produces a user-facing briefing without receiving secrets or raw business payloads. This recovery adds no UI, new subsystem, schema migration, or runtime-composition change.
+
 Previous public paths alias the same canonical Python module objects, preserving public/private symbols, monkeypatching, and exception identity. V2_STABLE_MANIFESTS remains an alias of V12_STABLE_MANIFESTS. This move performs no data migration.
 
 ## Investment and Job Subsystems v1.9
