@@ -601,6 +601,11 @@ a{color:var(--los-gold-bright)}*:focus-visible{outline:2px solid var(--los-gold-
 """
 
 
-def apply_living_os_theme() -> None:
+def apply_living_os_theme(settings=None) -> None:
     import streamlit as st
-    st.markdown(OFFICIAL_UI_CSS, unsafe_allow_html=True)
+    from subsystems.experience.engines.ui_interface import render_compatible_theme
+
+    st.markdown(
+        render_compatible_theme(OFFICIAL_UI_CSS, settings),
+        unsafe_allow_html=True,
+    )

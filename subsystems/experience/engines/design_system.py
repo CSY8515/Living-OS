@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from subsystems.experience.engines.localization import localized_streamlit, ui_text
+from subsystems.experience.engines.ui_interface import resolve_ui_asset, resolve_ui_icon
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -37,6 +38,8 @@ STATUS_TONES = {
 @lru_cache(maxsize=16)
 def _asset_data_uri(path_value: str) -> str:
     """Return a stable inline image URL so Streamlit cannot reflow World artwork."""
+    if path_value.startswith(("data:image/", "https://", "http://")):
+        return path_value
     path = Path(path_value)
     mime = "image/jpeg" if path.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
     return f"data:{mime};base64,{b64encode(path.read_bytes()).decode('ascii')}"
@@ -153,9 +156,12 @@ def page_header(title: str, eyebrow: str, description: str = "", status: str | N
           <small>{escape(scene_detail)}</small></div>
           <div class="los-page-orbit" aria-hidden="true"><i></i><i></i><b></b></div>{badge}
         </section>'''
-    asset = SUBSYSTEM_WORLD_ASSETS.get(scene)
-    if asset and asset.exists():
-        asset_uri = _asset_data_uri(str(asset))
+    default_asset = SUBSYSTEM_WORLD_ASSETS.get(scene)
+    asset = resolve_ui_asset(
+        f"background.module.{scene}", str(default_asset) if default_asset else ""
+    )
+    if asset:
+        asset_uri = _asset_data_uri(asset)
         st.markdown(
             f'''<div class="los-world-scene-scope los-world-scene-{scene}">
               <div class="los-fixed-world-backdrop" aria-hidden="true"><img src="{asset_uri}" alt=""></div>
@@ -180,21 +186,24 @@ def home_world(
 ) -> None:
     """Render the final-answer home with direct, non-reflowing interaction layers."""
     st = localized_streamlit()
-    world_uri = _asset_data_uri(str(WORLD_ASSET))
+    home_asset = resolve_ui_asset("background.home", str(WORLD_ASSET))
+    world_uri = _asset_data_uri(home_asset)
     ornament_dir = ROOT / "assets" / "ornaments"
     roof_assets = {
-        "bud": ornament_dir / "roof-bud.png",
-        "sprout": ornament_dir / "roof-sprout.png",
-        "blossom": ornament_dir / "roof-blossom.png",
-        "tree": ornament_dir / "roof-living-tree.png",
+        "bud": resolve_ui_asset("ornament.roof.bud", str(ornament_dir / "roof-bud.png")),
+        "sprout": resolve_ui_asset("ornament.roof.sprout", str(ornament_dir / "roof-sprout.png")),
+        "blossom": resolve_ui_asset("ornament.roof.blossom", str(ornament_dir / "roof-blossom.png")),
+        "tree": resolve_ui_asset("ornament.roof.tree", str(ornament_dir / "roof-living-tree.png")),
     }
-    roof_uris = {name: _asset_data_uri(str(path)) for name, path in roof_assets.items()}
+    roof_uris = {name: _asset_data_uri(path) for name, path in roof_assets.items()}
     roof_styles = "".join(
         f"--los-roof-{name}:url('{uri}');" for name, uri in roof_uris.items()
     )
     symbol_dir = ROOT / "assets" / "dome-symbols"
     symbol_assets = {
-        name: symbol_dir / f"{name}.png"
+        name: resolve_ui_asset(
+            f"icon.world.{name}", str(symbol_dir / f"{name}.png")
+        )
         for name in (
             "finance",
             "job",
@@ -209,7 +218,7 @@ def home_world(
         )
     }
     symbol_uris = {
-        name: _asset_data_uri(str(path)) for name, path in symbol_assets.items()
+        name: _asset_data_uri(path) for name, path in symbol_assets.items()
     }
     symbol_styles = "".join(
         f"--los-symbol-{name}:url('{uri}');" for name, uri in symbol_uris.items()
@@ -226,7 +235,10 @@ def home_world(
         f'<span class="los-world-roof los-world-roof-{name}" aria-hidden="true"></span>'
         for name in ("finance", "job", "investment", "knowledge", "routine", "vehicle", "growth", "food", "housing", "health")
     )
-    st.image(str(WORLD_ASSET), width="stretch")
+    if home_asset == str(WORLD_ASSET):
+        st.image(str(WORLD_ASSET), width="stretch")
+    else:
+        st.image(home_asset, width="stretch")
     st.markdown(
         f'''<section class="los-world-stage" aria-label="리빙 OS 공식 세계"
           style="--los-home-image:url('{world_uri}');{roof_styles}{symbol_styles}">
@@ -254,8 +266,9 @@ def metric_deck(cards: Sequence[dict[str, Any]], *, label: str = "현재 신호"
     glyphs = ("◈", "◇", "⌁", "✦", "◎", "△")
     for index, card in enumerate(cards):
         tone = _tone(str(card.get("status", "INFO")))
+        glyph = resolve_ui_icon(f"metric.{index}", glyphs[index % len(glyphs)])
         items.append(
-            f'''<article class="los-signal-card {tone}"><div class="los-signal-top"><span>{glyphs[index % len(glyphs)]}</span>
+            f'''<article class="los-signal-card {tone}"><div class="los-signal-top"><span>{escape(glyph)}</span>
             <small>{escape(str(ui_text(card.get("label", "상태"))))}</small><i></i></div>
             <strong>{escape(str(card.get("value", "-")))}</strong>
             <p>{escape(str(ui_text(card.get("detail", "실시간 운영 상태"), context="caption")))}</p></article>'''
@@ -268,6 +281,7 @@ def metric_deck(cards: Sequence[dict[str, Any]], *, label: str = "현재 신호"
 
 def workspace_rail(title: str, description: str, *, icon: str = "◇", meta: str = "생활 공간") -> None:
     st = localized_streamlit()
+    icon = resolve_ui_icon("component.workspace_rail", icon)
     st.markdown(
         f'''<div class="los-workspace-rail"><span class="los-rail-icon">{escape(icon)}</span><div>
         <small>{escape(str(ui_text(meta)))}</small><b>{escape(str(ui_text(title)))}</b><p>{escape(str(ui_text(description, context="caption")))}</p>

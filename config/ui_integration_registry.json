@@ -1,0 +1,71 @@
+{
+  "contract_id": "ultra-brain.ui",
+  "contract_version": 1,
+  "session_key": "ultra_brain_ui_contract",
+  "default_theme": "living-os-dark",
+  "themes": [
+    "living-os-dark",
+    "living-os-light"
+  ],
+  "components": [
+    "background",
+    "layout",
+    "navigation",
+    "dashboard",
+    "screen",
+    "header",
+    "card",
+    "button",
+    "dialog",
+    "widget",
+    "icon",
+    "font",
+    "color",
+    "animation",
+    "module_surface"
+  ],
+  "modules": [
+    "dashboard",
+    "journal",
+    "decision",
+    "reports",
+    "knowledge",
+    "analytics",
+    "review",
+    "ai_briefing",
+    "documents",
+    "finance",
+    "food",
+    "health",
+    "housing",
+    "vehicle",
+    "knowledge_subsystem",
+    "routine",
+    "investment",
+    "job",
+    "personal_growth",
+    "collaboration",
+    "database",
+    "database_management",
+    "module_manager",
+    "settings"
+  ],
+  "asset_namespaces": [
+    "background.home",
+    "background.module.<scene>",
+    "ornament.roof.<name>",
+    "icon.world.<module>",
+    "navigation.<page>",
+    "metric.<index>",
+    "component.workspace_rail"
+  ],
+  "rules": {
+    "customization_owner": "Ultra Brain",
+    "living_os_customization_ui": false,
+    "default_visual_change": false,
+    "core_runtime_dependency": false,
+    "persistence_owner": false,
+    "settings_scope": "session",
+    "validation_required": true
+  }
+}

@@ -43,6 +43,7 @@ from subsystems.experience.engines.design_system import (
     official_user_navigation,
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
+from subsystems.experience.engines.ui_interface import LIVING_OS_UI, ui_scope_marker
 from subsystems.finance import FinanceSubsystem
 from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
@@ -514,6 +515,7 @@ def main() -> None:
     st = localized_streamlit()
     st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
     apply_responsive_layout()
+    ui_contract = LIVING_OS_UI.resolve()
     try:
         hub = _hub()
     except RuntimeConfigurationError:
@@ -606,8 +608,9 @@ def main() -> None:
         st.caption("개인 생활 운영 시스템")
         page = st.radio(
             "메뉴", visible_pages, label_visibility="collapsed", key="nav_page",
-            format_func=lambda name: f"{NAV_ICONS.get(name, '◇')}  {ui_text(name)}",
+            format_func=lambda name: f"{ui_contract.icons.get(f'navigation.{name}', NAV_ICONS.get(name, '◇'))}  {ui_text(name)}",
         )
+    st.markdown(ui_scope_marker(module_by_page[page]), unsafe_allow_html=True)
     if page != "Command Center":
         def navigate(target: str) -> None:
             st.session_state.nav_page = target

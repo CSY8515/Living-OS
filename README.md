@@ -1,8 +1,8 @@
-# Living OS v2.0.9.5
+# Living OS v2.0.9.6
 
-> Living OS v2.0.9.5 is the Database Architecture Recovery Hotfix. GitHub release tag: v2.095.
+> Living OS v2.0.9.6 is the UI Foundation Compatibility Hotfix. GitHub release tag: v2.096.
 
-v2.0.9.5 restores the missing Database operational-data contract and Database Manager analysis/reporting contract on the unchanged canonical SQLite foundation. Operational facts are preserved, duplicate handling is logical and non-destructive, and safe Operational Reports can be handed to the Personal Secretary capability for aggregation, prioritization, recommendations, and user reporting. No UI, navigation, deployment, authentication, or runtime-composition behavior changes in this hotfix.
+v2.0.9.6 adds the missing versioned Theme Contract, Design Tokens, Theme Adapter, Component Contracts, UI Registry, public UI Interface, and module scopes in the Experience layer. Future Ultra Brain settings can change the registered UI surface without adding a Living OS customization screen. The current official CSS, visuals, navigation, features, data, deployment, and runtime composition remain unchanged by default.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

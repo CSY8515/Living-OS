@@ -22,6 +22,22 @@ Experience → Foundation, Operations, Insight, Compatibility and public domain 
 
 Canonical subsystem code may not import app.*, core.*, modules.*, shared.*, or expansion.*. UI cannot own canonical persistence. AI cannot directly mutate records. Database Management cannot directly mutate business records.
 
+## UI Foundation Compatibility v2.096
+
+The Experience layer exposes the versioned `ultra-brain.ui/v1` contract through
+`LivingOSUIInterface`. `UIRegistry` owns the official dark/light base themes, 15
+shared Component Contracts, and the module scope for every current screen.
+`ThemeAdapter` validates and maps Ultra Brain Design Tokens, assets, and icons to
+the existing Living OS CSS surface. Callers cannot provide arbitrary selectors
+or unregistered component properties.
+
+All modules inherit the global contract; active pages also render a hidden
+registered scope for optional module tokens. With no external contract,
+`OFFICIAL_UI_CSS`, checked-in assets, icons, page order, and interactions remain
+unchanged. Ultra Brain remains the future customization owner. This boundary
+adds no Living OS customization page, persistence, feature, domain dependency,
+or runtime-composition change.
+
 ## Database Foundation v1.7
 
 `DatabaseSubsystem` is the only supported v1.7 canonical Database facade. It owns `SQLiteConnectionLayer`, `MigrationRegistry`, `RecordRepository`, `IntegrityEngine`, `ExecutionRecorder`, and the verified shared Backup adapter.

@@ -1,16 +1,18 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.9.5
+Workspace version: Living OS v2.0.9.6
 
-Implementation verification date: 2026-08-03
+Implementation verification date: 2026-08-04
 
-Production release: Living OS v2.0.9.5 (GitHub tag `v2.095`)
+Production release: Living OS v2.0.9.6 (GitHub tag `v2.096`)
 
-Status: Living OS v2.0.9.5 Database Architecture Recovery Hotfix.
+Status: Living OS v2.0.9.6 UI Foundation Compatibility Hotfix.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
 
 Architecture: Living OS is the Module layer; its runtime implements Subsystem → Engine → Function below `subsystems/`.
+
+v2.096 recovery: the Experience layer exposes the versioned `ultra-brain.ui/v1` Theme Contract, validated Design Tokens, Theme Adapter, Component Contracts, UI Registry, UI Interface, and registered module scopes. Future Ultra Brain settings may supply theme, palette, typography, icons, component style, layout, motion, background, and module overrides. The official v2.095 CSS and default visuals remain unchanged; no page, feature, persistence, deployment, or runtime-composition change is included.
 
 Database Foundation: Database and Database Management remain independent peer Subsystems. Foundation schema migrations are additive and idempotent at startup. Legacy business-data migration, backup, and restore remain explicit owner actions.
 

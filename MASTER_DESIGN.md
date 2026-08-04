@@ -20,6 +20,23 @@ Foundation owns platform policy; Operations owns life operations; Insight owns d
 
 Release requires compilation, full regression, architecture boundaries, every-page smoke checks, data-path preservation, verified migration/backup/restore, matching documentation, Codex Review, and User Approval.
 
+## UI Foundation Compatibility v2.096
+
+Living OS keeps its official visual design and recovers only the missing
+compatibility foundation for future Ultra Brain settings. The Experience layer
+owns a versioned Theme Contract, complete Design Tokens, a validated Theme
+Adapter, registered Component Contracts, a UI Registry, a public UI Interface,
+and module scopes. Ultra Brain owns customization; Living OS validates and
+applies the supplied contract.
+
+Global tokens cover theme mode, palette, typography, icons, cards, buttons,
+dialogs, widgets, dashboard, animation, radius, shadow, layout, and background.
+Every current module inherits the global surface and may receive a registered
+module override. Unregistered fields, components, modules, properties, and
+unsafe CSS syntax are rejected. The default v2.095 CSS and visuals are preserved
+byte-for-byte, and this recovery adds no screen, feature, persistence, data
+migration, deployment setting, or core runtime change.
+
 ## Database Foundation v1.7
 
 Database and Database Management are independent peer Subsystems owned by the Settings/Admin Module. Database is the Data Plane; Database Management is the Control Plane. Database Management uses only the public Database control contract and never edits business records directly.
