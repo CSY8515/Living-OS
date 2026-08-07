@@ -44,6 +44,10 @@ from subsystems.experience.engines.design_system import (
 )
 from subsystems.experience.engines.responsive import apply_responsive_layout
 from subsystems.experience.engines.ui_interface import LIVING_OS_UI, ui_scope_marker
+from subsystems.experience.engines.ultra_brain_world import (
+    inherited_world_css,
+    sync_inherited_world,
+)
 from subsystems.finance import FinanceSubsystem
 from subsystems.food import FoodSubsystem
 from subsystems.health import HealthSubsystem
@@ -514,7 +518,11 @@ def main() -> None:
     from subsystems.experience.engines.localization import localized_streamlit
     st = localized_streamlit()
     st.set_page_config(page_title=f"Living OS {VERSION}", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
+    inherited_world = sync_inherited_world(st.query_params)
     apply_responsive_layout()
+    inherited_css = inherited_world_css(inherited_world)
+    if inherited_css:
+        st.markdown(inherited_css, unsafe_allow_html=True)
     ui_contract = LIVING_OS_UI.resolve()
     try:
         hub = _hub()
