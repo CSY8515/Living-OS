@@ -63,7 +63,8 @@ keys always fall back to the existing checked-in Living OS asset or icon.
 
 ## Scope and lifecycle
 
-The contract is session-scoped. Future Ultra Brain composition may install it
-before the Living OS shell is rendered. This recovery intentionally adds no
-external transport, database, migration, deployment setting, or durable user
-preference store.
+The contract is session-scoped. Ultra Brain supplies the canonical contract
+through OS Ecosystem, and Living OS validates it before rendering. v2.097 maps
+that active contract to `LivingWorldDefinition`; see
+`THEME_WORLD_INTEGRATION_CONTRACT.md`. No database, migration, deployment
+setting, durable user preference store, or Living OS editor is added.

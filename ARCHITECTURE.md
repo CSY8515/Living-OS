@@ -22,6 +22,25 @@ Experience → Foundation, Operations, Insight, Compatibility and public domain 
 
 Canonical subsystem code may not import app.*, core.*, modules.*, shared.*, or expansion.*. UI cannot own canonical persistence. AI cannot directly mutate records. Database Management cannot directly mutate business records.
 
+## Theme World Integration v2.097
+
+The Experience layer now resolves the inherited `ultra-brain.ui/v1` contract
+through `InheritedWorld` into a canonical `LivingWorldDefinition`. The
+definition separates Theme World language from Feature identity: Living Home
+owns the inherited Parent asset, while each registered Feature owns its main
+object, navigation object, composition, visual focus, layout, and asset state.
+
+`Ultra Brain -> OS Ecosystem -> Living Theme Consumer -> Living World
+Definition -> Living Home / Feature Scene` is the supported Downstream path.
+Lock, Override, propagation targets, revision, adjustments, and session state
+are resolved at the Consumer boundary. A Parent Background is never copied into
+Feature registry slots. Missing Theme-specific Feature concept art is exposed
+as an asset requirement; official Feature art can remain as a declared reuse.
+
+The integration remains inside Experience and does not add a Living OS editor,
+change a domain facade, own persistence, migrate data, modify deployment, or
+touch Universal Learning Engine.
+
 ## UI Foundation Compatibility v2.096
 
 The Experience layer exposes the versioned `ultra-brain.ui/v1` contract through

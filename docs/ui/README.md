@@ -12,6 +12,7 @@ Every implementation tool and contributor must read the documents in this order:
 5. `RESPONSIVE_ACCESSIBILITY_GUIDELINE.md`
 6. `CONCEPT_ART/README.md` and the registered original concept files
 7. `UI_FOUNDATION_COMPATIBILITY_CONTRACT.md`
+8. `THEME_WORLD_INTEGRATION_CONTRACT.md`
 
 The official Concept Art is the visual source of truth. Documentation translates
 that source into implementation constraints; it is not permission to invent a

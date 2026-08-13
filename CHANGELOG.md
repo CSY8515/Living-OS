@@ -2,6 +2,23 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.9.7 — 2026-08-12
+
+- Connected the existing Ultra Brain Theme Consumer to a canonical Living
+  World Definition for Living Home and all registered Feature screens.
+- Restricted inherited Parent World assets to Living Home and removed the
+  previous Feature background fan-out.
+- Added distinct main objects, navigation objects, compositions, visual focus,
+  layouts, and asset status for 19 Living scenes.
+- Integrated Theme World language with Feature frames, functional overlays,
+  shared navigation, Lock/Override, revision, adjustments, and session state.
+- Verified Calm and Ocean through Ultra Brain contract generation, OS Ecosystem
+  routing, Living Home, Finance, Health, and Vehicle on desktop and mobile.
+- Preserved official Feature art where Theme-specific Feature assets are not
+  present and reported those images as explicit asset requirements.
+- Added no Living OS editor, user feature, domain change, persistence change,
+  migration, deployment-topology change, or Universal Learning Engine change.
+
 ## v2.0.9.2 — 2026-07-26
 
 - Implemented the supplied Living OS concept as the actual first-screen structure: Image 1 as the fixed first-screen layout, its exact nine life spaces, top-right Home, and five-action bottom dock, with only Image 2's OS Ecosystem art direction transferred.

@@ -8,7 +8,17 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from subsystems.experience.engines.localization import localized_streamlit, ui_text
-from subsystems.experience.engines.ui_interface import resolve_ui_asset, resolve_ui_icon
+from subsystems.experience.engines.living_world import (
+    FEATURE_WORLD_IDENTITY,
+    LivingWorldDefinition,
+    build_living_world_definition,
+)
+from subsystems.experience.engines.ui_interface import (
+    LIVING_OS_UI,
+    resolve_ui_asset,
+    resolve_ui_icon,
+)
+from subsystems.experience.engines.ultra_brain_world import active_inherited_world
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -32,6 +42,27 @@ STATUS_TONES = {
     "DEGRADED": "warn", "WARNING": "warn", "FAILED": "danger", "ERROR": "danger",
     "MISSING": "danger", "ARCHIVED": "muted", "PAUSED": "muted", "ONLINE": "good",
 }
+
+
+def _living_world_definition() -> LivingWorldDefinition:
+    inherited = active_inherited_world()
+    contract = LIVING_OS_UI.resolve()
+    theme_id = inherited.requested_theme if inherited else contract.theme_id
+    world_id = inherited.world if inherited else f"{theme_id}-living-world"
+    home_asset = resolve_ui_asset("background.home", str(WORLD_ASSET))
+    overrides: dict[str, str] = {}
+    for scene in FEATURE_WORLD_IDENTITY:
+        default = str(SUBSYSTEM_WORLD_ASSETS.get(scene, ""))
+        resolved = resolve_ui_asset(f"background.module.{scene}", default)
+        if resolved and resolved != default:
+            overrides[scene] = resolved
+    return build_living_world_definition(
+        theme_id=theme_id,
+        world_id=world_id,
+        home_asset=home_asset,
+        feature_assets=SUBSYSTEM_WORLD_ASSETS,
+        feature_overrides=overrides,
+    )
 
 
 
@@ -143,6 +174,8 @@ def system_banner(*, version: str, status: str, detail: str) -> None:
 def page_header(title: str, eyebrow: str, description: str = "", status: str | None = None) -> None:
     st = localized_streamlit()
     scene = _scene_for(title, eyebrow)
+    world = _living_world_definition()
+    feature = world.feature(scene)
     scene_title, scene_detail = SCENE_LABELS[scene]
     badge = ""
     if status:
@@ -156,24 +189,28 @@ def page_header(title: str, eyebrow: str, description: str = "", status: str | N
           <small>{escape(scene_detail)}</small></div>
           <div class="los-page-orbit" aria-hidden="true"><i></i><i></i><b></b></div>{badge}
         </section>'''
-    default_asset = SUBSYSTEM_WORLD_ASSETS.get(scene)
-    asset = resolve_ui_asset(
-        f"background.module.{scene}", str(default_asset) if default_asset else ""
+    image = ""
+    backdrop = ""
+    if feature.asset:
+        asset_uri = _asset_data_uri(feature.asset)
+        image = f'<img src="{asset_uri}" alt="">'
+        backdrop = f'<div class="los-fixed-world-backdrop" aria-hidden="true"><img src="{asset_uri}" alt=""></div>'
+    st.markdown(
+        f'''<div class="los-world-scene-scope los-world-scene-{scene} los-world-theme-{escape(world.theme_id)} los-world-frame-{escape(world.language.frame)} los-feature-composition-{escape(feature.composition)}"
+          data-living-world-context="feature" data-hierarchy-level="{escape(world.hierarchy_level)}"
+          data-theme-world="{escape(world.world_id)}" data-theme-composition="{escape(world.language.composition)}"
+          data-feature-id="{escape(feature.feature_id)}" data-main-object="{escape(feature.main_object)}"
+          data-navigation-object="{escape(feature.navigation_object)}" data-feature-composition="{escape(feature.composition)}"
+          data-feature-asset-state="{escape(feature.asset_state)}" data-theme-material="{escape(feature.material)}"
+          data-theme-lighting="{escape(feature.lighting)}" data-theme-texture="{escape(feature.texture)}">
+          {backdrop}
+          <section class="los-subsystem-world-hero">{image}{hero}</section>
+          <section class="los-world-threshold"><span>리빙 OS 월드</span><i></i>
+            <strong>{escape(scene_title)}</strong><em>{escape(scene_detail)}</em>
+          </section>
+        </div>''',
+        unsafe_allow_html=True,
     )
-    if asset:
-        asset_uri = _asset_data_uri(asset)
-        st.markdown(
-            f'''<div class="los-world-scene-scope los-world-scene-{scene}">
-              <div class="los-fixed-world-backdrop" aria-hidden="true"><img src="{asset_uri}" alt=""></div>
-              <section class="los-subsystem-world-hero"><img src="{asset_uri}" alt="">{hero}</section>
-              <section class="los-world-threshold"><span>리빙 OS 월드</span><i></i>
-                <strong>{escape(scene_title)}</strong><em>{escape(scene_detail)}</em>
-              </section>
-            </div>''',
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(hero, unsafe_allow_html=True)
 def home_world(
     *,
     greeting: str,
@@ -186,7 +223,8 @@ def home_world(
 ) -> None:
     """Render the final-answer home with direct, non-reflowing interaction layers."""
     st = localized_streamlit()
-    home_asset = resolve_ui_asset("background.home", str(WORLD_ASSET))
+    world = _living_world_definition()
+    home_asset = world.home_asset
     world_uri = _asset_data_uri(home_asset)
     ornament_dir = ROOT / "assets" / "ornaments"
     roof_assets = {
@@ -227,10 +265,6 @@ def home_world(
         f'<span class="los-world-symbol los-world-symbol-{name}" aria-hidden="true"></span>'
         for name in symbol_assets
     )
-    object_layers = "".join(
-        f'<span class="los-world-object-clone los-world-object-{name}" aria-hidden="true"></span>'
-        for name in ("finance", "job", "investment", "knowledge", "routine", "vehicle", "growth", "food", "housing", "health")
-    )
     roof_layers = "".join(
         f'<span class="los-world-roof los-world-roof-{name}" aria-hidden="true"></span>'
         for name in ("finance", "job", "investment", "knowledge", "routine", "vehicle", "growth", "food", "housing", "health")
@@ -240,13 +274,17 @@ def home_world(
     else:
         st.image(home_asset, width="stretch")
     st.markdown(
-        f'''<section class="los-world-stage" aria-label="리빙 OS 공식 세계"
+        f'''<section class="los-world-stage los-world-theme-{escape(world.theme_id)} los-world-frame-{escape(world.language.frame)}" aria-label="리빙 OS 공식 세계"
+          data-living-world-context="home" data-hierarchy-level="{escape(world.hierarchy_level)}"
+          data-theme-world="{escape(world.world_id)}" data-theme-composition="{escape(world.language.composition)}"
+          data-theme-material="{escape(world.language.material)}" data-theme-lighting="{escape(world.language.lighting)}"
+          data-theme-texture="{escape(world.language.texture)}"
           style="--los-home-image:url('{world_uri}');{roof_styles}{symbol_styles}">
           <div class="los-world-style-layer" aria-hidden="true"></div>
+          <div class="los-world-identity"><small>OS ECOSYSTEM / LIVING</small><strong>생활 세계</strong><span>{escape(world.language.composition)}</span></div>
           <span class="los-world-central-roof" aria-hidden="true"></span>
           {roof_layers}
           {symbol_layers}
-          {object_layers}
         </section>''',
         unsafe_allow_html=True,
     )

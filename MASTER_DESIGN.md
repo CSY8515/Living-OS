@@ -20,6 +20,26 @@ Foundation owns platform policy; Operations owns life operations; Insight owns d
 
 Release requires compilation, full regression, architecture boundaries, every-page smoke checks, data-path preservation, verified migration/backup/restore, matching documentation, Codex Review, and User Approval.
 
+## Theme World Integration v2.097
+
+Living OS consumes Ultra Brain Themes as Worlds, not as background names. The
+selected Theme contributes composition, frame, lighting, texture, material,
+effects, tokens, and the Living Home asset. Living Home remains the parent
+World; Feature scenes inherit that language while retaining distinct scene
+identity and functional purpose.
+
+The canonical representative mapping is Finance `ledger-vault / vault-gate /
+flow-ledger`, Health `biometric-garden / pulse-gate / recovery-ring`, and
+Vehicle `mobility-bay / route-compass / transit-lane`. The other registered
+screens follow the same contract. Functional cards, inputs, metrics, tables,
+buttons, shared navigation, and responsive bottom navigation are visually
+integrated without changing their behavior.
+
+The Parent Theme image cannot be used as a Feature fallback. When a native
+Theme x Feature concept image is unavailable, the official Feature image may be
+declared as reused and the missing native image remains `ASSET REQUIRED`. This
+preserves honest asset status and avoids duplicated Worlds.
+
 ## UI Foundation Compatibility v2.096
 
 Living OS keeps its official visual design and recovers only the missing

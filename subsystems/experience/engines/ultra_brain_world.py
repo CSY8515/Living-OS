@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 import math
 from pathlib import Path
@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 INHERITED_WORLD_ROOT = ROOT / "assets" / "inherited-worlds"
 OFFICIAL_WORLD_ASSET = ROOT / "assets" / "living-os-v2092-official-style-clean.png"
 INHERITED_SESSION_KEY = "living_os_ultra_brain_world"
+INHERITED_OBJECT_SESSION_KEY = "living_os_ultra_brain_world_object"
 TARGET_NODE = "living-os"
 JSON_QUERY_MAX_CHARS = 4096
 TRUSTED_SOURCES = frozenset({"ultra-brain", "os-ecosystem"})
@@ -37,9 +38,9 @@ PROPAGATION_TARGETS = (
     "layout", "componentPosition", "componentSize", "visibility", "animation",
 )
 
-# Every scene used by the current Living OS page registry receives the inherited
-# world asset.  This keeps one coherent World Package across dashboard and all
-# functional pages without introducing a Living OS UI editor.
+# Every scene used by the current Living OS page registry has a semantic World
+# Definition. The inherited root asset belongs to Living Home only; it must not
+# be copied into every Feature scene.
 THEMED_SCENES = (
     "living", "finance", "investment", "job", "health", "vehicle", "housing",
     "food", "knowledge", "routine", "growth", "collaboration", "timeline",
@@ -507,7 +508,6 @@ def build_theme_settings(world: InheritedWorld) -> dict[str, object]:
     if world.asset_theme != "official":
         asset = str(world.asset_path)
         assets["background.home"] = asset
-        assets.update({f"background.module.{scene}": asset for scene in THEMED_SCENES})
 
     design_tokens: dict[str, object] = {}
     if world.target_enabled("theme") or world.target_enabled("color"):
@@ -604,8 +604,11 @@ def _layout_css(world: InheritedWorld) -> str:
 
 
 def inherited_world_css(world: InheritedWorld | None) -> str:
+    from subsystems.experience.engines.living_world import living_world_css
+
+    integration = living_world_css(world.style_theme if world else "official")
     if world is None or world.preserves_local_ui:
-        return ""
+        return integration
     values = world.adjustments
     defaults = {key: item[2] for key, item in ADJUSTMENT_RANGES.items()}
     nonofficial_asset = world.asset_theme != "official"
@@ -658,7 +661,7 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
 
     if nonofficial_asset:
         rules.append(
-            ".los-world-central-roof,.los-world-roof,.los-world-symbol,.los-world-object-clone"
+            ".los-world-central-roof,.los-world-roof,.los-world-object-clone"
             "{display:none!important}"
         )
         rules.append(
@@ -695,7 +698,7 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
     if world.target_enabled("animation") and not world.motion:
         rules.append(".stApp *{animation:none!important;transition:none!important}")
 
-    return (
+    return integration + (
         '<style data-ultra-brain-inheritance="v0.985">'
         + "".join(rules)
         + "</style>"
@@ -705,20 +708,84 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
     )
 
 
+def active_inherited_world() -> InheritedWorld | None:
+    """Return the effective inherited World kept across Living navigation."""
+
+    import streamlit as st
+
+    value = st.session_state.get(INHERITED_OBJECT_SESSION_KEY)
+    return value if isinstance(value, InheritedWorld) else None
+
+
+def _merge_protected_world(
+    incoming: InheritedWorld,
+    active: InheritedWorld | None,
+) -> InheritedWorld:
+    """Preserve active visual fields that the incoming contract cannot change."""
+
+    if active is None:
+        return incoming
+    updates: dict[str, object] = {}
+    theme_enabled = incoming.target_enabled("theme")
+    color_enabled = theme_enabled or incoming.target_enabled("color")
+    background_enabled = theme_enabled or incoming.target_enabled("background")
+    if not theme_enabled:
+        updates.update(
+            requested_theme=active.requested_theme,
+            style_theme=active.style_theme,
+            world=active.world,
+            revision=active.revision,
+        )
+    if not color_enabled:
+        updates["palette_theme"] = active.palette_theme
+        updates["accent"] = active.accent
+    if not background_enabled:
+        updates["asset_theme"] = active.asset_theme
+    adjustments = dict(incoming.adjustments)
+    for name in ADJUSTMENT_RANGES:
+        if not incoming.target_enabled(name):
+            adjustments[name] = active.adjustments.get(
+                name, ADJUSTMENT_RANGES[name][2]
+            )
+    updates["adjustments"] = adjustments
+    if not any(
+        incoming.target_enabled(name)
+        for name in ("layout", "componentPosition", "componentSize", "visibility")
+    ):
+        updates["layout"] = active.layout
+    if not incoming.target_enabled("animation"):
+        updates["motion"] = active.motion
+    return replace(incoming, **updates)
+
+
 def sync_inherited_world(query: Mapping[str, object]) -> InheritedWorld | None:
-    """Install the inherited contract for this Streamlit session, or clear it."""
+    """Install the effective World and preserve it across Living navigation."""
     import streamlit as st
     from subsystems.experience.engines.ui_interface import (
         ULTRA_BRAIN_UI_SESSION_KEY,
         install_ultra_brain_ui_settings,
     )
 
-    world = parse_inherited_world(query)
-    if world is None or world.preserves_local_contract:
+    signal_keys = {
+        "source", "theme", "world", "contract", "propagationTargets",
+        "propagationLocks", "propagationOverrides",
+    }
+    has_signal = bool(signal_keys.intersection(query))
+    active = active_inherited_world()
+    incoming = parse_inherited_world(query)
+    if incoming is None:
+        if not has_signal:
+            return active
         st.session_state.pop(ULTRA_BRAIN_UI_SESSION_KEY, None)
         st.session_state.pop(INHERITED_SESSION_KEY, None)
-        return world
-    install_ultra_brain_ui_settings(build_theme_settings(world))
+        st.session_state.pop(INHERITED_OBJECT_SESSION_KEY, None)
+        return None
+    world = _merge_protected_world(incoming, active)
+    if world.preserves_local_contract:
+        st.session_state.pop(ULTRA_BRAIN_UI_SESSION_KEY, None)
+    else:
+        install_ultra_brain_ui_settings(build_theme_settings(world))
+    st.session_state[INHERITED_OBJECT_SESSION_KEY] = world
     st.session_state[INHERITED_SESSION_KEY] = {
         "theme": world.requested_theme,
         "world": world.world,

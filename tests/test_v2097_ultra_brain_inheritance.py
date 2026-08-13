@@ -36,7 +36,9 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
     def test_no_propagation_query_keeps_existing_living_os_default(self) -> None:
         self.assertIsNone(parse_inherited_world({}))
         self.assertIsNone(parse_inherited_world({"nav_page": "Finance"}))
-        self.assertEqual(inherited_world_css(None), "")
+        css = inherited_world_css(None)
+        self.assertIn('data-living-world-integration="v2.097"', css)
+        self.assertNotIn('data-ultra-brain-inheritance="v0.985"', css)
 
     def test_every_registered_world_has_a_real_repository_asset(self) -> None:
         self.assertEqual(set(WORLD_ASSETS), set(THEME_PROFILES))
@@ -69,7 +71,7 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
                     contract.design_tokens.values["color"]["accent"], "#447788"
                 )
 
-    def test_every_visual_scene_receives_the_selected_world_asset(self) -> None:
+    def test_root_world_asset_is_not_repeated_into_feature_scenes(self) -> None:
         self.assertEqual(set(THEMED_SCENES), set(SCENE_LABELS))
         state = parse_inherited_world(
             inherited_query(theme="calm", world="calm-wetland-world")
@@ -79,7 +81,7 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
         assets = settings["assets"]
         self.assertEqual(assets["background.home"], str(WORLD_ASSETS["calm"]))
         for scene in SCENE_LABELS:
-            self.assertEqual(assets[f"background.module.{scene}"], str(WORLD_ASSETS["calm"]))
+            self.assertNotIn(f"background.module.{scene}", assets)
 
     def test_query_is_normalized_and_adjustments_are_clamped(self) -> None:
         state = parse_inherited_world(
@@ -226,7 +228,9 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
         self.assertTrue(state.preserves_local_ui)
         self.assertTrue(state.preserves_local_contract)
         self.assertEqual(build_theme_settings(state), expected)
-        self.assertEqual(inherited_world_css(state), "")
+        css = inherited_world_css(state)
+        self.assertIn('data-living-world-integration="v2.097"', css)
+        self.assertNotIn('data-ultra-brain-inheritance="v0.985"', css)
         adapter = ThemeAdapter()
         self.assertEqual(
             adapter.render(OFFICIAL_UI_CSS, build_theme_settings(state)),
@@ -262,7 +266,9 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
                 assert state is not None
                 self.assertFalse(state.applied_targets)
                 self.assertTrue(state.preserves_local_ui)
-                self.assertEqual(inherited_world_css(state), "")
+                css = inherited_world_css(state)
+                self.assertIn('data-living-world-integration="v2.097"', css)
+                self.assertNotIn('data-ultra-brain-inheritance="v0.985"', css)
                 self.assertEqual(
                     build_theme_settings(state),
                     DEFAULT_UI_REGISTRY.theme("living-os-dark").to_payload(),

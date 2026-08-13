@@ -1,8 +1,8 @@
-# Living OS v2.0.9.6
+# Living OS v2.0.9.7
 
-> Living OS v2.0.9.6 is the UI Foundation Compatibility Hotfix. GitHub release tag: v2.096.
+> Living OS v2.0.9.7 is the Theme World Integration Hotfix. GitHub release tag: v2.097.
 
-v2.0.9.6 adds the missing versioned Theme Contract, Design Tokens, Theme Adapter, Component Contracts, UI Registry, public UI Interface, and module scopes in the Experience layer. Future Ultra Brain settings can change the registered UI surface without adding a Living OS customization screen. The current official CSS, visuals, navigation, features, data, deployment, and runtime composition remain unchanged by default.
+v2.0.9.7 connects the existing Ultra Brain Theme Consumer to a canonical Living World Definition. Living Home consumes the inherited World asset, while every Feature retains a distinct main object, navigation object, composition, and repository-owned scene. Theme switching changes the World language and frame without adding a Living OS editor or changing domain data, feature behavior, deployment, or runtime composition.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 
