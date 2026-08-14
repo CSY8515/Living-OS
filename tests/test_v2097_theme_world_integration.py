@@ -21,6 +21,7 @@ from subsystems.experience.engines.ultra_brain_world import (
     inherited_world_css,
     parse_inherited_world,
 )
+from subsystems.experience.engines.theme_adapter import ThemeAdapter
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,8 +57,11 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         })
         definition = self.definition("calm")
         pilots = [definition.feature(name) for name in ("finance", "health", "vehicle")]
-        self.assertEqual({item.asset for item in pilots}, {definition.home_asset})
-        self.assertEqual({item.asset_state for item in pilots}, {"parent-world-fallback"})
+        self.assertEqual(
+            {item.asset for item in pilots},
+            {str(SUBSYSTEM_WORLD_ASSETS[name]) for name in ("finance", "health", "vehicle")},
+        )
+        self.assertEqual({item.asset_state for item in pilots}, {"reused-official-feature"})
         self.assertTrue(all(item.theme_asset_required for item in pilots))
         self.assertEqual(len({item.main_object for item in pilots}), 3)
         self.assertEqual(len({item.navigation_object for item in pilots}), 3)
@@ -74,7 +78,7 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         self.assertNotEqual(calm.language.material, ocean.language.material)
         self.assertNotEqual(calm.language.effects, ocean.language.effects)
 
-    def test_missing_theme_feature_art_uses_declared_parent_world_fallback(self) -> None:
+    def test_missing_theme_feature_art_uses_distinct_official_fallback(self) -> None:
         state = parse_inherited_world(inherited_query("calm"))
         assert state is not None
         settings = build_theme_settings(state)
@@ -82,10 +86,19 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         definition = self.definition("calm")
         for scene in ("finance", "health", "vehicle"):
             feature = definition.feature(scene)
-            self.assertEqual(feature.asset, definition.home_asset)
-            self.assertNotEqual(feature.asset, str(SUBSYSTEM_WORLD_ASSETS[scene]))
-            self.assertEqual(feature.asset_state, "parent-world-fallback")
+            self.assertEqual(feature.asset, str(SUBSYSTEM_WORLD_ASSETS[scene]))
+            self.assertNotEqual(feature.asset, definition.home_asset)
+            self.assertEqual(feature.asset_state, "reused-official-feature")
             self.assertTrue(feature.theme_asset_required)
+
+    def test_asset_only_theme_keeps_original_functional_ui_css(self) -> None:
+        state = parse_inherited_world(inherited_query("calm"))
+        assert state is not None
+        settings = build_theme_settings(state)
+        css = ThemeAdapter().render(".original-functional-ui{color:#f3eddc}", settings)
+        self.assertIn(".original-functional-ui{color:#f3eddc}", css)
+        self.assertNotIn("[data-testid=\"stMetric\"]", css)
+        self.assertNotIn("[data-baseweb=\"input\"]", css)
 
     def test_root_theme_filter_excludes_reused_official_feature_art(self) -> None:
         state = parse_inherited_world(inherited_query("calm", brightness=1.2, hue=12.0))
@@ -106,9 +119,9 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         for feature in ("finance", "health", "vehicle"):
             self.assertIn(f".st-key-world_node_{feature}", css)
         self.assertIn("@media(max-width:760px)", css)
-        self.assertIn(".los-user-navigation", css)
-        self.assertIn('[data-testid="stMetric"]', css)
-        self.assertIn(".stButton>button", css)
+        self.assertNotIn('.stApp:has(.los-world-scene-scope) [data-testid="stMetric"]', css)
+        self.assertNotIn('.stApp:has(.los-world-scene-scope) [data-baseweb="input"]', css)
+        self.assertNotIn('.stApp:has(.los-world-scene-scope) .stButton>button', css)
 
     def test_source_has_no_root_asset_fanout_or_cloned_navigation_object(self) -> None:
         world_source = (ROOT / "subsystems/experience/engines/ultra_brain_world.py").read_text(encoding="utf-8")
@@ -137,7 +150,7 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
             feature = page.lower()
             self.assertIn(f'data-feature-id="{feature}"', rendered)
             self.assertIn('data-theme-composition="wetland-haven"', rendered)
-            self.assertIn('data-feature-asset-state="parent-world-fallback"', rendered)
+            self.assertIn('data-feature-asset-state="reused-official-feature"', rendered)
             marker = next(
                 item for item in rendered.split("data-feature-composition=")
                 if f'data-feature-id="{feature}"' in rendered

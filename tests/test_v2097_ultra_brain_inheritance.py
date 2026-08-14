@@ -254,6 +254,16 @@ class UltraBrainWorldInheritanceTests(unittest.TestCase):
         self.assertIn("hue-rotate(29deg)", css)
         self.assertNotIn(".los-world-roof,.los-world-symbol", css)
 
+    def test_nonofficial_world_does_not_overlay_official_navigation_symbols(self) -> None:
+        state = parse_inherited_world(inherited_query(theme="archive"))
+        assert state is not None
+        css = inherited_world_css(state)
+        self.assertIn(
+            ".los-world-central-roof,.los-world-roof,.los-world-object-clone,.los-world-symbol"
+            "{display:none!important}",
+            css,
+        )
+
     def test_complete_lock_or_override_emits_no_effect_css(self) -> None:
         targets = list(PROPAGATION_TARGETS)
         for key in ("propagationLocks", "propagationOverrides"):

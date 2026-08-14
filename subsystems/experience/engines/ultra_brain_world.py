@@ -18,6 +18,14 @@ JSON_QUERY_MAX_CHARS = 4096
 TRUSTED_SOURCES = frozenset({"ultra-brain", "os-ecosystem"})
 TRUSTED_CONTRACT = "ultra-brain.ui/v1"
 TRUSTED_INTERFACE = "1.0"
+ROLE_ASSET_REGISTRY = "ui-theme-registry"
+ROLE_ASSET_REGISTRY_VERSION = "1.0.0"
+VISUAL_ROLES = frozenset(
+    {
+        "HOME_BACKGROUND", "CENTRAL_WORLD", "NAVIGATION_OBJECT_SKIN",
+        "FEATURE_BACKGROUND", "DECORATIVE_VISUAL",
+    }
+)
 
 ADJUSTMENT_RANGES = {
     "brightness": (0.7, 1.3, 1.0),
@@ -193,6 +201,27 @@ WORLD_ASSETS = {
         if theme != "official"
     },
 }
+APPROVED_ROLE_ASSETS = {
+    ("dark", "living-os", None, "HOME_BACKGROUND"): (2, WORLD_ASSETS["dark"]),
+    (
+        "dark",
+        "living-os",
+        None,
+        "NAVIGATION_OBJECT_SKIN",
+    ): (2, ROOT / "assets" / "theme-role-assets" / "dark" / "navigation-object-skin.png"),
+    (
+        "dark",
+        "living-os",
+        "finance",
+        "FEATURE_BACKGROUND",
+    ): (2, ROOT / "assets" / "theme-role-assets" / "dark" / "finance-background.png"),
+    (
+        "dark",
+        "living-os",
+        "health",
+        "FEATURE_BACKGROUND",
+    ): (2, ROOT / "assets" / "theme-role-assets" / "dark" / "health-background.png"),
+}
 
 
 @dataclass(frozen=True)
@@ -213,6 +242,11 @@ class InheritedWorld:
     ui_locks: Mapping[str, bool]
     motion: bool
     accent: str | None
+    asset_registry: str | None = None
+    project_id: str | None = None
+    feature_id: str | None = None
+    visual_role: str | None = None
+    asset_revision: int | None = None
 
     @property
     def asset_path(self) -> Path:
@@ -312,6 +346,13 @@ def _safe_bool(value: object, default: bool = False) -> bool:
     if normalized in {"0", "false", "no", "off"}:
         return False
     return default
+
+
+def _safe_positive_int(value: object, default: int = 1) -> int:
+    try:
+        return max(1, min(2_147_483_647, int(value)))
+    except (TypeError, ValueError):
+        return default
 
 
 def _normalize_targets(values: object) -> list[str]:
@@ -464,6 +505,25 @@ def parse_inherited_world(query: Mapping[str, object]) -> InheritedWorld | None:
         else True
     )
 
+    asset_registry: str | None = None
+    project_id: str | None = None
+    feature_id: str | None = None
+    visual_role: str | None = None
+    asset_revision: int | None = None
+    if (
+        _query_scalar(query, "asset_registry") == ROLE_ASSET_REGISTRY
+        and _query_scalar(query, "asset_registry_version") == ROLE_ASSET_REGISTRY_VERSION
+    ):
+        candidate_project = _safe_token(_query_scalar(query, "project_id"), "")
+        candidate_feature = _safe_token(_query_scalar(query, "feature_id"), "") or None
+        candidate_role = _query_scalar(query, "visual_role").upper()
+        if candidate_project == TARGET_NODE and candidate_role in VISUAL_ROLES:
+            asset_registry = ROLE_ASSET_REGISTRY
+            project_id = candidate_project
+            feature_id = candidate_feature
+            visual_role = candidate_role
+            asset_revision = _safe_positive_int(_query_scalar(query, "asset_revision", "1"))
+
     return InheritedWorld(
         requested_theme=requested,
         style_theme=style_theme,
@@ -481,72 +541,78 @@ def parse_inherited_world(query: Mapping[str, object]) -> InheritedWorld | None:
         ui_locks=ui_locks,
         motion=motion,
         accent=accent,
+        asset_registry=asset_registry,
+        project_id=project_id,
+        feature_id=feature_id,
+        visual_role=visual_role,
+        asset_revision=asset_revision,
     )
+
+
+def resolve_visual_asset(
+    world: InheritedWorld,
+    visual_role: str,
+    feature_id: str | None = None,
+) -> tuple[Path | None, str, str]:
+    """Resolve an approved local asset for one existing Living visual slot."""
+
+    safe_role = str(visual_role).strip().upper()
+    safe_feature = _safe_token(str(feature_id or ""), "") or None
+    if (
+        world.asset_registry == ROLE_ASSET_REGISTRY
+        and world.project_id == TARGET_NODE
+        and world.feature_id == safe_feature
+        and world.visual_role == safe_role
+        and world.asset_revision is not None
+    ):
+        registered = APPROVED_ROLE_ASSETS.get(
+            (world.requested_theme, world.project_id, safe_feature, safe_role)
+        )
+        if registered and registered[0] <= world.asset_revision:
+            path = registered[1]
+            if path.is_file():
+                source = "theme-project-feature-role" if safe_feature else "theme-project-role"
+                return path, source, "NONE"
+
+    if safe_role == "HOME_BACKGROUND" and safe_feature is None:
+        return world.asset_path, "legacy-theme-asset", "FALLBACK USED"
+    return None, "missing-role-asset", "ASSET REQUIRED"
 
 
 def build_theme_settings(world: InheritedWorld) -> dict[str, object]:
-    if world.preserves_local_contract:
-        from subsystems.experience.engines.ui_registry import DEFAULT_UI_REGISTRY
+    from subsystems.experience.engines.ui_registry import DEFAULT_UI_REGISTRY
 
-        return DEFAULT_UI_REGISTRY.theme("living-os-dark").to_payload()
-
-    style_profile = THEME_PROFILES[world.style_theme]
-    palette_profile = THEME_PROFILES[world.palette_theme]
-    colors = dict(palette_profile["colors"])
-    if world.accent:
-        colors["accent"] = world.accent
-    radius = str(style_profile["radius"])
-    font_kind = str(style_profile["font"])
-    font_sans = (
-        '"Noto Serif KR","Batang",serif'
-        if font_kind == "serif"
-        else '"Inter","Pretendard Variable","Noto Sans KR","Malgun Gothic",sans-serif'
-        if font_kind == "minimal"
-        else '"Pretendard Variable","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic","Segoe UI",sans-serif'
-    )
-    assets: dict[str, str] = {}
-    if world.asset_theme != "official":
-        asset = str(world.asset_path)
-        assets["background.home"] = asset
-
-    design_tokens: dict[str, object] = {}
-    if world.target_enabled("theme") or world.target_enabled("color"):
-        design_tokens["color"] = colors
-    if world.target_enabled("theme"):
-        design_tokens["typography"] = {"font_sans": font_sans}
-        design_tokens["shape"] = {
-            "radius": radius,
-            "radius_small": radius,
-            "card_radius": radius,
-            "button_radius": radius,
-            "dialog_radius": radius,
-            "widget_radius": radius,
-        }
+    # Preserve the existing functional tokens and install only approved assets
+    # into the explicit Living presentation slots that already exist.
+    settings = DEFAULT_UI_REGISTRY.theme("living-os-dark").to_payload()
     if (
-        world.target_enabled("theme")
-        or world.target_enabled("shadow")
-        or world.target_enabled("glow")
+        not world.preserves_local_contract
+        and world.asset_theme != "official"
+        and world.asset_registry == ROLE_ASSET_REGISTRY
+        and world.project_id == TARGET_NODE
+        and world.asset_revision is not None
     ):
-        design_tokens["shadow"] = {
-            "card": f"0 18px 48px rgba(0,0,0,{0.18 + 0.14 * world.adjustments['shadow']:.3f})",
-            "button": f"0 10px 24px rgba(0,0,0,{0.10 + 0.10 * world.adjustments['shadow']:.3f})",
-            "dialog": f"0 30px 90px rgba(0,0,0,{0.22 + 0.16 * world.adjustments['shadow']:.3f})",
-            "glow": f"0 0 {18 + 18 * world.adjustments['glow']:.1f}px color-mix(in srgb,{colors['accent']} 22%,transparent)",
+        slot_for_role = {
+            (None, "HOME_BACKGROUND"): "background.home",
+            (None, "NAVIGATION_OBJECT_SKIN"): "navigation.object.skin",
         }
-    if world.target_enabled("theme") or world.target_enabled("animation"):
-        design_tokens["motion"] = {
-            "enabled": world.motion,
-            "scale": 1.0 if world.motion else 0.0,
-        }
-    return {
-        "contract_id": "ultra-brain.ui",
-        "contract_version": 1,
-        "theme_id": f"ultra-brain-{world.requested_theme}",
-        "mode": palette_profile["mode"],
-        "source": "ultra-brain",
-        "design_tokens": design_tokens,
-        "assets": assets,
-    }
+        for (theme_id, project_id, feature_id, visual_role), (
+            revision,
+            path,
+        ) in APPROVED_ROLE_ASSETS.items():
+            if (
+                theme_id != world.requested_theme
+                or project_id != TARGET_NODE
+                or revision > world.asset_revision
+                or not path.is_file()
+            ):
+                continue
+            slot = slot_for_role.get((feature_id, visual_role))
+            if visual_role == "FEATURE_BACKGROUND" and feature_id:
+                slot = f"background.module.{feature_id}"
+            if slot:
+                settings["assets"][slot] = str(path)
+    return settings
 
 
 _LAYOUT_SELECTORS = {
@@ -612,6 +678,28 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
     values = world.adjustments
     defaults = {key: item[2] for key, item in ADJUSTMENT_RANGES.items()}
     nonofficial_asset = world.asset_theme != "official"
+    consumer_settings = build_theme_settings(world)
+    consumer_assets = consumer_settings.get("assets", {})
+    consumer_icons = consumer_settings.get("icons", {})
+    required_object_assets = {
+        "ornament.roof.bud",
+        "ornament.roof.sprout",
+        "ornament.roof.blossom",
+        "ornament.roof.tree",
+    }
+    required_object_icons = {
+        f"icon.world.{name}"
+        for name in (
+            "finance", "job", "investment", "knowledge", "routine",
+            "vehicle", "growth", "food", "housing", "health",
+        )
+    }
+    has_complete_world_object_skin = (
+        isinstance(consumer_assets, Mapping)
+        and isinstance(consumer_icons, Mapping)
+        and required_object_assets.issubset(consumer_assets)
+        and required_object_icons.issubset(consumer_icons)
+    )
     adjusted = {
         key
         for key, value in values.items()
@@ -621,7 +709,7 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
     official_accent = str(THEME_PROFILES["official"]["colors"]["accent"]).lower()
     if world.accent and world.accent.lower() != official_accent:
         rules.append(
-            f".stApp{{--los-gold:{world.accent}!important;"
+            f".los-world-stage,.los-world-scene-scope{{--los-gold:{world.accent}!important;"
             f"--los-gold-bright:{world.accent}!important;--los-icon-color:{world.accent}!important}}"
         )
 
@@ -663,9 +751,9 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
             "}"
         )
 
-    if nonofficial_asset:
+    if nonofficial_asset and has_complete_world_object_skin:
         rules.append(
-            ".los-world-central-roof,.los-world-roof,.los-world-object-clone"
+            ".los-world-central-roof,.los-world-roof,.los-world-object-clone,.los-world-symbol"
             "{display:none!important}"
         )
         rules.append(
@@ -690,7 +778,7 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
         shadow_blur = 38 * values["shadow"]
         glow_blur = 22 * values["glow"]
         rules.append(
-            ".los-page-hero,.los-world-threshold,.los-user-navigation,[data-testid=\"stSidebar\"]{"
+            ".los-page-hero,.los-world-threshold{"
             f"box-shadow:0 18px {shadow_blur:.1f}px rgba(0,0,0,.25),"
             f"0 0 {glow_blur:.1f}px color-mix(in srgb,var(--los-gold) 15%,transparent)!important"
             "}"
@@ -745,6 +833,11 @@ def _merge_protected_world(
         updates["accent"] = active.accent
     if not background_enabled:
         updates["asset_theme"] = active.asset_theme
+        updates["asset_registry"] = active.asset_registry
+        updates["project_id"] = active.project_id
+        updates["feature_id"] = active.feature_id
+        updates["visual_role"] = active.visual_role
+        updates["asset_revision"] = active.asset_revision
     adjustments = dict(incoming.adjustments)
     for name in ADJUSTMENT_RANGES:
         if not incoming.target_enabled(name):

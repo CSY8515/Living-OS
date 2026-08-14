@@ -226,6 +226,15 @@ def home_world(
     world = _living_world_definition()
     home_asset = world.home_asset
     world_uri = _asset_data_uri(home_asset)
+    navigation_skin_asset = resolve_ui_asset("navigation.object.skin", "")
+    navigation_skin_style = ""
+    navigation_skin_state = "false"
+    if navigation_skin_asset:
+        navigation_skin_path = Path(navigation_skin_asset)
+        if navigation_skin_asset.startswith(("data:image/", "https://", "http://")) or navigation_skin_path.is_file():
+            navigation_skin_uri = _asset_data_uri(navigation_skin_asset)
+            navigation_skin_style = f"--los-navigation-skin:url('{navigation_skin_uri}');"
+            navigation_skin_state = "true"
     ornament_dir = ROOT / "assets" / "ornaments"
     roof_assets = {
         "bud": resolve_ui_asset("ornament.roof.bud", str(ornament_dir / "roof-bud.png")),
@@ -276,10 +285,11 @@ def home_world(
     st.markdown(
         f'''<section class="los-world-stage los-world-theme-{escape(world.theme_id)} los-world-frame-{escape(world.language.frame)}" aria-label="리빙 OS 공식 세계"
           data-living-world-context="home" data-hierarchy-level="{escape(world.hierarchy_level)}"
+          data-navigation-skin="{navigation_skin_state}"
           data-theme-world="{escape(world.world_id)}" data-theme-composition="{escape(world.language.composition)}"
           data-theme-material="{escape(world.language.material)}" data-theme-lighting="{escape(world.language.lighting)}"
           data-theme-texture="{escape(world.language.texture)}"
-          style="--los-home-image:url('{world_uri}');{roof_styles}{symbol_styles}">
+          style="--los-home-image:url('{world_uri}');{navigation_skin_style}{roof_styles}{symbol_styles}">
           <div class="los-world-style-layer" aria-hidden="true"></div>
           <span class="los-world-central-roof" aria-hidden="true"></span>
           {roof_layers}

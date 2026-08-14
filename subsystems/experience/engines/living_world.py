@@ -134,15 +134,12 @@ def build_living_world_definition(
             asset = override
             asset_state = "theme-asset"
             required = False
-        elif normalized_theme != "official" and str(home_asset).strip():
-            # A non-Official Theme without a dedicated Feature scene must keep
-            # the incoming Living World visible.  Reusing the checked-in
-            # Official Feature painting here makes transport look successful
-            # while rendering a different World.  The semantic Feature layer
-            # below still supplies its own object/composition, and the state
-            # remains explicitly incomplete until dedicated art is approved.
-            asset = str(home_asset)
-            asset_state = "parent-world-fallback"
+        elif normalized_theme != "official" and default_asset:
+            # A parent Theme image is not a Feature asset. Keep the original,
+            # feature-specific painting as a fail-closed fallback until a
+            # dedicated Theme x Feature visual is registered.
+            asset = default_asset
+            asset_state = "reused-official-feature"
             required = True
         elif default_asset:
             asset = default_asset
@@ -244,19 +241,6 @@ def living_world_css(theme_id: str) -> str:
         'background:radial-gradient(circle at 18% 22%,color-mix(in srgb,var(--los-gold) 16%,transparent),transparent 32%),'
         'linear-gradient(135deg,transparent 40%,color-mix(in srgb,var(--los-seed) 8%,transparent));mix-blend-mode:screen}'
         f'.los-world-frame-{language.frame} .los-subsystem-world-hero{{{frame_css}}}'
-        '.stApp:has([data-living-world-context]) .los-user-navigation{background:linear-gradient(135deg,'
-        'color-mix(in srgb,var(--los-surface-strong) 88%,transparent),color-mix(in srgb,var(--los-gold) 10%,transparent))!important;'
-        'border-color:var(--los-line-strong)!important;box-shadow:var(--los-glow)!important}'
-        '.stApp:has(.los-world-scene-scope) [data-testid="stMetric"],'
-        '.stApp:has(.los-world-scene-scope) [data-testid="stDataFrame"],'
-        '.stApp:has(.los-world-scene-scope) [data-baseweb="tab-list"],'
-        '.stApp:has(.los-world-scene-scope) [data-baseweb="input"]>div,'
-        '.stApp:has(.los-world-scene-scope) [data-baseweb="select"]>div{'
-        'background:color-mix(in srgb,var(--los-surface-strong) 86%,transparent)!important;'
-        'border-color:var(--los-line)!important;box-shadow:var(--los-shadow)!important}'
-        '.stApp:has(.los-world-scene-scope) .stButton>button{background:linear-gradient(180deg,'
-        'color-mix(in srgb,var(--los-gold) 18%,transparent),color-mix(in srgb,var(--los-surface) 92%,transparent))!important;'
-        'border-color:var(--los-line-strong)!important;color:var(--los-paper)!important}'
         + nav_css
         + position_css
         + '@media(max-width:760px){.los-world-identity{left:2%;top:2%;padding:6px 9px}.los-world-identity span{display:none}'

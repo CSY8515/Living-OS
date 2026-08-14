@@ -557,6 +557,7 @@ a{color:var(--los-gold-bright)}*:focus-visible{outline:2px solid var(--los-gold-
 /* Final home art pass: rendered subsystem relics, attached crowns and Ecosystem-grade grading. */
 [class*="st-key-world_node_"] .stButton>button:after{display:none!important;content:none!important}
 .los-world-symbol{position:absolute!important;z-index:18!important;display:block!important;width:7.6%!important;height:12.4%!important;translate:-50% -50%!important;pointer-events:none!important;background-repeat:no-repeat!important;background-position:center bottom!important;background-size:contain!important;opacity:.95!important;filter:brightness(.82) saturate(.72) contrast(1.12) sepia(.04) hue-rotate(10deg) drop-shadow(0 8px 10px rgba(0,0,0,.72)) drop-shadow(0 0 8px rgba(225,188,91,.18))!important;transform-origin:50% 72%!important;transition:transform .28s var(--los-spring),filter .28s ease!important}
+.los-world-stage[data-navigation-skin="true"] .los-world-symbol:before{content:"";position:absolute;z-index:-1;inset:-34%;background:var(--los-navigation-skin) center/contain no-repeat;pointer-events:none;opacity:.96}
 .los-world-symbol-finance{background-image:var(--los-symbol-finance)!important}
 .los-world-symbol-job{background-image:var(--los-symbol-job)!important}
 .los-world-symbol-investment{background-image:var(--los-symbol-investment)!important}
