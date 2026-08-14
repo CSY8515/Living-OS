@@ -2,6 +2,23 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.9.8 — 2026-08-14
+
+- Removed the visible Living Home World/Hierarchy identity panel while keeping
+  internal World IDs, Theme state, hierarchy, and routing contracts intact.
+- Preserved the native 1376x918 Living Home composition and fitted it inside
+  the active viewport without clipping the central World or Feature domes.
+- Aligned the five bottom-navigation actions with equal widths and gaps, and
+  separated their hit areas from the lower Routine and Vehicle actions.
+- Declared Parent World fallback rendering for non-Official Themes that do not
+  provide dedicated Feature concept art, instead of silently reusing unrelated
+  Official Feature paintings.
+- Scoped inherited image filtering to the declared Feature asset state.
+- Added focused regression coverage for fallback state, scoped filtering,
+  hidden Home identity presentation, and downstream rendering.
+- Added no domain, persistence, migration, routing, database, or deployment
+  architecture change.
+
 ## v2.0.9.7 — 2026-08-12
 
 - Connected the existing Ultra Brain Theme Consumer to a canonical Living

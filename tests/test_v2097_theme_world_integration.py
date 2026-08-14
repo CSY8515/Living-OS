@@ -18,6 +18,7 @@ from subsystems.experience.engines.ultra_brain_world import (
     PROPAGATION_TARGETS,
     WORLD_ASSETS,
     build_theme_settings,
+    inherited_world_css,
     parse_inherited_world,
 )
 
@@ -55,7 +56,9 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         })
         definition = self.definition("calm")
         pilots = [definition.feature(name) for name in ("finance", "health", "vehicle")]
-        self.assertEqual(len({item.asset for item in pilots}), 3)
+        self.assertEqual({item.asset for item in pilots}, {definition.home_asset})
+        self.assertEqual({item.asset_state for item in pilots}, {"parent-world-fallback"})
+        self.assertTrue(all(item.theme_asset_required for item in pilots))
         self.assertEqual(len({item.main_object for item in pilots}), 3)
         self.assertEqual(len({item.navigation_object for item in pilots}), 3)
         self.assertEqual(len({item.composition for item in pilots}), 3)
@@ -71,7 +74,7 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         self.assertNotEqual(calm.language.material, ocean.language.material)
         self.assertNotEqual(calm.language.effects, ocean.language.effects)
 
-    def test_root_theme_asset_is_home_only_and_features_keep_owned_art(self) -> None:
+    def test_missing_theme_feature_art_uses_declared_parent_world_fallback(self) -> None:
         state = parse_inherited_world(inherited_query("calm"))
         assert state is not None
         settings = build_theme_settings(state)
@@ -79,10 +82,22 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         definition = self.definition("calm")
         for scene in ("finance", "health", "vehicle"):
             feature = definition.feature(scene)
-            self.assertEqual(feature.asset, str(SUBSYSTEM_WORLD_ASSETS[scene]))
-            self.assertNotEqual(feature.asset, definition.home_asset)
-            self.assertEqual(feature.asset_state, "reused-official-feature")
+            self.assertEqual(feature.asset, definition.home_asset)
+            self.assertNotEqual(feature.asset, str(SUBSYSTEM_WORLD_ASSETS[scene]))
+            self.assertEqual(feature.asset_state, "parent-world-fallback")
             self.assertTrue(feature.theme_asset_required)
+
+    def test_root_theme_filter_excludes_reused_official_feature_art(self) -> None:
+        state = parse_inherited_world(inherited_query("calm", brightness=1.2, hue=12.0))
+        assert state is not None
+        css = inherited_world_css(state)
+        scope = '.los-world-scene-scope:not([data-feature-asset-state="reused-official-feature"])'
+        self.assertIn(f"{scope} .los-fixed-world-backdrop img", css)
+        self.assertIn(f"{scope} .los-subsystem-world-hero>img", css)
+        self.assertNotIn(
+            ".los-fixed-world-backdrop img,.los-subsystem-world-hero>img{",
+            css,
+        )
 
     def test_navigation_identity_uses_distinct_shapes_and_keeps_responsive_contract(self) -> None:
         self.assertEqual(len(FEATURE_NAVIGATION_SHAPES), 10)
@@ -112,7 +127,7 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
         rendered = "\n".join(str(item.value) for item in app.markdown)
         self.assertIn('data-living-world-context="home"', rendered)
         self.assertIn('data-theme-composition="wetland-haven"', rendered)
-        self.assertIn("OS ECOSYSTEM / LIVING", rendered)
+        self.assertNotIn("OS ECOSYSTEM / LIVING", rendered)
 
         seen: dict[str, str] = {}
         for page in ("Finance", "Health", "Vehicle"):
@@ -122,7 +137,7 @@ class ThemeWorldIntegrationTests(unittest.TestCase):
             feature = page.lower()
             self.assertIn(f'data-feature-id="{feature}"', rendered)
             self.assertIn('data-theme-composition="wetland-haven"', rendered)
-            self.assertIn('data-feature-asset-state="reused-official-feature"', rendered)
+            self.assertIn('data-feature-asset-state="parent-world-fallback"', rendered)
             marker = next(
                 item for item in rendered.split("data-feature-composition=")
                 if f'data-feature-id="{feature}"' in rendered

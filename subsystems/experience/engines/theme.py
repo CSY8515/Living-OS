@@ -597,6 +597,16 @@ a{color:var(--los-gold-bright)}*:focus-visible{outline:2px solid var(--los-gold-
  .st-key-world_enter .stButton>button>div,.st-key-world_enter .stButton>button p{font-size:clamp(.36rem,1.55vw,.58rem)!important}
 }
 @media(max-width:760px){.los-world-symbol{width:8.1%!important;height:13.2%!important}.los-world-central-roof{width:7%!important}}
+/* Living Home only: preserve the native 1376x918 layout while fitting the viewport. */
+.stApp:has(.st-key-living_world) [data-testid="stMainBlockContainer"]{position:relative!important;min-height:100dvh!important;overflow:hidden!important}
+.stApp:has(.st-key-living_world) .st-key-living_world{position:absolute!important;inset:0!important;width:min(100%,149.891dvh)!important;max-width:none!important;height:auto!important;max-height:100dvh!important;aspect-ratio:1376/918!important;margin:auto!important}
+.stApp:has(.st-key-living_world) [data-testid="stPopover"]{position:relative!important;z-index:30!important}
+.stApp:has(.st-key-living_world) [class*="st-key-world_nav_"]{bottom:2.2%!important;width:9.6%!important;height:7.2%!important}
+.stApp:has(.st-key-living_world) .st-key-world_nav_dashboard{left:25.2%!important}
+.stApp:has(.st-key-living_world) .st-key-world_nav_today{left:35.2%!important}
+.stApp:has(.st-key-living_world) .st-key-world_nav_decision{left:45.2%!important}
+.stApp:has(.st-key-living_world) .st-key-world_nav_reports{left:55.2%!important}
+.stApp:has(.st-key-living_world) .st-key-world_nav_ai{left:65.2%!important}
 </style>
 """
 

@@ -1,8 +1,8 @@
-# Living OS v2.0.9.7
+# Living OS v2.0.9.8
 
-> Living OS v2.0.9.7 is the Theme World Integration Hotfix. GitHub release tag: v2.097.
+> Living OS v2.0.9.8 is the Living Home Presentation and Theme Fallback Hotfix. GitHub release tag: v2.098.
 
-v2.0.9.7 connects the existing Ultra Brain Theme Consumer to a canonical Living World Definition. Living Home consumes the inherited World asset, while every Feature retains a distinct main object, navigation object, composition, and repository-owned scene. Theme switching changes the World language and frame without adding a Living OS editor or changing domain data, feature behavior, deployment, or runtime composition.
+v2.0.9.8 removes internal World hierarchy presentation from Living Home while retaining its hidden state and routing contracts, fits the native Home world safely inside the active viewport, and separates the bottom navigation from lower Feature hit areas. Non-Official Themes without dedicated Feature art use an explicit Parent World fallback state instead of silently presenting unrelated Official art. No domain data, persistence, routing, or Feature behavior changes are included.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

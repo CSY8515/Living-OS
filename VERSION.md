@@ -1,14 +1,16 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.9.7
+Workspace version: Living OS v2.0.9.8
 
-Implementation verification date: 2026-08-12
+Implementation verification date: 2026-08-14
 
-Production release: Living OS v2.0.9.7 (GitHub tag `v2.097`)
+Production release: Living OS v2.0.9.8 (GitHub tag `v2.098`)
 
-Status: Living OS v2.0.9.7 Theme World Integration Hotfix.
+Status: Living OS v2.0.9.8 Living Home Presentation and Theme Fallback Hotfix.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
+
+v2.098 hotfix: Living Home no longer exposes the World/Hierarchy identity panel to users. Internal World IDs, Theme state, hierarchy, and routing remain intact. The native 1376x918 Home composition now fits the active viewport without clipping, while the five bottom-navigation actions use equal sizing, equal spacing, and a dedicated gap from the lower Feature hit areas. Non-Official Themes that do not provide dedicated Feature concept art declare and render the Parent World fallback explicitly; filter application remains scoped to the declared asset state.
 
 v2.097 integration: the existing Ultra Brain Theme Consumer now resolves a canonical Living World Definition for Living Home and every registered Feature. The inherited Parent World asset is owned by Home only; Feature scenes retain distinct main objects, navigation objects, compositions, layouts, and repository-owned assets. Theme World language, Lock/Override, revision, adjustments, responsive navigation, and functional overlays are applied in the Experience layer without adding an editor, changing domain behavior, or touching Universal Learning Engine. Theme-specific Feature concept images not present in the repository are reported as asset requirements and are never replaced by a repeated Parent Background.
 

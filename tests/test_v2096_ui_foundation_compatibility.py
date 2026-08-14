@@ -19,8 +19,8 @@ from tests.test_streamlit import PAGES
 
 
 ROOT = Path(__file__).resolve().parent.parent
-V2095_OFFICIAL_CSS_SHA256 = (
-    "45f61ee31488e862728535cd157fc3bc1e2421cd68507829364b74d9bc927606"
+V2098_OFFICIAL_CSS_SHA256 = (
+    "292071ac441b24e16003829b461bb8bd8c244ced0e7a1d1d6b1fa13413e4756b"
 )
 
 
@@ -28,9 +28,9 @@ class UIFoundationCompatibilityTests(unittest.TestCase):
     def setUp(self) -> None:
         self.adapter = ThemeAdapter()
 
-    def test_official_visual_css_is_unchanged(self) -> None:
+    def test_v2098_official_visual_css_is_locked(self) -> None:
         digest = hashlib.sha256(OFFICIAL_UI_CSS.encode("utf-8")).hexdigest()
-        self.assertEqual(digest, V2095_OFFICIAL_CSS_SHA256)
+        self.assertEqual(digest, V2098_OFFICIAL_CSS_SHA256)
         default = self.adapter.render(OFFICIAL_UI_CSS, {})
         self.assertTrue(default.startswith(OFFICIAL_UI_CSS))
         self.assertIn('data-living-os-ui-contract="v2.096"', default)

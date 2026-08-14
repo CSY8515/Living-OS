@@ -651,8 +651,12 @@ def inherited_world_css(world: InheritedWorld | None) -> str:
         feature_brightness = (1.0 if nonofficial_asset else 0.92) * values["brightness"]
         feature_contrast = (1.0 if nonofficial_asset else 1.04) * values["contrast"]
         feature_saturation = (1.0 if nonofficial_asset else 1.02) * values["saturation"]
+        feature_image_scope = (
+            '.los-world-scene-scope:not([data-feature-asset-state="reused-official-feature"])'
+        )
         rules.append(
-            ".los-fixed-world-backdrop img,.los-subsystem-world-hero>img{"
+            f"{feature_image_scope} .los-fixed-world-backdrop img,"
+            f"{feature_image_scope} .los-subsystem-world-hero>img{{"
             f"filter:brightness({feature_brightness:g}) contrast({feature_contrast:g}) "
             f"saturate({feature_saturation:g}) hue-rotate({values['hue']:g}deg) "
             f"blur({values['blur']:g}px)!important;opacity:{values['transparency']:g}!important"

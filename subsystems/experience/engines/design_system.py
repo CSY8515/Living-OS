@@ -281,7 +281,6 @@ def home_world(
           data-theme-texture="{escape(world.language.texture)}"
           style="--los-home-image:url('{world_uri}');{roof_styles}{symbol_styles}">
           <div class="los-world-style-layer" aria-hidden="true"></div>
-          <div class="los-world-identity"><small>OS ECOSYSTEM / LIVING</small><strong>생활 세계</strong><span>{escape(world.language.composition)}</span></div>
           <span class="los-world-central-roof" aria-hidden="true"></span>
           {roof_layers}
           {symbol_layers}

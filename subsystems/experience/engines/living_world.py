@@ -134,10 +134,20 @@ def build_living_world_definition(
             asset = override
             asset_state = "theme-asset"
             required = False
+        elif normalized_theme != "official" and str(home_asset).strip():
+            # A non-Official Theme without a dedicated Feature scene must keep
+            # the incoming Living World visible.  Reusing the checked-in
+            # Official Feature painting here makes transport look successful
+            # while rendering a different World.  The semantic Feature layer
+            # below still supplies its own object/composition, and the state
+            # remains explicitly incomplete until dedicated art is approved.
+            asset = str(home_asset)
+            asset_state = "parent-world-fallback"
+            required = True
         elif default_asset:
             asset = default_asset
-            asset_state = "official" if normalized_theme == "official" else "reused-official-feature"
-            required = normalized_theme != "official"
+            asset_state = "official"
+            required = False
         else:
             asset = ""
             asset_state = "css-scene" if normalized_theme == "official" else "asset-required"
