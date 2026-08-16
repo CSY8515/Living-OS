@@ -8,6 +8,8 @@ from subsystems.experience.engines.ultra_brain_world import (
     parse_inherited_world,
     resolve_visual_asset,
 )
+from subsystems.experience.engines.theme_adapter import ThemeAdapter
+from subsystems.experience.engines.ui_registry import DEFAULT_UI_REGISTRY
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +29,28 @@ def query(**extra: object) -> dict[str, object]:
 
 
 class LivingRoleThemeAssetPathTests(unittest.TestCase):
+    def test_asset_only_contract_preserves_original_functional_ui(self) -> None:
+        adapter = ThemeAdapter()
+        official = DEFAULT_UI_REGISTRY.theme("living-os-dark").to_payload()
+        official["assets"]["background.module.finance"] = "assets/theme-role-assets/dark/finance-background.png"
+        rendered = adapter.render(".original-functional-ui{color:#f3eddc}", official)
+        self.assertIn(".original-functional-ui{color:#f3eddc}", rendered)
+        self.assertIn('data-living-os-ui-contract="v2.096"', rendered)
+        self.assertNotIn("--los-font-sans", rendered)
+        self.assertNotIn("--los-card-radius", rendered)
+        self.assertNotIn('[data-testid="stMetric"]', rendered)
+        self.assertNotIn('[data-baseweb="input"]', rendered)
+
+    def test_explicit_full_dark_contract_keeps_ui_contract_active(self) -> None:
+        adapter = ThemeAdapter()
+        explicit = DEFAULT_UI_REGISTRY.theme("living-os-dark").to_payload()
+        explicit["source"] = "ultra-brain"
+        rendered = adapter.render(".original-functional-ui{color:#f3eddc}", explicit)
+        self.assertIn("--los-font-sans", rendered)
+        self.assertIn("--los-card-radius", rendered)
+        self.assertIn('[data-testid="stMetric"]', rendered)
+        self.assertIn('[data-baseweb="input"]', rendered)
+
     def test_registered_dark_home_resolves_into_existing_background_slot(self) -> None:
         world = parse_inherited_world(
             query(

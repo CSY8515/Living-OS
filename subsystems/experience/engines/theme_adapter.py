@@ -241,7 +241,15 @@ class ThemeAdapter:
             self.registry.module(module_id)
 
     def _is_official_default(self, contract: ThemeContract) -> bool:
-        return contract.to_payload() == self.registry.theme("living-os-dark").to_payload()
+        current = contract.to_payload()
+        official = self.registry.theme("living-os-dark").to_payload()
+        # Role/background assets may change independently of Living OS chrome.
+        # Compare the functional UI contract while deliberately ignoring only
+        # asset and icon maps so an asset-only inherited theme cannot restyle
+        # metrics, inputs, typography or component geometry.
+        current["assets"] = official["assets"]
+        current["icons"] = official["icons"]
+        return current == official
 
     def _component_css(self, contract: ThemeContract) -> list[str]:
         result: list[str] = []
