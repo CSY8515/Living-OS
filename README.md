@@ -1,8 +1,8 @@
-# Living OS v2.0.9.8
+# Living OS v2.0.9.9
 
-> Living OS v2.0.9.8 is the Living Home Presentation and Theme Fallback Hotfix. GitHub release tag: v2.098.
+> Living OS v2.0.9.9 is the Dark Feature Background Matrix Hotfix. GitHub release tag: v2.099.
 
-v2.0.9.8 removes internal World hierarchy presentation from Living Home while retaining its hidden state and routing contracts, fits the native Home world safely inside the active viewport, and separates the bottom navigation from lower Feature hit areas. Non-Official Themes without dedicated Feature art use an explicit Parent World fallback state instead of silently presenting unrelated Official art. No domain data, persistence, routing, or Feature behavior changes are included.
+v2.0.9.9 finalizes deterministic Dark Theme feature-background resolution. Finance and Health use their approved Dark feature artwork; the remaining eight Living features retain their own exact Official artwork as a safe `ASSET REQUIRED` fallback until dedicated Dark assets are approved. No Home, domain data, persistence, routing, or Feature behavior changes are included.
 
 The Command Center is intentionally a single explorable world rather than a metric dashboard. Life functions render as connected glass habitats, and each destination continues the same spatial atmosphere instead of returning to a white management surface.
 

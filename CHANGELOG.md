@@ -2,6 +2,19 @@
 
 All notable Living OS changes are recorded in this file.
 
+## v2.0.9.9 — 2026-08-18
+
+- Verified the complete ten-feature Dark background matrix against the
+  canonical Living feature IDs and approved role assets.
+- Kept Finance and Health connected to their dedicated Dark feature artwork.
+- Kept the other eight features on their own exact Official feature artwork
+  with explicit `ASSET REQUIRED` state; no Home or unrelated feature image is
+  reused as a completed Dark asset.
+- Added deterministic A-to-B-to-A, Official return, Dark re-entry, exact
+  registry-context, and fail-closed regression coverage.
+- Added no Home, domain, persistence, migration, routing, database, or
+  functional UI change.
+
 ## v2.0.9.8 — 2026-08-14
 
 - Removed the visible Living Home World/Hierarchy identity panel while keeping

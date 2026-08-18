@@ -1,14 +1,16 @@
 # Living OS Version
 
-Workspace version: Living OS v2.0.9.8
+Workspace version: Living OS v2.0.9.9
 
-Implementation verification date: 2026-08-14
+Implementation verification date: 2026-08-18
 
-Production release: Living OS v2.0.9.8 (GitHub tag `v2.098`)
+Production release: Living OS v2.0.9.9 (GitHub tag `v2.099`)
 
-Status: Living OS v2.0.9.8 Living Home Presentation and Theme Fallback Hotfix.
+Status: Living OS v2.0.9.9 Dark Feature Background Matrix Hotfix.
 
 Production URL: [https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/](https://living-os-h5uinmvmjpvv6m8phat28a.streamlit.app/)
+
+v2.099 hotfix: the complete Living Dark feature matrix resolves deterministically. Finance and Health use approved dedicated Dark feature art. Investment, Job, Vehicle, Housing, Food, Knowledge, Routine, and Growth keep their exact Official feature art as an explicit safe fallback and remain `ASSET REQUIRED`; Home, routing, functional UI, and business behavior are unchanged.
 
 v2.098 hotfix: Living Home no longer exposes the World/Hierarchy identity panel to users. Internal World IDs, Theme state, hierarchy, and routing remain intact. The native 1376x918 Home composition now fits the active viewport without clipping, while the five bottom-navigation actions use equal sizing, equal spacing, and a dedicated gap from the lower Feature hit areas. Non-Official Themes that do not provide dedicated Feature concept art declare and render the Parent World fallback explicitly; filter application remains scoped to the declared asset state.
 
