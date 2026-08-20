@@ -221,6 +221,22 @@ APPROVED_ROLE_ASSETS = {
         "health",
         "FEATURE_BACKGROUND",
     ): (2, ROOT / "assets" / "theme-role-assets" / "dark" / "health-background.png"),
+    **{
+        ("dark", "living-os", feature_id, "FEATURE_BACKGROUND"): (
+            2,
+            ROOT / "assets" / "theme-role-assets" / "dark" / f"{feature_id}-background.png",
+        )
+        for feature_id in (
+            "job",
+            "housing",
+            "investment",
+            "knowledge",
+            "routine",
+            "vehicle",
+            "growth",
+            "food",
+        )
+    },
 }
 
 

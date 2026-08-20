@@ -26,8 +26,8 @@ FEATURES = (
     "growth",
 )
 DEDICATED_DARK = {
-    "finance": ROOT / "assets" / "theme-role-assets" / "dark" / "finance-background.png",
-    "health": ROOT / "assets" / "theme-role-assets" / "dark" / "health-background.png",
+    feature: ROOT / "assets" / "theme-role-assets" / "dark" / f"{feature}-background.png"
+    for feature in FEATURES
 }
 
 
@@ -69,20 +69,15 @@ def dark_definition():
 
 
 class LivingFeatureBackgroundMatrixTests(unittest.TestCase):
-    def test_dark_matrix_uses_only_dedicated_assets_or_exact_official_fallbacks(self) -> None:
+    def test_dark_matrix_uses_only_dedicated_assets(self) -> None:
         definition = dark_definition()
         self.assertTrue(set(FEATURES).issubset(definition.features))
         for feature in FEATURES:
             with self.subTest(feature=feature):
                 resolved = definition.feature(feature)
-                if feature in DEDICATED_DARK:
-                    self.assertEqual(Path(resolved.asset), DEDICATED_DARK[feature])
-                    self.assertEqual(resolved.asset_state, "theme-asset")
-                    self.assertFalse(resolved.theme_asset_required)
-                else:
-                    self.assertEqual(Path(resolved.asset), Path(SUBSYSTEM_WORLD_ASSETS[feature]))
-                    self.assertEqual(resolved.asset_state, "reused-official-feature")
-                    self.assertTrue(resolved.theme_asset_required)
+                self.assertEqual(Path(resolved.asset), DEDICATED_DARK[feature])
+                self.assertEqual(resolved.asset_state, "theme-asset")
+                self.assertFalse(resolved.theme_asset_required)
                 self.assertTrue(Path(resolved.asset).is_file())
 
     def test_dark_a_to_b_to_a_resolution_is_deterministic(self) -> None:
@@ -117,11 +112,11 @@ class LivingFeatureBackgroundMatrixTests(unittest.TestCase):
                 self.assertEqual(fallback, "NONE")
 
         inherited = parse_inherited_world(
-            query(visual_role="FEATURE_BACKGROUND", feature_id="vehicle")
+            query(visual_role="FEATURE_BACKGROUND", feature_id="collaboration")
         )
         self.assertIsNotNone(inherited)
         path, source, fallback = resolve_visual_asset(
-            inherited, "FEATURE_BACKGROUND", "vehicle"
+            inherited, "FEATURE_BACKGROUND", "collaboration"
         )
         self.assertIsNone(path)
         self.assertEqual(source, "missing-role-asset")

@@ -80,6 +80,14 @@ class LivingRoleThemeAssetPathTests(unittest.TestCase):
             Path(settings["assets"]["background.module.health"]),
             ROOT / "assets" / "theme-role-assets" / "dark" / "health-background.png",
         )
+        for feature_id in (
+            "job", "housing", "investment", "knowledge", "routine",
+            "vehicle", "growth", "food",
+        ):
+            self.assertEqual(
+                Path(settings["assets"][f"background.module.{feature_id}"]),
+                ROOT / "assets" / "theme-role-assets" / "dark" / f"{feature_id}-background.png",
+            )
 
     def test_revision_one_cannot_claim_revision_two_registration(self) -> None:
         world = parse_inherited_world(
@@ -104,27 +112,31 @@ class LivingRoleThemeAssetPathTests(unittest.TestCase):
         self.assertEqual(source, "legacy-theme-asset")
         self.assertEqual(fallback, "FALLBACK USED")
 
-    def test_registered_finance_feature_background_resolves_independently(self) -> None:
-        world = parse_inherited_world(
-            query(
-                asset_registry="ui-theme-registry",
-                asset_registry_version="1.0.0",
-                project_id="living-os",
-                feature_id="finance",
-                visual_role="FEATURE_BACKGROUND",
-                asset_revision="2",
+    def test_all_ten_registered_feature_backgrounds_resolve_independently(self) -> None:
+        for feature_id in (
+            "finance", "health", "job", "housing", "investment",
+            "knowledge", "routine", "vehicle", "growth", "food",
+        ):
+            world = parse_inherited_world(
+                query(
+                    asset_registry="ui-theme-registry",
+                    asset_registry_version="1.0.0",
+                    project_id="living-os",
+                    feature_id=feature_id,
+                    visual_role="FEATURE_BACKGROUND",
+                    asset_revision="2",
+                )
             )
-        )
-        self.assertIsNotNone(world)
-        path, source, fallback = resolve_visual_asset(
-            world, "FEATURE_BACKGROUND", "finance"
-        )
-        self.assertEqual(
-            path,
-            ROOT / "assets" / "theme-role-assets" / "dark" / "finance-background.png",
-        )
-        self.assertEqual(source, "theme-project-feature-role")
-        self.assertEqual(fallback, "NONE")
+            self.assertIsNotNone(world)
+            path, source, fallback = resolve_visual_asset(
+                world, "FEATURE_BACKGROUND", feature_id
+            )
+            self.assertEqual(
+                path,
+                ROOT / "assets" / "theme-role-assets" / "dark" / f"{feature_id}-background.png",
+            )
+            self.assertEqual(source, "theme-project-feature-role")
+            self.assertEqual(fallback, "NONE")
 
     def test_unregistered_feature_still_fails_closed(self) -> None:
         world = parse_inherited_world(
@@ -132,14 +144,14 @@ class LivingRoleThemeAssetPathTests(unittest.TestCase):
                 asset_registry="ui-theme-registry",
                 asset_registry_version="1.0.0",
                 project_id="living-os",
-                feature_id="vehicle",
+                feature_id="collaboration",
                 visual_role="FEATURE_BACKGROUND",
                 asset_revision="2",
             )
         )
         self.assertIsNotNone(world)
         path, source, fallback = resolve_visual_asset(
-            world, "FEATURE_BACKGROUND", "vehicle"
+            world, "FEATURE_BACKGROUND", "collaboration"
         )
         self.assertIsNone(path)
         self.assertEqual(source, "missing-role-asset")
