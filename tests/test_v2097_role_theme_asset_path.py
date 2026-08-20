@@ -112,6 +112,33 @@ class LivingRoleThemeAssetPathTests(unittest.TestCase):
         self.assertEqual(source, "legacy-theme-asset")
         self.assertEqual(fallback, "FALLBACK USED")
 
+    def test_registered_calm_home_uses_existing_asset_without_faking_features(self) -> None:
+        world = parse_inherited_world(
+            query(
+                theme="calm",
+                world="calm-wetland-world",
+                asset_registry="ui-theme-registry",
+                asset_registry_version="1.0.0",
+                project_id="living-os",
+                visual_role="HOME_BACKGROUND",
+                asset_revision="2",
+            )
+        )
+        self.assertIsNotNone(world)
+        path, source, fallback = resolve_visual_asset(world, "HOME_BACKGROUND")
+        self.assertEqual(path, ROOT / "assets" / "inherited-worlds" / "calm.png")
+        self.assertEqual(source, "theme-project-role")
+        self.assertEqual(fallback, "NONE")
+        settings = build_theme_settings(world)
+        self.assertEqual(Path(settings["assets"]["background.home"]), path)
+        self.assertNotIn("background.module.finance", settings["assets"])
+        feature_path, feature_source, feature_fallback = resolve_visual_asset(
+            world, "FEATURE_BACKGROUND", "finance"
+        )
+        self.assertIsNone(feature_path)
+        self.assertEqual(feature_source, "missing-role-asset")
+        self.assertEqual(feature_fallback, "ASSET REQUIRED")
+
     def test_all_ten_registered_feature_backgrounds_resolve_independently(self) -> None:
         for feature_id in (
             "finance", "health", "job", "housing", "investment",

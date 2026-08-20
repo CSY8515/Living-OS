@@ -202,6 +202,11 @@ WORLD_ASSETS = {
     },
 }
 APPROVED_ROLE_ASSETS = {
+    **{
+        (theme, "living-os", None, "HOME_BACKGROUND"): (2, WORLD_ASSETS[theme])
+        for theme in THEME_PROFILES
+        if theme not in {"official", "dark"}
+    },
     ("dark", "living-os", None, "HOME_BACKGROUND"): (2, WORLD_ASSETS["dark"]),
     (
         "dark",
